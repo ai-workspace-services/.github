@@ -1,0 +1,39 @@
+name: Update Organization Profile README
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+
+      - name: Set Up Python
+        uses: actions/setup-python@82c7e63d92cbdc2f5e44b7b4b2f9d85d0f6a3f28
+        with:
+          python-version: "3.11"
+
+      - name: Render Profile README
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/render-profile-readme.py
+
+      - name: Commit And Push
+        run: |
+          if git diff --quiet -- profile/README.md; then
+            echo "No README changes"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add profile/README.md
+          git commit -m "docs: refresh organization profile README"
+          git push

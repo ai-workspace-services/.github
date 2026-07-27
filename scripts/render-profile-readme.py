@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import base64
 import json
 import os
 import re
-import sys
 import urllib.request
-from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -16,28 +12,24 @@ from typing import Any
 ORG = "ai-workspace-services"
 OUTPUT = Path(__file__).resolve().parents[1] / "profile" / "README.md"
 
-ENV_PRIORITY = {
-    "sit": [
-        re.compile(r"^sit-"),
-        re.compile(r"^snapshot-"),
-    ],
-    "uat": [
-        re.compile(r"^uat-"),
-        re.compile(r"^uat/"),
-    ],
-    "prod": [
-        re.compile(r"^prod-"),
-        re.compile(r"^prod/"),
-        re.compile(r"^v\d"),
-    ],
-}
-
 PACKAGE_MAP = {
     "accounts": {"title": "accounts", "description": "账户与身份相关镜像。"},
     "billing-service": {"title": "billing-service", "description": "计费服务镜像。"},
     "docs": {"title": "docs", "description": "文档站镜像。"},
     "console": {"title": "console", "description": "控制台前端镜像。"},
     "postgresql": {"title": "postgresql", "description": "PostgreSQL 基础镜像。"},
+}
+
+ENV_PACKAGE_GROUPS = {
+    "sit": ["console"],
+    "uat": ["accounts", "billing-service", "docs", "postgresql"],
+    "prod": [],
+}
+
+ENV_PRIORITY = {
+    "sit": [re.compile(r"^sit-"), re.compile(r"^snapshot-")],
+    "uat": [re.compile(r"^uat-"), re.compile(r"^uat/")],
+    "prod": [re.compile(r"^prod-"), re.compile(r"^prod/"), re.compile(r"^v\d")],
 }
 
 
@@ -82,6 +74,37 @@ def newest_version_for_env(versions: list[dict[str, Any]], env: str) -> dict[str
     return versions[0] if versions else None
 
 
+def classify_env(version: dict[str, Any]) -> str | None:
+    tags = version.get("metadata", {}).get("container", {}).get("tags", []) or []
+    for env, patterns in ENV_PRIORITY.items():
+        for tag in tags:
+            if any(pattern.match(tag) for pattern in patterns):
+                return env
+    if "latest" in tags:
+        return "uat"
+    if any(tag.startswith("sha-") for tag in tags):
+        return "sit"
+    return None
+
+
+def env_version_for_package(package_name: str, env: str) -> dict[str, Any] | None:
+    versions = list_versions(package_name)
+    matched = []
+    for version in versions:
+        if classify_env(version) == env:
+            matched.append(version)
+    if matched:
+        matched.sort(key=lambda version: version.get("created_at", ""), reverse=True)
+        return matched[0]
+    if env == "sit" and package_name in ENV_PACKAGE_GROUPS["sit"]:
+        return newest_version_for_env(versions, "sit")
+    if env == "uat" and package_name in ENV_PACKAGE_GROUPS["uat"]:
+        return newest_version_for_env(versions, "uat")
+    if env == "prod" and package_name in ENV_PACKAGE_GROUPS["prod"]:
+        return newest_version_for_env(versions, "prod")
+    return None
+
+
 def format_tags(version: dict[str, Any] | None) -> str:
     if not version:
         return "暂无"
@@ -106,24 +129,24 @@ def latest_card(env: str, version: dict[str, Any] | None) -> str:
     return f"| `{env}` | {badge(env)} | {title_map[env]} | {tags} | {updated} |"
 
 
-def package_rows(env: str, package_names: list[str]) -> list[str]:
+def env_card(env: str, package_names: list[str]) -> list[str]:
     rows = []
     for package_name in package_names:
-        versions = list_versions(package_name)
-        version = newest_version_for_env(versions, env)
+        version = env_version_for_package(package_name, env)
         pkg = PACKAGE_MAP[package_name]
-        rows.append(f"| `{pkg['title']}` | {format_tags(version)} | {pkg['description']} |")
+        rows.append(
+            f"| `{pkg['title']}` | {format_tags(version)} | {pkg['description']} |"
+        )
     return rows
 
 
 def render() -> str:
     package_names = ["accounts", "billing-service", "docs", "console", "postgresql"]
-    package_versions = {name: list_versions(name) for name in package_names}
 
     latest_cards = [
-        latest_card("sit", newest_version_for_env(package_versions["accounts"], "sit")),
-        latest_card("uat", newest_version_for_env(package_versions["billing-service"], "uat")),
-        latest_card("prod", newest_version_for_env(package_versions["postgresql"], "prod")),
+        latest_card("sit", env_version_for_package("console", "sit")),
+        latest_card("uat", env_version_for_package("billing-service", "uat")),
+        latest_card("prod", env_version_for_package("postgresql", "prod")),
     ]
 
     lines = []
@@ -160,13 +183,25 @@ def render() -> str:
     lines.append("")
     lines.append("## 镜像清单")
     lines.append("")
+    lines.append("<table>")
+    lines.append("<tr>")
     for env in ("sit", "uat", "prod"):
+        lines.append("<td valign=\"top\" width=\"33%\">")
+        lines.append("")
         lines.append(f"### {env}")
         lines.append("")
         lines.append("| 镜像 / 包 | 最新 tag | 说明 |")
         lines.append("| --- | --- | --- |")
-        lines.extend(package_rows(env, package_names))
+        rows = env_card(env, ENV_PACKAGE_GROUPS[env])
+        if rows:
+            lines.extend(rows)
+        else:
+            lines.append("| `暂无` | `暂无` | 该环境当前没有可展示的镜像。 |")
         lines.append("")
+        lines.append("</td>")
+    lines.append("</tr>")
+    lines.append("</table>")
+    lines.append("")
     lines.append("## 中文")
     lines.append("")
     lines.append("`ai-workspace-services` 是面向真实业务运行的服务组织主页，聚合统一控制台、身份认证、AI 工作台与跨网络互联能力。")

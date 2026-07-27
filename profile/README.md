@@ -31,6 +31,38 @@
 
 > 三张卡片会保持简洁，重点是让你一眼看到每条环境线的最新发布入口。
 
+## 镜像清单
+
+### uat
+
+| 镜像 / 包 | 最新 tag | 说明 |
+| --- | --- | --- |
+| `accounts` | `sha-ca132850316149d428d547f57cf41f879d1c5fe0`, `latest` | 账户与身份相关镜像。 |
+| `billing-service` | `uat-platform-rebuild-2026.07.27-r4`, `sha-3a8a5ce0d99dbd62064d109b3c5c1fad7daf22f5`, `latest` | 计费服务镜像。 |
+| `console` | `sha-4a7176cb0b02ceadaee3e0d6335fa7c2bbda7c2b` | 控制台前端镜像。 |
+| `docs` | `uat-platform-rebuild-2026.07.27-r4`, `sha-595931d1fb3b5b90220ed8568fa36fecb0a4f36e`, `latest` | 文档站镜像。 |
+| `postgresql` | `uat-platform-rebuild-2026.07.27-r4` | PostgreSQL 基础镜像。 |
+
+### sit
+
+| 镜像 / 包 | 最新 tag | 说明 |
+| --- | --- | --- |
+| `accounts` | `sha-ca132850316149d428d547f57cf41f879d1c5fe0`, `latest` | 账户与身份相关镜像。 |
+| `billing-service` | `uat-platform-rebuild-2026.07.27-r4`, `sha-3a8a5ce0d99dbd62064d109b3c5c1fad7daf22f5`, `latest` | 计费服务镜像。 |
+| `console` | `sha-4a7176cb0b02ceadaee3e0d6335fa7c2bbda7c2b` | 控制台前端镜像。 |
+| `docs` | `uat-platform-rebuild-2026.07.27-r4`, `sha-595931d1fb3b5b90220ed8568fa36fecb0a4f36e`, `latest` | 文档站镜像。 |
+| `postgresql` | `uat-platform-rebuild-2026.07.27-r4` | PostgreSQL 基础镜像。 |
+
+### prod
+
+| 镜像 / 包 | 最新 tag | 说明 |
+| --- | --- | --- |
+| `accounts` | `sha-ca132850316149d428d547f57cf41f879d1c5fe0`, `latest` | 账户与身份相关镜像。 |
+| `billing-service` | `uat-platform-rebuild-2026.07.27-r4`, `sha-3a8a5ce0d99dbd62064d109b3c5c1fad7daf22f5`, `latest` | 计费服务镜像。 |
+| `console` | `sha-4a7176cb0b02ceadaee3e0d6335fa7c2bbda7c2b` | 控制台前端镜像。 |
+| `docs` | `uat-platform-rebuild-2026.07.27-r4`, `sha-595931d1fb3b5b90220ed8568fa36fecb0a4f36e`, `latest` | 文档站镜像。 |
+| `postgresql` | `uat-platform-rebuild-2026.07.27-r4` | PostgreSQL 基础镜像。 |
+
 ## 中文
 
 `ai-workspace-services` 是面向真实业务运行的服务组织主页，聚合统一控制台、身份认证、AI 工作台与跨网络互联能力。

@@ -32,27 +32,54 @@
 
 ---
 
-## 🇨🇳 中文主页
+## 最新发布
 
-### 💡 为什么选择 AI Workspace Services？
+| 环境 | 最新发布 | 说明 | 镜像 / 包 | 更新时间 |
+| --- | --- | --- | --- | --- |
+| `sit` | [![sit](https://img.shields.io/badge/sit-Integration%20Check-16a34a?style=for-the-badge)](https://github.com/orgs/ai-workspace-services/packages) | 验证集成 | `sha-4a7176cb0b02ceadaee3e0d6335fa7c2bbda7c2b` | 2026-07-27 05:40:52 UTC |
+| `uat` | [![uat](https://img.shields.io/badge/uat-Pre%20Release-f59e0b?style=for-the-badge)](https://github.com/orgs/ai-workspace-services/packages) | 预发验证 | `uat-platform-rebuild-2026.07.27-r4`, `sha-3a8a5ce0d99dbd62064d109b3c5c1fad7daf22f5`, `latest` | 2026-07-27 05:38:38 UTC |
+| `prod` | [![prod](https://img.shields.io/badge/prod-Production%20Release-dc2626?style=for-the-badge)](https://github.com/orgs/ai-workspace-services/packages) | 生产发布 | 暂无 | 暂无 |
 
-在 AI 工具与工作流全面爆发的时代，开发者与团队常常面临三大痛点：**跨国 API 网络延迟高与频繁丢包**、**多工具与长周期任务协同割裂**、以及**私有化基础设施运维繁琐**。
+> 三张卡片会保持简洁，重点是让你一眼看到每条环境线的最新发布入口。
 
-`ai-workspace-services` 是一套**持续在线运行的企业级生产底座**，为个人开发者、AI 创作者与团队提供开箱即用、自建可选的统一解决方案。
+## 镜像清单
 
----
+<table>
+<tr>
+<td valign="top" width="33%">
 
-### 🌟 核心产品矩阵
+### sit
 
-| 产品 / 模块 | 核心能力与价值 | 适用场景 | 快速入口 |
-| :--- | :--- | :--- | :--- |
-| ⚡ **XConnect / XStream** | **AI 工作空间连接与智能加速**<br/>• 针对 Cursor / Claude / ChatGPT 流式交互深度调优<br/>• 支持 1 域名 + 1 VPS 3 分钟一键自建，或云端开箱即用<br/>• 内核级 BBR + FQ 低延迟优化，全自动 TLS 证书 | 开发者、海外 AI 重度用户、跨国协作团队 | [了解详情](https://console.svc.plus/products/xconnect) · [一键自建](https://github.com/ai-workspace-xstream/agent.svc.plus) |
-| 🤖 **XWorkmate** | **智能任务协作与 AI 工作空间**<br/>• 面向长周期、多步骤任务的持续自治推进<br/>• 多 Agent 协同与上下文持久化管理 | 自动化研发、知识工作流、多智能体协同 | [进入工作台](https://console.svc.plus/products/xworkmate) |
-| 🛡️ **Open-Platform Core** | **统一身份底座与多租户管理**<br/>• 支持 GitHub / Google OAuth 一键安全登录<br/>• 租户隔离、密钥管理与全链路可观测性 | 企业私有化、团队多组织管理 | [访问控制台](https://console.svc.plus/) |
+| 镜像 / 包 | 最新 tag | 说明 |
+| --- | --- | --- |
+| `console` | `sha-4a7176cb0b02ceadaee3e0d6335fa7c2bbda7c2b` | 控制台前端镜像。 |
 
----
+</td>
+<td valign="top" width="33%">
 
-### 🧭 极速开始向导
+### uat
+
+| 镜像 / 包 | 最新 tag | 说明 |
+| --- | --- | --- |
+| `accounts` | `sha-ca132850316149d428d547f57cf41f879d1c5fe0`, `latest` | 账户与身份相关镜像。 |
+| `billing-service` | `uat-platform-rebuild-2026.07.27-r4`, `sha-3a8a5ce0d99dbd62064d109b3c5c1fad7daf22f5`, `latest` | 计费服务镜像。 |
+| `docs` | `uat-platform-rebuild-2026.07.27-r4`, `sha-595931d1fb3b5b90220ed8568fa36fecb0a4f36e`, `latest` | 文档站镜像。 |
+| `postgresql` | `uat-platform-rebuild-2026.07.27-r4` | PostgreSQL 基础镜像。 |
+
+</td>
+<td valign="top" width="33%">
+
+### prod
+
+| 镜像 / 包 | 最新 tag | 说明 |
+| --- | --- | --- |
+| `暂无` | `暂无` | 该环境当前没有可展示的镜像。 |
+
+</td>
+</tr>
+</table>
+
+## 中文
 
 ```mermaid
 flowchart LR
@@ -66,7 +93,7 @@ flowchart LR
   curl -fsSL https://raw.githubusercontent.com/cloud-neutral-toolkit/agent.svc.plus/main/scripts/setup-proxy.sh | \
     bash -s -- --node xhttp.example.com
   ```
-- **📱 跨平台自研客户端**：下载 **[XConnect App (85% 完成度预览版)](https://github.com/ai-workspace-xstream/xconnect-app/releases/tag/main-149)**（支持 macOS / Windows / iOS / Linux）。
+- **📱 跨平台自研客户端**：下载 **[XConnect App 预览版)](https://github.com/ai-workspace-xstream/xconnect-app/releases/tag/main-149)**（支持 macOS / Windows / iOS / Linux）。
 - **🌐 云端免运维即刻使用**：直接访问 **[console.svc.plus](https://console.svc.plus/)**。
 
 ---
@@ -75,7 +102,13 @@ flowchart LR
 
 ### 💡 Why AI Workspace Services?
 
-As modern AI workflows evolve, builders and teams face common friction: **high latency and packet loss when querying overseas AI APIs**, **fragmented long-running task collaboration**, and **high operational overhead for self-hosted infrastructure**.
+### 环境速览
+
+- `sit`: 验证集成
+- `uat`: 预发验证
+- `prod`: 生产发布
+
+## English
 
 `ai-workspace-services` provides a battle-tested, **always-on production foundation** that unifies identity, AI workspace collaboration, and ultra-low-latency global network interconnect.
 
@@ -88,6 +121,12 @@ As modern AI workflows evolve, builders and teams face common friction: **high l
 | ⚡ **XConnect / XStream** | **AI Workspace Acceleration & Connectivity**<br/>• Optimized for Cursor, Claude, ChatGPT streaming latency<br/>• 3-min 1-click self-host (1 Domain + 1 VPS) or fully managed SaaS<br/>• Kernel-level BBR+FQ pacing, auto Let's Encrypt TLS | Developers, AI power users, global teams | [Overview](https://console.svc.plus/products/xconnect) · [One-Click Script](https://github.com/ai-workspace-xstream/agent.svc.plus) |
 | 🤖 **XWorkmate** | **Autonomous AI Workspace & Task Orchestration**<br/>• Persistent context execution for multi-step AI workflows<br/>• Multi-agent team collaboration and state tracking | Automated engineering, knowledge pipelines | [Launch XWorkmate](https://console.svc.plus/products/xworkmate) |
 | 🛡️ **Open-Platform Core** | **Unified Identity & Multi-Tenant Core**<br/>• One-click sign-in with GitHub and Google OAuth<br/>• Tenant isolation, secret governance, and observability | Enterprise self-hosting, team management | [Console Home](https://console.svc.plus/) |
+
+### Environment Snapshot
+
+- `sit`: integration checks
+- `uat`: pre-release validation
+- `prod`: production release
 
 ---
 

@@ -1,0 +1,1928 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XConnect Micro SaaS 模版 · 4 页设计稿总览</title>
+<style>
+/* ============================================================
+   XConnect Micro SaaS 模版 — Design Tokens v1.0
+   排版语言借鉴 Supabase（轻字重、宽行高、无阴影、边框分层）
+   品牌色沿用 portal 控制台 --color-primary #0058bd
+   ============================================================ */
+
+:root {
+  /* ---------- 1. 字体族 ---------- */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: "SF Mono", "SFMono-Regular", ui-monospace, "JetBrains Mono",
+    "Cascadia Code", Consolas, monospace;
+
+  /* ---------- 2. 字号阶梯（1.200 Minor Third，marketing / console 双密度）---------- */
+  --fs-display-1: 4.25rem;  /* 68px  marketing hero */
+  --fs-display-2: 3rem;     /* 48px  section hero */
+  --fs-h1: 2.25rem;         /* 36px */
+  --fs-h2: 1.75rem;         /* 28px */
+  --fs-h3: 1.3125rem;       /* 21px */
+  --fs-h4: 1.0625rem;       /* 17px */
+  --fs-body-lg: 1.0625rem;  /* 17px  marketing 正文 */
+  --fs-body: 0.9375rem;     /* 15px  默认正文 */
+  --fs-body-sm: 0.875rem;   /* 14px  console 正文 */
+  --fs-caption: 0.8125rem;  /* 13px  辅助说明 */
+  --fs-micro: 0.75rem;      /* 12px  标签 / 表头 */
+  --fs-eyebrow: 0.6875rem;  /* 11px  全大写眉标 */
+
+  /* ---------- 3. 行高（Supabase 关键差异：正文 1.6，标题 1.1）---------- */
+  --lh-display: 1.04;
+  --lh-heading: 1.18;
+  --lh-snug: 1.35;
+  --lh-body: 1.6;
+  --lh-relaxed: 1.75;
+
+  /* ---------- 4. 字重（Supabase 只用 400/500，最重 600）---------- */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  /* ---------- 5. 字距 ---------- */
+  --ls-display: -0.032em;
+  --ls-heading: -0.018em;
+  --ls-body: 0;
+  --ls-eyebrow: 0.09em;
+  --ls-mono: -0.01em;
+
+  /* ---------- 6. 中性色阶 ---------- */
+  --gray-0: #ffffff;
+  --gray-25: #fcfcfd;
+  --gray-50: #f7f8fa;
+  --gray-100: #eff1f5;
+  --gray-200: #e3e7ee;
+  --gray-300: #d0d6e0;
+  --gray-400: #9aa4b5;
+  --gray-500: #616c80;
+  --gray-600: #525c6e;
+  --gray-700: #3d4553;
+  --gray-800: #262c37;
+  --gray-900: #141920;
+
+  /* ---------- 7. 品牌蓝 ---------- */
+  --blue-50: #eef4fd;
+  --blue-100: #dbe8fa;
+  --blue-200: #b4cef4;
+  --blue-300: #7ba9e9;
+  --blue-500: #0058bd;
+  --blue-600: #004a9e;
+  --blue-700: #003c80;
+
+  /* ---------- 8. 语义色 ---------- */
+  --success: #0f7c46;
+  --success-bg: #e6f5ed;
+  --success-border: #bfe3d0;
+  --warning: #8a5300;
+  --warning-bg: #fdf3e0;
+  --warning-border: #f0dcb4;
+  --danger: #b42318;
+  --danger-bg: #fdeceb;
+  --danger-border: #f5c9c5;
+  --info: var(--blue-500);
+  --info-bg: var(--blue-50);
+  --info-border: var(--blue-200);
+
+  /* ---------- 9. 语义别名 ---------- */
+  --bg-canvas: var(--gray-50);
+  --bg-surface: var(--gray-0);
+  --bg-raised: var(--gray-25);
+  --bg-sunken: var(--gray-100);
+  --bg-hover: var(--gray-50);
+  --bg-inverse: var(--gray-900);
+
+  --text-primary: var(--gray-900);
+  --text-secondary: var(--gray-600);
+  --text-tertiary: var(--gray-500);
+  --text-disabled: var(--gray-400);
+  --text-inverse: #ffffff;
+  --text-brand: var(--blue-500);
+
+  --border-subtle: var(--gray-100);
+  --border-default: var(--gray-200);
+  --border-strong: var(--gray-300);
+  --border-brand: var(--blue-200);
+
+  /* ---------- 10. 圆角（只保留 4 档）---------- */
+  --r-xs: 4px;   /* badge / input / tag */
+  --r-sm: 6px;   /* button / 卡内元素 */
+  --r-md: 10px;  /* card / panel */
+  --r-lg: 14px;  /* 大容器 / 模态 */
+  --r-pill: 999px;
+
+  /* ---------- 11. 阴影（Supabase 原则：仅浮层用；平面靠边框分层）---------- */
+  --shadow-none: none;
+  --shadow-overlay: 0 4px 12px rgba(20, 25, 32, 0.08), 0 1px 3px rgba(20, 25, 32, 0.06);
+  --shadow-modal: 0 16px 48px rgba(20, 25, 32, 0.14), 0 2px 8px rgba(20, 25, 32, 0.08);
+  --focus-ring: 0 0 0 3px rgba(0, 88, 189, 0.22);
+
+  /* ---------- 12. 间距（4px 基准）---------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-14: 56px;
+  --sp-20: 80px;
+  --sp-30: 120px;
+
+  /* ---------- 13. 动效 ---------- */
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ---------- 14. 布局 ---------- */
+  --container: 1200px;
+  --container-wide: 1360px;
+  --rail-w: 56px;
+  --sidebar-w: 236px;
+  --topbar-h: 52px;
+}
+
+/* ============================================================
+   Reset + Base
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: var(--fw-regular);
+  color: var(--text-primary);
+  background: var(--bg-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: var(--fw-medium); line-height: var(--lh-heading); letter-spacing: var(--ls-heading); color: var(--text-primary); }
+h1 { font-size: var(--fs-h1); }
+h2 { font-size: var(--fs-h2); }
+h3 { font-size: var(--fs-h3); }
+h4 { font-size: var(--fs-h4); font-weight: var(--fw-semibold); }
+p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+input, select, textarea { font: inherit; color: inherit; }
+img, svg { display: block; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; }
+:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--r-xs); }
+
+/* ============================================================
+   Typography utilities
+   ============================================================ */
+.t-display-1 { font-size: var(--fs-display-1); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: var(--fw-medium); }
+.t-display-2 { font-size: var(--fs-display-2); line-height: 1.08; letter-spacing: var(--ls-display); font-weight: var(--fw-medium); }
+.t-h1 { font-size: var(--fs-h1); }
+.t-h2 { font-size: var(--fs-h2); }
+.t-h3 { font-size: var(--fs-h3); }
+.t-h4 { font-size: var(--fs-h4); font-weight: var(--fw-semibold); }
+.t-lead { font-size: var(--fs-body-lg); line-height: var(--lh-relaxed); color: var(--text-secondary); }
+.t-body { font-size: var(--fs-body); line-height: var(--lh-body); }
+.t-body-sm { font-size: var(--fs-body-sm); line-height: var(--lh-body); }
+.t-caption { font-size: var(--fs-caption); line-height: var(--lh-snug); color: var(--text-tertiary); }
+.t-micro { font-size: var(--fs-micro); line-height: var(--lh-snug); }
+.t-eyebrow {
+  font-size: var(--fs-eyebrow); font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-eyebrow); text-transform: uppercase;
+  color: var(--text-tertiary); font-family: var(--font-mono);
+}
+.t-mono { font-family: var(--font-mono); letter-spacing: var(--ls-mono); font-size: 0.92em; }
+.muted { color: var(--text-secondary); }
+.subtle { color: var(--text-tertiary); }
+.brand { color: var(--text-brand); }
+
+/* ============================================================
+   Layout primitives
+   ============================================================ */
+.container { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 var(--sp-6); }
+.container-wide { width: 100%; max-width: var(--container-wide); margin: 0 auto; padding: 0 var(--sp-6); }
+.stack > * + * { margin-top: var(--sp-4); }
+.row { display: flex; align-items: center; gap: var(--sp-3); }
+.row-between { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); }
+.grid { display: grid; gap: var(--sp-4); }
+.g-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.section { padding: var(--sp-30) 0; }
+.section-sm { padding: var(--sp-20) 0; }
+.divider { height: 1px; background: var(--border-default); border: 0; margin: 0; }
+
+/* ============================================================
+   Button — 4 变体 × 3 尺寸 × 6 状态
+   ============================================================ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  height: 36px; padding: 0 14px;
+  border-radius: var(--r-sm); border: 1px solid transparent;
+  font-size: var(--fs-body-sm); font-weight: var(--fw-medium); line-height: 1;
+  white-space: nowrap; cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.btn:focus-visible { box-shadow: var(--focus-ring); }
+.btn[disabled], .btn.is-disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
+.btn-sm { height: 28px; padding: 0 10px; font-size: var(--fs-micro); }
+.btn-lg { height: 44px; padding: 0 22px; font-size: var(--fs-body); }
+.btn-primary { background: var(--blue-500); color: var(--text-inverse); border-color: var(--blue-500); }
+.btn-primary:hover { background: var(--blue-600); border-color: var(--blue-600); }
+.btn-primary:active { background: var(--blue-700); }
+.btn-secondary { background: var(--bg-surface); color: var(--text-primary); border-color: var(--border-strong); }
+.btn-secondary:hover { background: var(--bg-hover); border-color: var(--gray-400); }
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-sunken); color: var(--text-primary); }
+.btn-danger { background: var(--bg-surface); color: var(--danger); border-color: var(--danger-border); }
+.btn-danger:hover { background: var(--danger-bg); }
+.btn-pill { border-radius: var(--r-pill); }
+.btn-block { width: 100%; }
+.btn .ico { width: 15px; height: 15px; flex: none; }
+
+/* ============================================================
+   Card / Panel — 无阴影，靠边框分层
+   ============================================================ */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+}
+.card-pad { padding: var(--sp-5); }
+.card-hover { transition: border-color var(--dur-base) var(--ease-out), background var(--dur-base) var(--ease-out); }
+.card-hover:hover { border-color: var(--border-strong); background: var(--bg-raised); }
+.card-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5); border-bottom: 1px solid var(--border-subtle);
+}
+.card-body { padding: var(--sp-5); }
+.card-foot { padding: var(--sp-3) var(--sp-5); border-top: 1px solid var(--border-subtle); background: var(--bg-raised); border-radius: 0 0 var(--r-md) var(--r-md); }
+.panel-title { font-size: var(--fs-h4); font-weight: var(--fw-semibold); letter-spacing: var(--ls-heading); }
+
+/* ============================================================
+   Badge / Status
+   ============================================================ */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 20px; padding: 0 7px;
+  border-radius: var(--r-xs); border: 1px solid var(--border-default);
+  background: var(--bg-sunken); color: var(--text-secondary);
+  font-size: var(--fs-eyebrow); font-weight: var(--fw-medium); line-height: 1;
+  white-space: nowrap;
+}
+.badge-success { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+.badge-warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
+.badge-danger  { background: var(--danger-bg);  border-color: var(--danger-border);  color: var(--danger); }
+.badge-info    { background: var(--info-bg);    border-color: var(--info-border);    color: var(--blue-600); }
+.badge-pill { border-radius: var(--r-pill); padding: 0 9px; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+
+/* ============================================================
+   Eyebrow pill（hero 徽标）
+   ============================================================ */
+.pill {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  height: 28px; padding: 0 12px; border-radius: var(--r-pill);
+  border: 1px solid var(--border-brand); background: var(--blue-50);
+  color: var(--blue-600); font-size: var(--fs-micro); font-weight: var(--fw-medium);
+}
+
+/* ============================================================
+   Stepper — 向导（产品页 + 用户中心共用）
+   ============================================================ */
+.stepper { display: grid; gap: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.step { position: relative; padding: var(--sp-5); border: 1px solid var(--border-default); border-right: 0; background: var(--bg-surface); }
+.step:first-child { border-radius: var(--r-md) 0 0 var(--r-md); }
+.step:last-child { border-right: 1px solid var(--border-default); border-radius: 0 var(--r-md) var(--r-md) 0; }
+.step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 1px solid var(--border-strong); background: var(--bg-surface);
+  font-size: var(--fs-micro); font-weight: var(--fw-semibold); font-family: var(--font-mono);
+  color: var(--text-tertiary); flex: none;
+}
+.step.is-done { background: var(--bg-raised); }
+.step.is-done .step-num { background: var(--success); border-color: var(--success); color: #fff; }
+.step.is-active { border-color: var(--blue-300); box-shadow: inset 3px 0 0 var(--blue-500); }
+.step.is-active .step-num { background: var(--blue-500); border-color: var(--blue-500); color: #fff; }
+.step-title { font-size: var(--fs-h4); font-weight: var(--fw-semibold); }
+.step-desc { font-size: var(--fs-caption); color: var(--text-secondary); line-height: var(--lh-body); }
+.step-check { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-caption); }
+.step-check .ok { color: var(--success); }
+.step-check .pending { color: var(--text-disabled); }
+
+/* ============================================================
+   Meter — 配额 / 用量进度
+   ============================================================ */
+.meter { height: 6px; border-radius: var(--r-pill); background: var(--gray-200); overflow: hidden; }
+.meter > i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--blue-500); transition: width var(--dur-base) var(--ease-out); }
+.meter.is-warning > i { background: var(--warning); }
+.meter.is-danger > i { background: var(--danger); }
+.meter-seg { display: flex; gap: 2px; height: 6px; }
+.meter-seg > i { flex: 1; border-radius: 1px; background: var(--gray-200); }
+.meter-seg > i.on { background: var(--blue-500); }
+
+/* ============================================================
+   Stat tile — 数据卡
+   ============================================================ */
+.stat { padding: var(--sp-4) var(--sp-5); }
+.stat-label { font-size: var(--fs-micro); color: var(--text-tertiary); font-weight: var(--fw-medium); }
+.stat-value {
+  font-family: var(--font-mono); font-size: 1.75rem; font-weight: var(--fw-medium);
+  line-height: 1.1; letter-spacing: -0.02em; color: var(--text-primary);
+  font-variant-numeric: tabular-nums; margin-top: 6px;
+}
+.stat-value .unit { font-size: 0.95rem; color: var(--text-tertiary); margin-left: 3px; }
+.stat-meta { font-size: var(--fs-caption); color: var(--text-tertiary); margin-top: var(--sp-2); }
+.stat-delta { font-size: var(--fs-micro); font-family: var(--font-mono); }
+.stat-delta.up { color: var(--success); }
+.stat-delta.down { color: var(--danger); }
+
+/* ============================================================
+   Key-value 行（账户元信息条）
+   ============================================================ */
+.kv-strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid var(--border-default); border-radius: var(--r-md); background: var(--bg-surface); overflow: hidden; }
+.kv { padding: var(--sp-3) var(--sp-4); border-right: 1px solid var(--border-subtle); }
+.kv:last-child { border-right: 0; }
+.kv-k { font-size: var(--fs-micro); color: var(--text-tertiary); }
+.kv-v { font-size: var(--fs-body-sm); font-weight: var(--fw-medium); margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+
+/* ============================================================
+   Table
+   ============================================================ */
+.table { font-size: var(--fs-body-sm); }
+.table th {
+  text-align: left; font-size: var(--fs-micro); font-weight: var(--fw-medium);
+  color: var(--text-tertiary); padding: var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--border-default); background: var(--bg-raised); white-space: nowrap;
+}
+.table td { padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--border-subtle); vertical-align: middle; }
+.table tbody tr:last-child td { border-bottom: 0; }
+.table tbody tr:hover { background: var(--bg-hover); }
+.table .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+
+/* ============================================================
+   Tabs
+   ============================================================ */
+.tabs { display: flex; gap: var(--sp-5); border-bottom: 1px solid var(--border-default); }
+.tab {
+  position: relative; padding: 0 0 10px; font-size: var(--fs-body-sm);
+  font-weight: var(--fw-medium); color: var(--text-tertiary);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.tab:hover { color: var(--text-primary); }
+.tab.is-active { color: var(--text-primary); }
+.tab.is-active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--blue-500); border-radius: 1px; }
+
+/* ============================================================
+   Segmented control
+   ============================================================ */
+.seg { display: inline-flex; padding: 2px; gap: 2px; background: var(--bg-sunken); border: 1px solid var(--border-default); border-radius: var(--r-sm); }
+.seg > button { padding: 4px 12px; border-radius: 4px; font-size: var(--fs-micro); font-weight: var(--fw-medium); color: var(--text-tertiary); white-space: nowrap; }
+.seg > button.is-active { background: var(--bg-surface); color: var(--text-primary); box-shadow: 0 1px 2px rgba(20,25,32,.06); }
+
+/* ============================================================
+   Alert / Callout
+   ============================================================ */
+.alert { display: flex; gap: var(--sp-3); padding: var(--sp-4); border-radius: var(--r-md); border: 1px solid; font-size: var(--fs-body-sm); }
+.alert-icon { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+.alert-info { background: var(--info-bg); border-color: var(--info-border); color: var(--blue-700); }
+.alert-warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
+.alert-danger { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+.alert-success { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+.alert-title { font-weight: var(--fw-semibold); }
+.alert-body { color: inherit; opacity: .88; margin-top: 2px; line-height: var(--lh-body); }
+
+/* ============================================================
+   Empty state
+   ============================================================ */
+.empty { text-align: center; padding: var(--sp-10) var(--sp-5); border: 1px dashed var(--border-strong); border-radius: var(--r-md); background: var(--bg-raised); }
+.empty-icon { width: 36px; height: 36px; margin: 0 auto var(--sp-3); color: var(--text-disabled); }
+.empty-title { font-size: var(--fs-body-sm); font-weight: var(--fw-semibold); }
+.empty-desc { font-size: var(--fs-caption); color: var(--text-tertiary); margin-top: 4px; }
+
+/* ============================================================
+   Code / value box
+   ============================================================ */
+.code-box {
+  font-family: var(--font-mono); font-size: var(--fs-caption);
+  background: var(--gray-900); color: #e6eaf0;
+  border-radius: var(--r-sm); padding: var(--sp-3) var(--sp-4);
+  overflow-x: auto; line-height: 1.65;
+}
+.code-box .c-key { color: #7fb2ff; }
+.code-box .c-str { color: #7fd8a8; }
+.code-box .c-dim { color: #8b95a5; }
+.value-box {
+  font-family: var(--font-mono); font-size: var(--fs-caption);
+  background: var(--bg-sunken); border: 1px solid var(--border-default);
+  border-radius: var(--r-sm); padding: 8px 10px; word-break: break-all;
+  color: var(--text-primary);
+}
+
+/* ============================================================
+   Input / Search
+   ============================================================ */
+.input {
+  display: flex; align-items: center; gap: var(--sp-2);
+  height: 36px; padding: 0 12px;
+  border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+  background: var(--bg-surface); color: var(--text-tertiary); font-size: var(--fs-body-sm);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.input:hover { border-color: var(--gray-400); }
+.input.is-focus { border-color: var(--blue-500); box-shadow: var(--focus-ring); }
+.input-lg { height: 46px; font-size: var(--fs-body); border-radius: var(--r-md); }
+.kbd {
+  font-family: var(--font-mono); font-size: 11px; padding: 2px 6px;
+  border: 1px solid var(--border-default); border-bottom-width: 2px;
+  border-radius: var(--r-xs); background: var(--bg-raised); color: var(--text-tertiary);
+}
+
+/* ============================================================
+   Console shell
+   ============================================================ */
+.shell { display: grid; grid-template-columns: var(--rail-w) var(--sidebar-w) minmax(0, 1fr); min-height: 100%; background: var(--bg-canvas); }
+.rail { background: var(--gray-900); display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); padding: var(--sp-3) 0; }
+.rail-item { width: 34px; height: 34px; border-radius: var(--r-sm); display: grid; place-items: center; color: #8b95a5; transition: all var(--dur-fast) var(--ease-out); }
+.rail-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+.rail-item.is-active { background: var(--blue-500); color: #fff; }
+.sidebar { background: var(--bg-surface); border-right: 1px solid var(--border-default); padding: var(--sp-4) var(--sp-3); }
+.nav-group + .nav-group { margin-top: var(--sp-5); }
+.nav-label { font-size: var(--fs-eyebrow); font-family: var(--font-mono); letter-spacing: var(--ls-eyebrow); text-transform: uppercase; color: var(--text-tertiary); padding: 0 var(--sp-2); margin-bottom: var(--sp-2); }
+.nav-item { display: flex; align-items: center; gap: var(--sp-2); height: 30px; padding: 0 var(--sp-2); border-radius: var(--r-sm); font-size: var(--fs-body-sm); color: var(--text-secondary); transition: all var(--dur-fast) var(--ease-out); }
+.nav-item:hover { background: var(--bg-sunken); color: var(--text-primary); }
+.nav-item.is-active { background: var(--blue-50); color: var(--blue-600); font-weight: var(--fw-medium); }
+.nav-item .ico { width: 15px; height: 15px; flex: none; opacity: .8; }
+.topbar { height: var(--topbar-h); border-bottom: 1px solid var(--border-default); background: rgba(255,255,255,.86); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: space-between; padding: 0 var(--sp-6); position: sticky; top: 0; z-index: 5; }
+.crumbs { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-body-sm); color: var(--text-tertiary); }
+.crumbs .sep { color: var(--text-disabled); }
+.crumbs .cur { color: var(--text-primary); font-weight: var(--fw-medium); }
+.main { padding: var(--sp-6); max-width: 1180px; }
+.page-head { margin-bottom: var(--sp-5); }
+.page-title { font-size: var(--fs-h2); font-weight: var(--fw-medium); letter-spacing: var(--ls-heading); }
+.page-sub { font-size: var(--fs-body-sm); color: var(--text-secondary); margin-top: 6px; max-width: 68ch; }
+.avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--blue-500); color: #fff; display: grid; place-items: center; font-size: var(--fs-micro); font-weight: var(--fw-semibold); }
+
+/* ============================================================
+   Marketing nav / footer
+   ============================================================ */
+.mnav { position: sticky; top: 0; z-index: 20; height: 56px; border-bottom: 1px solid var(--border-default); background: rgba(255,255,255,.82); backdrop-filter: blur(12px); }
+.mnav-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 8px; font-size: var(--fs-h4); font-weight: var(--fw-semibold); letter-spacing: -0.02em; }
+.logo-mark { width: 22px; height: 22px; border-radius: var(--r-xs); background: var(--blue-500); display: grid; place-items: center; color: #fff; }
+.mnav-links { display: flex; align-items: center; gap: var(--sp-6); }
+.mnav-links a { font-size: var(--fs-body-sm); color: var(--text-secondary); transition: color var(--dur-fast) var(--ease-out); }
+.mnav-links a:hover { color: var(--text-primary); }
+.footer { border-top: 1px solid var(--border-default); background: var(--bg-surface); padding: var(--sp-14) 0 var(--sp-8); }
+.footer-grid { display: grid; grid-template-columns: 1.6fr repeat(4, 1fr); gap: var(--sp-8); }
+.footer h5 { font-size: var(--fs-micro); font-weight: var(--fw-semibold); color: var(--text-primary); margin-bottom: var(--sp-3); }
+.footer li + li { margin-top: 9px; }
+.footer a { font-size: var(--fs-caption); color: var(--text-tertiary); }
+.footer a:hover { color: var(--text-primary); }
+
+/* ============================================================
+   Sparkline / chart shell
+   ============================================================ */
+.spark { width: 100%; height: 46px; display: block; }
+.chart-frame { border: 1px solid var(--border-default); border-radius: var(--r-md); background: var(--bg-surface); }
+
+/* ============================================================
+   Icon
+   ============================================================ */
+.ic { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ic-sm { width: 14px; height: 14px; }
+.ic-lg { width: 20px; height: 20px; }
+.ic-xl { width: 24px; height: 24px; }
+
+/* ============================================================
+   Misc
+   ============================================================ */
+.hr-dot { border-top: 1px dashed var(--border-default); }
+.tag { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: var(--r-xs); background: var(--bg-sunken); border: 1px solid var(--border-subtle); font-size: var(--fs-micro); color: var(--text-secondary); }
+.link-arrow { display: inline-flex; align-items: center; gap: 5px; font-size: var(--fs-body-sm); font-weight: var(--fw-medium); color: var(--blue-500); }
+.link-arrow:hover { color: var(--blue-600); }
+.qr { width: 116px; height: 116px; border: 1px solid var(--border-default); border-radius: var(--r-sm); background: #fff; padding: 7px; }
+.scroll-x { overflow-x: auto; }
+
+
+
+
+/* ── 总览画板 ── */
+body { background: #eceff4; }
+.board { max-width: 1960px; margin: 0 auto; padding: 40px 32px 80px; }
+.board-head { margin-bottom: 32px; }
+.board-head h1 { font-size: 2rem; letter-spacing: -0.028em; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.legend .chip { display: inline-flex; align-items: center; gap: 7px; background: #fff; border: 1px solid var(--border-default); border-radius: var(--r-pill); padding: 5px 12px; font-size: var(--fs-caption); }
+.swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(0,0,0,.08); }
+
+.tiles { display: flex; align-items: flex-start; gap: 28px; }
+.col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 28px; }
+.tile { background: #fff; border: 1px solid var(--border-strong); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(20,25,32,.06); }
+.tile-bar { display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 14px; border-bottom: 1px solid var(--border-default); background: var(--bg-raised); }
+.tl { display: flex; gap: 6px; }
+.tl i { width: 9px; height: 9px; border-radius: 50%; background: var(--gray-300); }
+.tile-url { flex: 1; font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--r-pill); padding: 3px 12px; }
+.tile-tag { font-size: 10px; font-family: var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-tertiary); }
+.frame { position: relative; overflow: hidden; background: var(--bg-canvas); }
+.frame > .scale { transform-origin: 0 0; }
+.tile-foot { padding: 12px 16px; border-top: 1px solid var(--border-default); background: var(--bg-surface); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.tile-foot .n { font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); }
+.tile-foot h4 { font-size: var(--fs-body-sm); }
+.tile-foot p { font-size: var(--fs-caption); color: var(--text-tertiary); margin-top: 2px; }
+
+/* 规范附录 */
+.spec { margin-top: 56px; }
+.spec-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.type-row { display: flex; align-items: baseline; gap: 20px; padding: 10px 0; border-bottom: 1px solid var(--border-subtle); }
+.type-row .meta { font-family: var(--font-mono); font-size: 11px; color: var(--text-disabled); width: 190px; flex: none; }
+.sw-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.sw { border: 1px solid var(--border-default); border-radius: var(--r-sm); overflow: hidden; }
+.sw .c { height: 44px; }
+.sw .l { padding: 6px 8px; font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); background: #fff; }
+@media (max-width: 1500px) { .tiles { flex-direction: column; } .spec-grid, .sw-grid { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 4.5 12.5H11l-1 8L18.5 10H12l1-8Z"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+    <symbol id="i-circle-dashed" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 1 4 1M19 7a9 9 0 0 1 2 5M20 16a9 9 0 0 1-4 4M12 21a9 9 0 0 1-4-1M5 17a9 9 0 0 1-2-5M4 8a9 9 0 0 1 4-4"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.3 2.9 8.2 7 9.5 4.1-1.3 7-5.2 7-9.5V6l-7-3Z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3Z"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l3 8 4-16 3 8h4"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></symbol>
+    <symbol id="i-network" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="5" rx="1.5"/><rect x="2.5" y="15" width="6" height="5" rx="1.5"/><rect x="15.5" y="15" width="6" height="5" rx="1.5"/><path d="M12 8v3.5M5.5 15v-2a1.5 1.5 0 0 1 1.5-1.5h10a1.5 1.5 0 0 1 1.5 1.5v2"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="6" height="6" rx="1"/><rect x="14.5" y="3.5" width="6" height="6" rx="1"/><rect x="3.5" y="14.5" width="6" height="6" rx="1"/><path d="M14.5 14.5h3v3M20.5 17.5v3h-3"/></symbol>
+    <symbol id="i-credit-card" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v18H5.5A1.5 1.5 0 0 1 4 19.5v-15Z"/><path d="M8 3v18"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M22 12h-3M5 12H2M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1M18.4 18.4l-2.1-2.1M7.7 7.7 5.6 5.6"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19L12 4Z"/><path d="M12 10v4M12 17h.01"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V8a1.5 1.5 0 0 1 1.5-1.5H10"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14-4.5L3 9M4 13a8 8 0 0 0 14 4.5L21 15"/><path d="M3 4v5h5M21 20v-5h-5"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5L13.5 3Z"/><path d="M13.5 3v5.5H19"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 6 3.5-6 3.5v-7Z"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path d="M20.5 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 20.5 12Z"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m5 9 7 7 7-7"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16S18 14 18 9Z"/><path d="M10.5 19a2 2 0 0 0 3 0"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M12 3c3.5 2 5.5 5.5 5.5 9.5L12 18l-5.5-5.5C6.5 8.5 8.5 5 12 3Z"/><path d="M9 17.5 7 21M15 17.5 17 21M12 10.5h.01"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="14" r="4"/><path d="m11 11 8-8 2 2-2 2 2 2-3 3-2-2-2 2"/></symbol>
+  </defs>
+</svg>
+
+<div class="board">
+  <header class="board-head">
+    <span class="t-eyebrow">XConnect · Micro SaaS Template v1.0</span>
+    <h1 style="margin-top:10px">4 个核心页面设计稿</h1>
+    <p class="t-lead" style="max-width:62ch;margin-top:8px">统一 token 体系：排版语言借鉴 Supabase（轻字重 · 宽行高 · 零阴影 · 边框分层），品牌色沿用控制台 <span class="t-mono">#0058bd</span>。营销页与控制台首次共用同一套变量。</p>
+    <div class="legend">
+      <span class="chip"><span class="swatch" style="background:#0058bd"></span>Primary #0058bd</span>
+      <span class="chip"><span class="swatch" style="background:#0f7c46"></span>Success #0f7c46</span>
+      <span class="chip"><span class="swatch" style="background:#8a5300"></span>Warning #8a5300</span>
+      <span class="chip"><span class="swatch" style="background:#b42318"></span>Danger #b42318</span>
+      <span class="chip">正文 15px / 1.6</span>
+      <span class="chip">圆角 4 · 6 · 10 · 14</span>
+      <span class="chip">阴影仅用于浮层</span>
+    </div>
+  </header>
+
+  <div class="tiles">
+    <div class="col">
+    <section class="tile">
+      <div class="tile-bar">
+        <span class="tl"><i></i><i></i><i></i></span>
+        <span class="tile-url">console.onwalk.net/products/xconnect</span>
+        <span class="tile-tag">Marketing</span>
+      </div>
+      <div class="frame" style="height:2847px">
+        <div class="scale" style="width:1440px;transform:scale(0.6111)">
+<style>
+  .hero { padding: var(--sp-20) 0 var(--sp-14); text-align: center; position: relative; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; inset: -180px 0 auto 0; height: 420px;
+    background: radial-gradient(ellipse 620px 260px at 50% 100%, rgba(0,88,189,.10), transparent 70%);
+    pointer-events: none;
+  }
+  .hero > * { position: relative; }
+  .hero-title { margin: var(--sp-5) 0 var(--sp-4); }
+  .hero-sub { max-width: 40rem; margin: 0 auto; }
+  .hero-cta { display: flex; justify-content: center; gap: var(--sp-3); margin-top: var(--sp-8); flex-wrap: wrap; }
+  .platform-line { display: inline-flex; align-items: center; gap: var(--sp-3); margin-top: var(--sp-6); font-size: var(--fs-caption); color: var(--text-tertiary); }
+  .platform-line .sepdot { width: 3px; height: 3px; border-radius: 50%; background: var(--border-strong); }
+
+  .trust { border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface); }
+  .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .trust-cell { padding: var(--sp-5) var(--sp-6); border-right: 1px solid var(--border-subtle); }
+  .trust-cell:last-child { border-right: 0; }
+  .trust-v { font-family: var(--font-mono); font-size: 1.5rem; font-weight: var(--fw-medium); letter-spacing: -0.02em; }
+  .trust-k { font-size: var(--fs-caption); color: var(--text-tertiary); margin-top: 2px; }
+
+  .sec-head { max-width: 42rem; }
+  .sec-head .t-eyebrow { display: block; margin-bottom: var(--sp-3); }
+  .sec-head h2 { margin-bottom: var(--sp-3); }
+
+  .wizard { margin-top: var(--sp-8); }
+  .wizard-card { position: relative; padding: var(--sp-6); background: var(--bg-surface); border: 1px solid var(--border-default); display: flex; flex-direction: column; }
+  .wizard-card > .wizard-visual { flex: 1; }
+  .wizard-card:nth-child(1) { border-radius: var(--r-md) 0 0 var(--r-md); border-right: 0; }
+  .wizard-card:nth-child(2) { border-right: 0; }
+  .wizard-card:nth-child(3) { border-radius: 0 var(--r-md) var(--r-md) 0; }
+  .wizard-idx { font-family: var(--font-mono); font-size: var(--fs-eyebrow); letter-spacing: var(--ls-eyebrow); color: var(--text-tertiary); }
+  .wizard-card h3 { font-size: var(--fs-h4); font-weight: var(--fw-semibold); margin: var(--sp-3) 0 var(--sp-2); }
+  .wizard-visual { margin-top: var(--sp-5); border: 1px solid var(--border-subtle); border-radius: var(--r-sm); background: var(--bg-raised); padding: var(--sp-3); min-height: 104px; }
+
+  .feat { border: 1px solid var(--border-default); border-radius: var(--r-md); overflow: hidden; background: var(--bg-surface); margin-top: var(--sp-8); }
+  .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .feat-cell { padding: var(--sp-6); border-right: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
+  .feat-cell:nth-child(3n) { border-right: 0; }
+  .feat-cell:nth-child(n+4) { border-bottom: 0; }
+  .feat-ico { width: 32px; height: 32px; border-radius: var(--r-sm); background: var(--blue-50); color: var(--blue-500); display: grid; place-items: center; border: 1px solid var(--blue-100); }
+  .feat-cell h4 { margin: var(--sp-4) 0 var(--sp-2); }
+
+  .dl-table td, .dl-table th { padding: var(--sp-3) var(--sp-5); }
+  .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); margin-top: var(--sp-8); }
+  .price-card { padding: var(--sp-6); }
+  .price-card.is-featured { border-color: var(--blue-300); position: relative; }
+  .price-amt { font-family: var(--font-mono); font-size: 2.25rem; font-weight: var(--fw-medium); letter-spacing: -0.03em; line-height: 1; }
+  .price-amt .per { font-size: var(--fs-body-sm); color: var(--text-tertiary); font-weight: var(--fw-regular); letter-spacing: 0; }
+  .price-feats { margin-top: var(--sp-5); }
+  .price-feats li { display: flex; gap: var(--sp-2); font-size: var(--fs-body-sm); color: var(--text-secondary); align-items: flex-start; }
+  .price-feats li + li { margin-top: 10px; }
+  .price-feats .ic { color: var(--success); margin-top: 3px; }
+
+  .faq-item { padding: var(--sp-5) 0; border-bottom: 1px solid var(--border-subtle); }
+  .faq-q { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-4); font-size: var(--fs-body); font-weight: var(--fw-medium); }
+  .faq-a { font-size: var(--fs-body-sm); color: var(--text-secondary); margin-top: var(--sp-3); max-width: 62ch; }
+
+  .final-cta { border: 1px solid var(--border-default); border-radius: var(--r-lg); background: var(--gray-900); color: #fff; padding: var(--sp-14) var(--sp-10); text-align: center; }
+  .final-cta h2 { color: #fff; }
+  .final-cta p { color: #9aa4b5; margin-top: var(--sp-3); }
+  
+</style>
+
+<!-- ══════════ NAV ══════════ -->
+<header class="mnav">
+  <div class="container-wide mnav-inner">
+    <div class="row" style="gap:var(--sp-8)">
+      <a class="logo" href="#"><span class="logo-mark"><svg class="ic ic-sm"><use href="#i-zap"/></svg></span>XConnect</a>
+      <nav class="mnav-links">
+        <a href="#wizard">如何开始</a>
+        <a href="#features">能力</a>
+        <a href="#download">下载</a>
+        <a href="#pricing">定价</a>
+        <a href="#">文档</a>
+      </nav>
+    </div>
+    <div class="row" style="gap:var(--sp-3)">
+      <a class="btn btn-ghost btn-sm" href="#">登录</a>
+      <a class="btn btn-primary btn-sm" href="#">免费开始 <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="hero">
+  <div class="container">
+    <span class="pill"><svg class="ic ic-sm"><use href="#i-zap"/></svg> AI 连接与网络中枢</span>
+    <h1 class="t-display-1 hero-title">为 AI Workspace 而生的<br>全球连接层</h1>
+    <p class="t-lead hero-sub">XConnect 提供高速、稳定、安全的全球连接能力与私有环境穿透。3 分钟完成部署，打通本地开发环境与全球 AI 节点。</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary btn-lg" href="#"><svg class="ic"><use href="#i-download"/></svg> 立即下载客户端</a>
+      <a class="btn btn-secondary btn-lg" href="#">进入控制台</a>
+    </div>
+    <div class="platform-line">
+      <svg class="ic ic-sm"><use href="#i-monitor"/></svg>
+      <span>macOS</span><i class="sepdot"></i><span>Windows</span><i class="sepdot"></i><span>Linux</span><i class="sepdot"></i><span>iOS</span><i class="sepdot"></i><span>Android</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ TRUST BAR ══════════ -->
+<section class="trust">
+  <div class="container-wide">
+    <div class="trust-grid">
+      <div class="trust-cell"><div class="trust-v">32</div><div class="trust-k">全球接入节点</div></div>
+      <div class="trust-cell"><div class="trust-v">99.95<span class="subtle" style="font-size:1rem">%</span></div><div class="trust-k">近 90 天可用性</div></div>
+      <div class="trust-cell"><div class="trust-v">&lt;40<span class="subtle" style="font-size:1rem">ms</span></div><div class="trust-k">区域内中位延迟</div></div>
+      <div class="trust-cell"><div class="trust-v">VLESS</div><div class="trust-k">标准协议 · 客户端自由</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 3 步向导（转化核心） ══════════ -->
+<section class="section" id="wizard">
+  <div class="container">
+    <div class="sec-head">
+      <span class="t-eyebrow">Get started</span>
+      <h2 class="t-h1">3 步开启安全加速连接</h2>
+      <p class="t-lead">无需理解协议细节。注册后控制台会按顺序引导你完成每一步，并实时回显服务端状态。</p>
+    </div>
+
+    <div class="grid wizard" style="grid-template-columns:repeat(3,1fr);gap:0">
+      <article class="wizard-card">
+        <div class="row-between"><span class="wizard-idx">STEP 01</span><span class="badge badge-info"><i class="dot"></i>1 分钟</span></div>
+        <h3>注册并完善账户安全</h3>
+        <p class="t-body-sm muted">邮箱验证 + 绑定 MFA。安全等级达标后才会开放计费与订阅操作，避免账号被盗刷。</p>
+        <div class="wizard-visual">
+          <div class="row" style="gap:8px"><svg class="ic ic-sm" style="color:var(--success)"><use href="#i-check-circle"/></svg><span class="t-caption" style="color:var(--text-primary)">邮箱已验证</span></div>
+          <div class="row" style="gap:8px;margin-top:9px"><svg class="ic ic-sm subtle"><use href="#i-circle-dashed"/></svg><span class="t-caption">绑定多因素认证</span></div>
+          <div style="margin-top:12px"><span class="btn btn-secondary btn-sm"><svg class="ic ic-sm"><use href="#i-shield"/></svg> 完成安全设置</span></div>
+        </div>
+      </article>
+
+      <article class="wizard-card">
+        <div class="row-between"><span class="wizard-idx">STEP 02</span><span class="badge badge-info"><i class="dot"></i>30 秒</span></div>
+        <h3>获取 VLESS 连接凭据</h3>
+        <p class="t-body-sm muted">控制台一键生成二维码或订阅链接，导入任意支持 VLESS 的客户端，无需手工填写节点参数。</p>
+        <div class="wizard-visual" style="display:flex;gap:12px;align-items:center">
+          <div class="qr" style="width:78px;height:78px;padding:5px">
+            <svg viewBox="0 0 29 29" style="width:100%;height:100%" shape-rendering="crispEdges"><rect width="29" height="29" fill="#fff"/><g fill="#141920"><rect x="1" y="1" width="7" height="7"/><rect x="2" y="2" width="5" height="5" fill="#fff"/><rect x="3" y="3" width="3" height="3"/><rect x="21" y="1" width="7" height="7"/><rect x="22" y="2" width="5" height="5" fill="#fff"/><rect x="23" y="3" width="3" height="3"/><rect x="1" y="21" width="7" height="7"/><rect x="2" y="22" width="5" height="5" fill="#fff"/><rect x="3" y="23" width="3" height="3"/><rect x="10" y="2" width="1" height="1"/><rect x="12" y="1" width="1" height="2"/><rect x="14" y="3" width="2" height="1"/><rect x="11" y="5" width="1" height="2"/><rect x="13" y="6" width="2" height="1"/><rect x="17" y="5" width="1" height="1"/><rect x="10" y="9" width="2" height="1"/><rect x="14" y="9" width="1" height="2"/><rect x="18" y="10" width="2" height="1"/><rect x="22" y="10" width="1" height="2"/><rect x="25" y="11" width="2" height="1"/><rect x="2" y="10" width="1" height="2"/><rect x="5" y="11" width="2" height="1"/><rect x="9" y="12" width="1" height="2"/><rect x="12" y="13" width="2" height="1"/><rect x="16" y="12" width="1" height="2"/><rect x="20" y="13" width="2" height="1"/><rect x="24" y="14" width="1" height="2"/><rect x="3" y="14" width="2" height="1"/><rect x="7" y="15" width="1" height="2"/><rect x="11" y="16" width="2" height="1"/><rect x="15" y="16" width="1" height="2"/><rect x="19" y="17" width="2" height="1"/><rect x="23" y="18" width="1" height="2"/><rect x="26" y="17" width="1" height="2"/><rect x="10" y="19" width="1" height="2"/><rect x="13" y="20" width="2" height="1"/><rect x="17" y="21" width="1" height="2"/><rect x="21" y="22" width="2" height="1"/><rect x="25" y="21" width="1" height="2"/><rect x="11" y="23" width="2" height="1"/><rect x="15" y="24" width="1" height="2"/><rect x="19" y="25" width="2" height="1"/><rect x="23" y="25" width="1" height="2"/><rect x="26" y="24" width="1" height="2"/><rect x="10" y="26" width="2" height="1"/><rect x="14" y="27" width="1" height="1"/><rect x="18" y="27" width="2" height="1"/></g></svg>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div class="t-eyebrow">Subscription</div>
+            <div class="value-box" style="margin-top:6px;font-size:11px">vless://01a0124f…@sg1.xconn.net</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="wizard-card">
+        <div class="row-between"><span class="wizard-idx">STEP 03</span><span class="badge badge-info"><i class="dot"></i>即时</span></div>
+        <h3>导入客户端并验证连通</h3>
+        <p class="t-body-sm muted">回到控制台确认节点连通状态与实时流量。任何节点异常都会在这里直接标红，不用自己排查。</p>
+        <div class="wizard-visual">
+          <table class="table" style="font-size:var(--fs-micro)">
+            <tbody>
+              <tr><td style="padding:5px 0;border:0">sg1 · 新加坡</td><td style="padding:5px 0;border:0;text-align:right"><span class="badge badge-success"><i class="dot"></i>已连通</span></td></tr>
+              <tr><td style="padding:5px 0;border:0">hk2 · 香港</td><td style="padding:5px 0;border:0;text-align:right"><span class="badge badge-success"><i class="dot"></i>已连通</span></td></tr>
+              <tr><td style="padding:5px 0;border:0">jp1 · 东京</td><td style="padding:5px 0;border:0;text-align:right"><span class="badge"><i class="dot"></i>待验证</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+
+    <div class="row" style="margin-top:var(--sp-6);gap:var(--sp-3)">
+      <a class="btn btn-primary" href="#">创建账户，开始第 1 步 <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a>
+      <a class="link-arrow" href="#">先看完整部署文档 <svg class="ic ic-sm"><use href="#i-chevron-right"/></svg></a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 能力矩阵 ══════════ -->
+<section class="section-sm" id="features" style="background:var(--bg-surface);border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle)">
+  <div class="container">
+    <div class="sec-head">
+      <span class="t-eyebrow">Capabilities</span>
+      <h2 class="t-h1">连接层要解决的六件事</h2>
+    </div>
+    <div class="feat">
+      <div class="feat-grid">
+        <div class="feat-cell"><div class="feat-ico"><svg class="ic"><use href="#i-globe"/></svg></div><h4>全球任播接入</h4><p class="t-body-sm muted">32 个区域节点自动择优，跨区访问由骨干网转发，不受单点拥塞影响。</p></div>
+        <div class="feat-cell"><div class="feat-ico"><svg class="ic"><use href="#i-network"/></svg></div><h4>私有环境穿透</h4><p class="t-body-sm muted">把本地开发机、内网 GPU 主机安全暴露给 AI Workspace，无需公网 IP。</p></div>
+        <div class="feat-cell"><div class="feat-ico"><svg class="ic"><use href="#i-lock"/></svg></div><h4>标准 VLESS 协议</h4><p class="t-body-sm muted">不绑定专有客户端。凭据可独立于账户身份轮换，泄露后单独吊销。</p></div>
+        <div class="feat-cell"><div class="feat-ico"><svg class="ic"><use href="#i-activity"/></svg></div><h4>权威用量计量</h4><p class="t-body-sm muted">用量由 accounts 服务端汇总，不以本地客户端计数为准，账单可对账。</p></div>
+        <div class="feat-cell"><div class="feat-ico"><svg class="ic"><use href="#i-shield"/></svg></div><h4>MFA 保护计费</h4><p class="t-body-sm muted">浏览不受限；发起支付、订阅或账单管理前强制二次验证。</p></div>
+        <div class="feat-cell"><div class="feat-ico"><svg class="ic"><use href="#i-layers"/></svg></div><h4>策略组与配额</h4><p class="t-body-sm muted">按团队成员分配策略组与月度配额，超额自动降级而非直接断连。</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 下载 ══════════ -->
+<section class="section-sm" id="download">
+  <div class="container">
+    <div class="row-between" style="align-items:flex-end">
+      <div class="sec-head">
+        <span class="t-eyebrow">Download</span>
+        <h2 class="t-h1">选择你的平台</h2>
+        <p class="t-lead">当前稳定版 v2.8.1 · 发布于 2026-08-11</p>
+      </div>
+      <a class="link-arrow" href="#">历史版本与校验和 <svg class="ic ic-sm"><use href="#i-external"/></svg></a>
+    </div>
+    <div class="card" style="margin-top:var(--sp-8);overflow:hidden">
+      <table class="table dl-table">
+        <thead><tr><th>平台</th><th>架构</th><th>安装包</th><th style="text-align:right">大小</th><th style="width:1%"></th></tr></thead>
+        <tbody>
+          <tr><td><div class="row" style="gap:8px"><svg class="ic ic-sm subtle"><use href="#i-monitor"/></svg>macOS 12+</div></td><td class="subtle">Apple Silicon · Intel</td><td class="t-mono subtle">XConnect-2.8.1.dmg</td><td class="num subtle">42.6 MB</td><td><a class="btn btn-secondary btn-sm" href="#">下载</a></td></tr>
+          <tr><td><div class="row" style="gap:8px"><svg class="ic ic-sm subtle"><use href="#i-monitor"/></svg>Windows 10+</div></td><td class="subtle">x64 · ARM64</td><td class="t-mono subtle">XConnect-2.8.1.exe</td><td class="num subtle">38.1 MB</td><td><a class="btn btn-secondary btn-sm" href="#">下载</a></td></tr>
+          <tr><td><div class="row" style="gap:8px"><svg class="ic ic-sm subtle"><use href="#i-server"/></svg>Linux</div></td><td class="subtle">deb · rpm · AppImage</td><td class="t-mono subtle">xconnect_2.8.1_amd64</td><td class="num subtle">36.4 MB</td><td><a class="btn btn-secondary btn-sm" href="#">下载</a></td></tr>
+          <tr><td><div class="row" style="gap:8px"><svg class="ic ic-sm subtle"><use href="#i-qr"/></svg>iOS / Android</div></td><td class="subtle">通用</td><td class="t-mono subtle">扫码导入订阅链接</td><td class="num subtle">—</td><td><a class="btn btn-secondary btn-sm" href="#">获取</a></td></tr>
+        </tbody>
+      </table>
+      <div class="card-foot">
+        <div class="row" style="gap:8px"><svg class="ic ic-sm subtle"><use href="#i-info"/></svg><span class="t-caption">明确不支持鸿蒙 OS。任意支持 VLESS 的第三方客户端均可直接导入订阅链接。</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 定价锚点 ══════════ -->
+<section class="section-sm" id="pricing" style="background:var(--bg-surface);border-top:1px solid var(--border-subtle)">
+  <div class="container">
+    <div class="sec-head">
+      <span class="t-eyebrow">Pricing</span>
+      <h2 class="t-h1">按量或订阅，统一经 Stripe 结算</h2>
+      <p class="t-lead">所有套餐共用同一套价格配置，购买后自动同步到订阅记录，可在客户门户自助管理账单。</p>
+    </div>
+    <div class="price-grid">
+      <article class="card price-card">
+        <div class="row-between"><h4>Free</h4><span class="badge">当前</span></div>
+        <p class="t-caption" style="margin-top:6px">评估与个人试用</p>
+        <div class="price-amt" style="margin-top:var(--sp-5)">¥0<span class="per"> /月</span></div>
+        <ul class="price-feats">
+          <li><svg class="ic ic-sm"><use href="#i-check"/></svg>10 GB 月度配额</li>
+          <li><svg class="ic ic-sm"><use href="#i-check"/></svg>3 个区域节点</li>
+          <li><svg class="ic ic-sm"><use href="#i-check"/></svg>社区支持</li>
+        </ul>
+        <a class="btn btn-secondary btn-block" href="#" style="margin-top:var(--sp-6)">继续使用</a>
+      </article>
+      <article class="card price-card is-featured">
+        <div class="row-between"><h4>Pro</h4><span class="badge badge-info">推荐</span></div>
+        <p class="t-caption" style="margin-top:6px">个人开发者与小团队</p>
+        <div class="price-amt" style="margin-top:var(--sp-5)">¥69<span class="per"> /月</span></div>
+        <ul class="price-feats">
+          <li><svg class="ic ic-sm"><use href="#i-check"/></svg>500 GB 月度配额</li>
+          <li><svg class="ic ic-sm"><use href="#i-check"/></svg>全部 32 个节点</li>
+          <li><svg class="ic ic-sm"><use href="#i-check"/></svg>私有环境穿透</li>
+          <li><svg class="ic ic-sm"><use href="#i-check"/></svg>超额按 ¥0.12/GB 计费</li>
+        </ul>
+        <a class="btn btn-primary btn-block" href="#" style="margin-top:var(--sp-6)">升级到 Pro</a>
+      </article>
+      <article class="card price-card">
+        <div class="row-between"><h4>Team</h4><span class="badge">5 席起</span></div>
+        <p class="t-caption" style="margin-top:6px">需要策略组与对账的团队</p>
+        <div class="price-amt" style="margin-top:var(--sp-5)">¥199<span class="per"> /月</span></div>
+        <ul class="price-feats">
+          <li><svg class="ic ic-sm"><use href="#i-check"/></svg>2 TB 共享配额</li>
+          <li><svg class="ic ic-sm"><use href="#i-check"/></svg>策略组与成员配额</li>
+          <li><svg class="ic ic-sm"><use href="#i-check"/></svg>用量导出与发票抬头</li>
+          <li><svg class="ic ic-sm"><use href="#i-check"/></svg>SLA 99.95%</li>
+        </ul>
+        <a class="btn btn-secondary btn-block" href="#" style="margin-top:var(--sp-6)">联系我们</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FAQ ══════════ -->
+<section class="section-sm">
+  <div class="container" style="max-width:820px">
+    <div class="sec-head"><span class="t-eyebrow">FAQ</span><h2 class="t-h1">常见问题</h2></div>
+    <div style="margin-top:var(--sp-8)">
+      <div class="faq-item">
+        <div class="faq-q">为什么必须绑定 MFA 才能付款？<svg class="ic ic-sm subtle"><use href="#i-chevron-down"/></svg></div>
+        <p class="faq-a">浏览和管理用户中心不受影响。只有发起 Stripe 购买、订阅变更或账单管理这类不可逆操作时才要求二次验证，目的是防止凭据泄露后被恶意扣费。</p>
+      </div>
+      <div class="faq-item"><div class="faq-q">用量以客户端显示的为准吗？<svg class="ic ic-sm subtle"><use href="#i-chevron-right"/></svg></div></div>
+      <div class="faq-item"><div class="faq-q">代理 UUID 泄露了怎么办？<svg class="ic ic-sm subtle"><use href="#i-chevron-right"/></svg></div></div>
+      <div class="faq-item"><div class="faq-q">支持哪些第三方客户端？<svg class="ic ic-sm subtle"><use href="#i-chevron-right"/></svg></div></div>
+      <div class="faq-item" style="border-bottom:0"><div class="faq-q">如何申请退款？<svg class="ic ic-sm subtle"><use href="#i-chevron-right"/></svg></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FINAL CTA ══════════ -->
+<section style="padding-bottom:var(--sp-20)">
+  <div class="container">
+    <div class="final-cta">
+      <h2 class="t-display-2">3 分钟，连上全球 AI 节点</h2>
+      <p class="t-lead" style="color:#9aa4b5;max-width:34rem;margin:var(--sp-3) auto 0">Free 套餐无需信用卡。注册后控制台会直接把你带到第 1 步。</p>
+      <div class="hero-cta" style="margin-top:var(--sp-8)">
+        <a class="btn btn-primary btn-lg" href="#">免费创建账户</a>
+        <a class="btn btn-lg" href="#" style="background:transparent;border-color:#3d4553;color:#fff">阅读文档</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a class="logo" href="#"><span class="logo-mark"><svg class="ic ic-sm"><use href="#i-zap"/></svg></span>XConnect</a>
+        <p class="t-caption" style="margin-top:var(--sp-3);max-width:26ch">AI Connectivity · 为 AI Workspace 提供全球连接能力与私有环境穿透。</p>
+      </div>
+      <div><h5>产品</h5><ul><li><a href="#">XConnect</a></li><li><a href="#">XWorkmate</a></li><li><a href="#">XStream</a></li><li><a href="#">开放平台</a></li></ul></div>
+      <div><h5>资源</h5><ul><li><a href="#">文档中心</a></li><li><a href="#">快速开始</a></li><li><a href="#">状态页</a></li><li><a href="#">更新日志</a></li></ul></div>
+      <div><h5>账户</h5><ul><li><a href="#">用户中心</a></li><li><a href="#">订阅与配额</a></li><li><a href="#">账单</a></li><li><a href="#">安全设置</a></li></ul></div>
+      <div><h5>公司</h5><ul><li><a href="#">关于</a></li><li><a href="#">联系</a></li><li><a href="#">隐私政策</a></li><li><a href="#">服务条款</a></li></ul></div>
+    </div>
+    <div class="divider" style="margin:var(--sp-8) 0 var(--sp-5)"></div>
+    <div class="row-between">
+      <span class="t-caption">© 2026 onwalk.net · 所有状态均以当前账号 API 返回为准</span>
+      <span class="t-caption t-mono">v2.8.1</span>
+    </div>
+  </div>
+</footer>
+
+        </div>
+      </div>
+      <div class="tile-foot">
+        <div><h4>1. 产品主页</h4><p>营销 / 宣传 / 下载 / 向导式引导到注册与订阅</p></div>
+        <span class="n">1440px · 61%</span>
+      </div>
+    </section>
+    <section class="tile">
+      <div class="tile-bar">
+        <span class="tl"><i></i><i></i><i></i></span>
+        <span class="tile-url">console.onwalk.net/panel/account</span>
+        <span class="tile-tag">Console</span>
+      </div>
+      <div class="frame" style="height:1161px">
+        <div class="scale" style="width:1440px;transform:scale(0.6111)">
+<style>
+  .uc-hero { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: var(--sp-4); align-items: start; }
+  .onboard { border: 1px solid var(--border-default); border-radius: var(--r-md); background: var(--bg-surface); overflow: hidden; }
+  .onboard-head { padding: var(--sp-4) var(--sp-5); border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; gap: var(--sp-4); }
+  .prog { display: flex; align-items: center; gap: var(--sp-3); }
+  .prog-track { width: 108px; }
+  .steps3 { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .s3 { padding: var(--sp-4) var(--sp-5); border-right: 1px solid var(--border-subtle); position: relative; }
+  .s3:last-child { border-right: 0; }
+  .s3.is-active { background: linear-gradient(180deg, var(--blue-50), transparent 60%); box-shadow: inset 0 2px 0 var(--blue-500); }
+  .s3-top { display: flex; align-items: center; gap: var(--sp-2); }
+  .s3-title { font-size: var(--fs-body-sm); font-weight: var(--fw-semibold); }
+  .s3-desc { font-size: var(--fs-caption); color: var(--text-secondary); margin-top: 6px; }
+  .s3-checks { margin-top: var(--sp-3); display: grid; gap: 6px; }
+  .s3-check { display: flex; align-items: center; gap: 7px; font-size: var(--fs-caption); }
+  .s3-check.ok { color: var(--text-secondary); }
+  .s3-check.ok .ic { color: var(--success); }
+  .s3-check.todo { color: var(--text-tertiary); }
+  .s3-act { margin-top: var(--sp-4); }
+
+  .uuid-card .value-box { font-size: var(--fs-body-sm); line-height: 1.5; }
+  .vless-body { display: grid; grid-template-columns: 116px minmax(0,1fr); gap: var(--sp-4); }
+  .node-flag { width: 20px; height: 15px; border-radius: 2px; border: 1px solid var(--border-default); background: var(--bg-sunken); display: grid; place-items: center; font-size: 9px; font-family: var(--font-mono); color: var(--text-tertiary); }
+  .lat { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: var(--fs-micro); }
+  .bars { display: flex; gap: 1.5px; align-items: flex-end; height: 11px; }
+  .bars i { width: 2.5px; background: var(--gray-300); border-radius: 1px; }
+  .bars i.on { background: var(--success); }
+  .sec-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-3) 0; border-bottom: 1px solid var(--border-subtle); }
+  .sec-row:last-child { border-bottom: 0; }
+  
+</style>
+
+<div class="shell">
+  <!-- ── icon rail ── -->
+  <nav class="rail">
+    <div class="rail-item is-active" title="总览"><svg class="ic"><use href="#i-grid"/></svg></div>
+    <div class="rail-item" title="节点"><svg class="ic"><use href="#i-server"/></svg></div>
+    <div class="rail-item" title="API"><svg class="ic"><use href="#i-code"/></svg></div>
+    <div class="rail-item" title="账单"><svg class="ic"><use href="#i-credit-card"/></svg></div>
+    <div class="rail-item" title="安全"><svg class="ic"><use href="#i-shield"/></svg></div>
+    <div style="flex:1"></div>
+    <div class="rail-item" title="文档"><svg class="ic"><use href="#i-book"/></svg></div>
+    <div class="rail-item" title="设置"><svg class="ic"><use href="#i-settings"/></svg></div>
+  </nav>
+
+  <!-- ── sidebar ── -->
+  <aside class="sidebar">
+    <div class="row" style="gap:8px;padding:0 var(--sp-2) var(--sp-4)">
+      <span class="logo-mark"><svg class="ic ic-sm"><use href="#i-zap"/></svg></span>
+      <div style="min-width:0">
+        <div style="font-size:var(--fs-body-sm);font-weight:var(--fw-semibold);line-height:1.2">XConnect</div>
+        <div class="t-caption" style="line-height:1.2">用户中心</div>
+      </div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Overview</div>
+      <a class="nav-item is-active" href="#"><svg class="ic"><use href="#i-grid"/></svg>开始使用</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-activity"/></svg>实时流量</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-server"/></svg>运行节点</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Account</div>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-user"/></svg>账户概览</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-shield"/></svg>账户安全</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-key"/></svg>连接凭据</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Billing</div>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-credit-card"/></svg>订阅与配额</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-file"/></svg>账单记录</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Support</div>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-book"/></svg>帮助中心</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-message"/></svg>提交工单</a>
+    </div>
+  </aside>
+
+  <!-- ── content ── -->
+  <div style="min-width:0">
+    <header class="topbar">
+      <div class="crumbs">
+        <a href="#">控制台</a><svg class="ic ic-sm sep"><use href="#i-chevron-right"/></svg>
+        <a href="#">XConnect</a><svg class="ic ic-sm sep"><use href="#i-chevron-right"/></svg>
+        <span class="cur">开始使用</span>
+      </div>
+      <div class="row" style="gap:var(--sp-3)">
+        <span class="badge badge-warning"><i class="dot"></i>UAT 环境</span>
+        <button class="rail-item" style="color:var(--text-tertiary);width:30px;height:30px"><svg class="ic"><use href="#i-bell"/></svg></button>
+        <div class="row" style="gap:7px"><span class="avatar">A</span><span class="t-body-sm" style="font-weight:var(--fw-medium)">admin</span><svg class="ic ic-sm subtle"><use href="#i-chevron-down"/></svg></div>
+      </div>
+    </header>
+
+    <main class="main stack" style="--sp-4:20px">
+      <div class="page-head">
+        <div class="row-between">
+          <div>
+            <h1 class="page-title">开始使用</h1>
+            <p class="page-sub">按下面的步骤完成账户设置，即可安全使用 XConnect 服务。所有状态均以当前账号 API 返回为准。</p>
+          </div>
+          <div class="row" style="gap:var(--sp-2)">
+            <button class="btn btn-secondary btn-sm"><svg class="ic ic-sm"><use href="#i-refresh"/></svg>刷新状态</button>
+            <a class="btn btn-secondary btn-sm" href="#"><svg class="ic ic-sm"><use href="#i-book"/></svg>部署向导</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 3 步引导 ══ -->
+      <section class="onboard">
+        <div class="onboard-head">
+          <div>
+            <div class="panel-title">账户设置进度</div>
+            <p class="t-caption" style="margin-top:3px">还差 1 步即可解锁计费与订阅操作</p>
+          </div>
+          <div class="prog">
+            <span class="t-mono t-caption" style="color:var(--text-primary)">1 / 3</span>
+            <div class="meter prog-track"><i style="width:33%"></i></div>
+          </div>
+        </div>
+        <div class="steps3">
+          <!-- step 1 -->
+          <div class="s3 is-active">
+            <div class="s3-top"><span class="step-num" style="background:var(--blue-500);border-color:var(--blue-500);color:#fff">1</span><span class="s3-title">完善账户安全</span></div>
+            <p class="s3-desc">验证邮箱并绑定多因素认证，保护登录和计费操作。</p>
+            <div class="s3-checks">
+              <div class="s3-check ok"><svg class="ic ic-sm"><use href="#i-check-circle"/></svg>邮箱已验证</div>
+              <div class="s3-check todo"><svg class="ic ic-sm"><use href="#i-circle-dashed"/></svg>多因素认证未设置</div>
+            </div>
+            <div class="s3-act"><a class="btn btn-primary btn-sm" href="#"><svg class="ic ic-sm"><use href="#i-shield"/></svg>去绑定 MFA</a></div>
+          </div>
+          <!-- step 2 -->
+          <div class="s3">
+            <div class="s3-top"><span class="step-num" style="background:var(--success);border-color:var(--success);color:#fff"><svg class="ic ic-sm" style="width:12px;height:12px"><use href="#i-check"/></svg></span><span class="s3-title">获取 VLESS 连接</span><span class="badge badge-success">可以连接</span></div>
+            <p class="s3-desc">生成二维码或复制订阅链接，导入支持 VLESS 的客户端。</p>
+            <div class="s3-checks">
+              <div class="s3-check ok"><svg class="ic ic-sm"><use href="#i-check-circle"/></svg>连接凭据已就绪</div>
+              <div class="s3-check ok"><svg class="ic ic-sm"><use href="#i-check-circle"/></svg>订阅链接可用</div>
+            </div>
+            <div class="s3-act"><a class="btn btn-secondary btn-sm" href="#"><svg class="ic ic-sm"><use href="#i-qr"/></svg>查看二维码</a></div>
+          </div>
+          <!-- step 3 -->
+          <div class="s3">
+            <div class="s3-top"><span class="step-num">3</span><span class="s3-title">验证连接</span><span class="badge">待验证</span></div>
+            <p class="s3-desc">导入客户端后回到这里确认节点与连接配置是否可用。</p>
+            <div class="s3-checks">
+              <div class="s3-check todo"><svg class="ic ic-sm"><use href="#i-circle-dashed"/></svg>等待首个客户端握手</div>
+              <div class="s3-check todo"><svg class="ic ic-sm"><use href="#i-circle-dashed"/></svg>节点连通状态未回传</div>
+            </div>
+            <div class="s3-act"><a class="btn btn-ghost btn-sm" href="#">查看运行节点 <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 账户元信息条 ══ -->
+      <div class="kv-strip">
+        <div class="kv"><div class="kv-k">账户</div><div class="kv-v">admin</div></div>
+        <div class="kv"><div class="kv-k">账户类型</div><div class="kv-v">标准用户</div></div>
+        <div class="kv"><div class="kv-k">邮箱验证</div><div class="kv-v"><span class="badge badge-success"><i class="dot"></i>已验证</span></div></div>
+        <div class="kv"><div class="kv-k">安全强度</div><div class="kv-v"><span class="badge badge-warning"><i class="dot"></i>建议启用 MFA</span></div></div>
+        <div class="kv"><div class="kv-k">账户权限</div><div class="kv-v">使用服务与查看</div></div>
+      </div>
+
+      <!-- ══ 凭据 + 连接 ══ -->
+      <section class="uc-hero">
+        <!-- VLESS -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="panel-title">VLESS 连接</div>
+              <p class="t-caption" style="margin-top:3px">扫码或复制订阅链接，导入任意支持 VLESS 的客户端。</p>
+            </div>
+            <div class="row" style="gap:8px">
+              <span class="badge badge-success"><i class="dot"></i>凭据已就绪</span>
+              <button class="btn btn-secondary btn-sm"><svg class="ic ic-sm"><use href="#i-refresh"/></svg>轮换</button>
+            </div>
+          </div>
+          <div class="card-body vless-body">
+            <div class="qr">
+              <svg viewBox="0 0 29 29" style="width:100%;height:100%" shape-rendering="crispEdges" role="img" aria-label="VLESS 订阅二维码"><rect width="29" height="29" fill="#fff"/><g fill="#141920"><rect x="1" y="1" width="7" height="7"/><rect x="2" y="2" width="5" height="5" fill="#fff"/><rect x="3" y="3" width="3" height="3"/><rect x="21" y="1" width="7" height="7"/><rect x="22" y="2" width="5" height="5" fill="#fff"/><rect x="23" y="3" width="3" height="3"/><rect x="1" y="21" width="7" height="7"/><rect x="2" y="22" width="5" height="5" fill="#fff"/><rect x="3" y="23" width="3" height="3"/><rect x="10" y="2" width="1" height="1"/><rect x="12" y="1" width="1" height="2"/><rect x="14" y="3" width="2" height="1"/><rect x="11" y="5" width="1" height="2"/><rect x="13" y="6" width="2" height="1"/><rect x="17" y="5" width="1" height="1"/><rect x="10" y="9" width="2" height="1"/><rect x="14" y="9" width="1" height="2"/><rect x="18" y="10" width="2" height="1"/><rect x="22" y="10" width="1" height="2"/><rect x="25" y="11" width="2" height="1"/><rect x="2" y="10" width="1" height="2"/><rect x="5" y="11" width="2" height="1"/><rect x="9" y="12" width="1" height="2"/><rect x="12" y="13" width="2" height="1"/><rect x="16" y="12" width="1" height="2"/><rect x="20" y="13" width="2" height="1"/><rect x="24" y="14" width="1" height="2"/><rect x="3" y="14" width="2" height="1"/><rect x="7" y="15" width="1" height="2"/><rect x="11" y="16" width="2" height="1"/><rect x="15" y="16" width="1" height="2"/><rect x="19" y="17" width="2" height="1"/><rect x="23" y="18" width="1" height="2"/><rect x="26" y="17" width="1" height="2"/><rect x="10" y="19" width="1" height="2"/><rect x="13" y="20" width="2" height="1"/><rect x="17" y="21" width="1" height="2"/><rect x="21" y="22" width="2" height="1"/><rect x="25" y="21" width="1" height="2"/><rect x="11" y="23" width="2" height="1"/><rect x="15" y="24" width="1" height="2"/><rect x="19" y="25" width="2" height="1"/><rect x="23" y="25" width="1" height="2"/><rect x="26" y="24" width="1" height="2"/><rect x="10" y="26" width="2" height="1"/><rect x="14" y="27" width="1" height="1"/><rect x="18" y="27" width="2" height="1"/></g></svg>
+            </div>
+            <div style="min-width:0">
+              <div class="t-eyebrow">Subscription URL</div>
+              <div class="value-box" style="margin-top:7px">vless://01a0124f-97b1-7670-a3f3-febea17970c9@sg1.xconn.net:443?encryption=none&amp;security=tls&amp;type=ws#XConnect-SG1</div>
+              <div class="row" style="gap:8px;margin-top:var(--sp-3)">
+                <button class="btn btn-primary btn-sm"><svg class="ic ic-sm"><use href="#i-copy"/></svg>复制订阅链接</button>
+                <button class="btn btn-secondary btn-sm"><svg class="ic ic-sm"><use href="#i-download"/></svg>下载配置</button>
+                <a class="link-arrow t-caption" href="#">导入教程</a>
+              </div>
+            </div>
+          </div>
+          <div class="card-foot"><span class="t-caption">凭据可独立于账户身份轮换。轮换后旧链接立即失效，已连接的客户端需重新导入。</span></div>
+        </div>
+
+        <!-- 代理 UUID -->
+        <div class="card uuid-card">
+          <div class="card-head" style="padding-bottom:var(--sp-3)">
+            <div class="panel-title">代理 UUID</div>
+            <button class="btn btn-ghost btn-sm" aria-label="复制代理 UUID"><svg class="ic ic-sm"><use href="#i-copy"/></svg>复制</button>
+          </div>
+          <div class="card-body" style="padding-top:var(--sp-4)">
+            <div class="value-box">01a0124f-97b1-7670-<br>a3f3-febea17970c9</div>
+            <p class="t-caption" style="margin-top:var(--sp-3)">访问代理节点的凭据，可独立于账户身份轮换。</p>
+            <div class="divider" style="margin:var(--sp-4) 0"></div>
+            <div class="sec-row"><span class="t-caption">用户名</span><span class="t-body-sm" style="font-weight:var(--fw-medium)">admin</span></div>
+            <div class="sec-row"><span class="t-caption">邮箱</span><span class="t-body-sm t-mono">admin@onwalk.net</span></div>
+            <div class="sec-row"><span class="t-caption">多因素认证</span><span class="badge badge-warning"><i class="dot"></i>未设置</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 实时流量 + 配额 ══ -->
+      <section class="grid" style="grid-template-columns:minmax(0,1.55fr) minmax(0,1fr)">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="panel-title">实时流量</div>
+              <p class="t-caption" style="margin-top:3px">用量由 accounts.svc.plus 汇总，不以本地客户端计数为准 · 数据源 postgresql</p>
+            </div>
+            <div class="seg"><button class="is-active">1 小时</button><button>24 小时</button><button>本月</button></div>
+          </div>
+          <div class="card-body">
+            <div class="grid g-3" style="gap:var(--sp-5)">
+              <div><div class="stat-label">最近 1 小时</div><div class="stat-value">0<span class="unit">B</span></div></div>
+              <div><div class="stat-label">最近 24 小时</div><div class="stat-value">0<span class="unit">B</span></div></div>
+              <div><div class="stat-label">本月合计</div><div class="stat-value">0<span class="unit">B</span></div></div>
+            </div>
+            <div style="margin-top:var(--sp-5);border-top:1px solid var(--border-subtle);padding-top:var(--sp-4)">
+              <div class="empty" style="padding:var(--sp-8) var(--sp-5)">
+                <svg class="ic empty-icon"><use href="#i-activity"/></svg>
+                <div class="empty-title">还没有流量数据</div>
+                <div class="empty-desc">完成第 3 步验证连接后，这里会显示按分钟聚合的上下行速率曲线。</div>
+                <a class="btn btn-secondary btn-sm" href="#" style="margin-top:var(--sp-4)">查看运行节点</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="panel-title">月度配额</div>
+            <span class="badge">套餐 default</span>
+          </div>
+          <div class="card-body">
+            <div class="row-between" style="align-items:flex-end">
+              <div class="stat-value" style="font-size:2rem">0.0<span class="unit">%</span></div>
+              <span class="t-caption t-mono">0 B / 10 GB</span>
+            </div>
+            <div class="meter" style="margin-top:var(--sp-3)"><i style="width:0%"></i></div>
+            <div class="row-between" style="margin-top:var(--sp-2)"><span class="t-caption">剩余 10 GB</span><span class="t-caption">本期重置 09-01</span></div>
+            <div class="divider" style="margin:var(--sp-5) 0"></div>
+            <div class="sec-row"><span class="t-caption">余额</span><span class="t-mono t-body-sm">¥0.00</span></div>
+            <div class="sec-row"><span class="t-caption">策略组</span><span class="t-caption subtle">—</span></div>
+            <div class="sec-row"><span class="t-caption">同步状态</span><span class="badge badge-success"><i class="dot"></i>normal · active</span></div>
+            <div class="sec-row"><span class="t-caption">统计延迟</span><span class="t-mono t-caption">~0 s</span></div>
+            <a class="btn btn-secondary btn-block" href="#" style="margin-top:var(--sp-4)">管理订阅与配额</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 运行节点 ══ -->
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <div class="panel-title">运行节点</div>
+            <p class="t-caption" style="margin-top:3px">节点连通状态会在服务端返回时显示，字段仅呈现 API 提供的值。</p>
+          </div>
+          <div class="row" style="gap:8px">
+            <div class="input" style="height:30px;width:190px"><svg class="ic ic-sm"><use href="#i-search"/></svg><span>搜索节点</span></div>
+            <button class="btn btn-secondary btn-sm">全部区域 <svg class="ic ic-sm"><use href="#i-chevron-down"/></svg></button>
+          </div>
+        </div>
+        <table class="table">
+          <thead><tr><th>节点</th><th>地址</th><th>SNI</th><th>端口</th><th>协议</th><th>延迟</th><th style="text-align:right">状态</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="row" style="gap:8px"><span class="node-flag">SG</span><span style="font-weight:var(--fw-medium)">sg1 · 新加坡</span></div></td>
+              <td class="t-mono subtle">sg1.xconn.net</td><td class="t-mono subtle">cdn.xconn.net</td><td class="t-mono subtle">443</td>
+              <td><span class="tag">VLESS / WS / TLS</span></td>
+              <td><span class="lat"><span class="bars"><i class="on" style="height:4px"></i><i class="on" style="height:6px"></i><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i></span>28ms</span></td>
+              <td style="text-align:right"><span class="badge badge-success"><i class="dot"></i>已连通</span></td>
+            </tr>
+            <tr>
+              <td><div class="row" style="gap:8px"><span class="node-flag">HK</span><span style="font-weight:var(--fw-medium)">hk2 · 香港</span></div></td>
+              <td class="t-mono subtle">hk2.xconn.net</td><td class="t-mono subtle">cdn.xconn.net</td><td class="t-mono subtle">443</td>
+              <td><span class="tag">VLESS / WS / TLS</span></td>
+              <td><span class="lat"><span class="bars"><i class="on" style="height:4px"></i><i class="on" style="height:6px"></i><i class="on" style="height:8px"></i><i style="height:11px"></i></span>41ms</span></td>
+              <td style="text-align:right"><span class="badge badge-success"><i class="dot"></i>已连通</span></td>
+            </tr>
+            <tr>
+              <td><div class="row" style="gap:8px"><span class="node-flag">JP</span><span style="font-weight:var(--fw-medium)">jp1 · 东京</span></div></td>
+              <td class="t-mono subtle">jp1.xconn.net</td><td class="t-mono subtle">cdn.xconn.net</td><td class="t-mono subtle">443 · 8443</td>
+              <td><span class="tag">VLESS / gRPC / TLS</span></td>
+              <td><span class="subtle t-mono t-micro">—</span></td>
+              <td style="text-align:right"><span class="badge"><i class="dot"></i>待验证</span></td>
+            </tr>
+            <tr>
+              <td><div class="row" style="gap:8px"><span class="node-flag">US</span><span style="font-weight:var(--fw-medium)">us-w1 · 洛杉矶</span></div></td>
+              <td class="t-mono subtle">usw1.xconn.net</td><td class="t-mono subtle">cdn.xconn.net</td><td class="t-mono subtle">443</td>
+              <td><span class="tag">VLESS / WS / TLS</span></td>
+              <td><span class="lat" style="color:var(--warning)"><span class="bars"><i class="on" style="height:4px;background:var(--warning)"></i><i class="on" style="height:6px;background:var(--warning)"></i><i style="height:8px"></i><i style="height:11px"></i></span>186ms</span></td>
+              <td style="text-align:right"><span class="badge badge-warning"><i class="dot"></i>高延迟</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="card-foot"><div class="row-between"><span class="t-caption">显示 4 / 32 个节点</span><a class="link-arrow t-caption" href="#">查看全部节点 <svg class="ic ic-sm"><use href="#i-chevron-right"/></svg></a></div></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+        </div>
+      </div>
+      <div class="tile-foot">
+        <div><h4>2. 用户中心</h4><p>账户安全 / 建立连接 / 实时流量 / 配额与余额</p></div>
+        <span class="n">1440px · 61%</span>
+      </div>
+    </section>
+    </div>
+    <div class="col">
+    <section class="tile">
+      <div class="tile-bar">
+        <span class="tl"><i></i><i></i><i></i></span>
+        <span class="tile-url">console.onwalk.net/docs</span>
+        <span class="tile-tag">Docs</span>
+      </div>
+      <div class="frame" style="height:2151px">
+        <div class="scale" style="width:1440px;transform:scale(0.6111)">
+<style>
+  .help-hero { padding: var(--sp-14) 0 var(--sp-10); border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface); position: relative; overflow: hidden; }
+  .help-hero::before { content:""; position:absolute; inset:-140px 0 auto 0; height:340px; background: radial-gradient(ellipse 560px 220px at 50% 100%, rgba(0,88,189,.08), transparent 70%); }
+  .help-hero > * { position: relative; }
+  .search-wrap { max-width: 620px; margin: var(--sp-6) auto 0; }
+  .search-big { display: flex; align-items: center; gap: var(--sp-3); height: 50px; padding: 0 var(--sp-4); border: 1px solid var(--border-strong); border-radius: var(--r-md); background: var(--bg-surface); }
+  .search-big:hover { border-color: var(--gray-400); }
+  .hot { display: flex; gap: var(--sp-2); justify-content: center; flex-wrap: wrap; margin-top: var(--sp-4); }
+  .hot a { font-size: var(--fs-caption); color: var(--text-secondary); border: 1px solid var(--border-default); border-radius: var(--r-pill); padding: 4px 11px; background: var(--bg-surface); }
+  .hot a:hover { border-color: var(--border-strong); color: var(--text-primary); }
+
+  .task-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); }
+  .task { padding: var(--sp-5); display: flex; flex-direction: column; }
+  .task-ico { width: 30px; height: 30px; border-radius: var(--r-sm); background: var(--blue-50); border: 1px solid var(--blue-100); color: var(--blue-500); display: grid; place-items: center; }
+  .task h4 { margin: var(--sp-4) 0 6px; }
+  .task .link-arrow { margin-top: auto; padding-top: var(--sp-4); font-size: var(--fs-caption); }
+
+  .doc-layout { display: grid; grid-template-columns: 214px minmax(0,1fr) 196px; gap: var(--sp-8); }
+  .doc-nav .nav-label { padding: 0; }
+  .doc-nav a { display: block; font-size: var(--fs-body-sm); color: var(--text-secondary); padding: 5px 10px; border-radius: var(--r-xs); border-left: 2px solid transparent; margin-left: -2px; }
+  .doc-nav a:hover { color: var(--text-primary); background: var(--bg-sunken); }
+  .doc-nav a.is-active { color: var(--blue-600); border-left-color: var(--blue-500); background: var(--blue-50); font-weight: var(--fw-medium); }
+  .doc-nav .nav-group + .nav-group { margin-top: var(--sp-5); }
+
+  .prose { font-size: var(--fs-body); line-height: var(--lh-relaxed); color: var(--text-secondary); }
+  .prose h1 { font-size: var(--fs-h1); color: var(--text-primary); margin-bottom: var(--sp-3); }
+  .prose h2 { font-size: var(--fs-h3); color: var(--text-primary); margin: var(--sp-10) 0 var(--sp-3); scroll-margin-top: 80px; }
+  .prose p + p { margin-top: var(--sp-4); }
+  .prose ol { counter-reset: n; margin-top: var(--sp-4); }
+  .prose ol li { counter-increment: n; position: relative; padding-left: 30px; }
+  .prose ol li + li { margin-top: var(--sp-4); }
+  .prose ol li::before { content: counter(n); position: absolute; left: 0; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--bg-sunken); border: 1px solid var(--border-default); color: var(--text-tertiary); font-family: var(--font-mono); font-size: 11px; display: grid; place-items: center; }
+  .prose code { font-family: var(--font-mono); font-size: .88em; background: var(--bg-sunken); border: 1px solid var(--border-subtle); border-radius: var(--r-xs); padding: 1px 5px; color: var(--text-primary); }
+  .prose strong { color: var(--text-primary); font-weight: var(--fw-semibold); }
+  .toc { position: sticky; top: 76px; align-self: start; }
+  .toc a { display: block; font-size: var(--fs-caption); color: var(--text-tertiary); padding: 4px 0 4px 11px; border-left: 2px solid var(--border-subtle); }
+  .toc a.is-active { color: var(--blue-600); border-left-color: var(--blue-500); }
+  .toc a:hover { color: var(--text-primary); }
+
+  .contact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); }
+  
+</style>
+
+<header class="mnav">
+  <div class="container-wide mnav-inner">
+    <div class="row" style="gap:var(--sp-8)">
+      <a class="logo" href="#"><span class="logo-mark"><svg class="ic ic-sm"><use href="#i-zap"/></svg></span>XConnect</a>
+      <nav class="mnav-links"><a href="#">如何开始</a><a href="#">能力</a><a href="#">下载</a><a href="#">定价</a><a href="#" style="color:var(--text-primary);font-weight:var(--fw-medium)">文档</a></nav>
+    </div>
+    <div class="row" style="gap:var(--sp-3)">
+      <div class="input" style="height:30px;width:160px"><svg class="ic ic-sm"><use href="#i-search"/></svg><span style="flex:1">搜索</span><span class="kbd">⌘K</span></div>
+      <a class="btn btn-primary btn-sm" href="#">进入控制台</a>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="help-hero">
+  <div class="container" style="text-align:center">
+    <span class="t-eyebrow">Help center</span>
+    <h1 class="t-display-2" style="margin-top:var(--sp-3)">需要帮忙做什么？</h1>
+    <p class="t-lead" style="max-width:36rem;margin:var(--sp-3) auto 0">从注册到第一次连通，再到订阅与对账，每一步都有对应的分步向导。</p>
+    <div class="search-wrap">
+      <div class="search-big">
+        <svg class="ic ic-lg subtle"><use href="#i-search"/></svg>
+        <span class="subtle" style="flex:1;text-align:left">搜索文档、错误码或客户端名称…</span>
+        <span class="kbd">⌘K</span>
+      </div>
+      <div class="hot">
+        <a href="#">导入 VLESS 订阅</a><a href="#">绑定 MFA</a><a href="#">用量对不上</a><a href="#">申请退款</a><a href="#">私有环境穿透</a><a href="#">节点显示待验证</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 任务导向入口 ══════════ -->
+<section class="section-sm">
+  <div class="container">
+    <div class="sec-head">
+      <span class="t-eyebrow">Start here</span>
+      <h2 class="t-h1">按任务开始</h2>
+      <p class="t-lead">不确定从哪看起，就从下面四条主线里挑一条。每条都是端到端的完整流程。</p>
+    </div>
+    <div class="task-grid" style="margin-top:var(--sp-8)">
+      <article class="card card-hover task">
+        <div class="task-ico"><svg class="ic"><use href="#i-rocket"/></svg></div>
+        <h4>第一次连通</h4>
+        <p class="t-caption">注册 → 绑定 MFA → 导入 VLESS → 验证节点。约 5 分钟。</p>
+        <a class="link-arrow" href="#">6 篇 · 开始 <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a>
+      </article>
+      <article class="card card-hover task">
+        <div class="task-ico"><svg class="ic"><use href="#i-monitor"/></svg></div>
+        <h4>客户端配置</h4>
+        <p class="t-caption">macOS / Windows / Linux / iOS / Android 与第三方客户端导入。</p>
+        <a class="link-arrow" href="#">11 篇 · 查看 <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a>
+      </article>
+      <article class="card card-hover task">
+        <div class="task-ico"><svg class="ic"><use href="#i-credit-card"/></svg></div>
+        <h4>订阅与账单</h4>
+        <p class="t-caption">套餐差异、超额计费、发票抬头、退款与取消流程。</p>
+        <a class="link-arrow" href="#">8 篇 · 查看 <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a>
+      </article>
+      <article class="card card-hover task">
+        <div class="task-ico"><svg class="ic"><use href="#i-alert"/></svg></div>
+        <h4>排查与错误码</h4>
+        <p class="t-caption">连不上、用量异常、节点待验证、握手失败的定位路径。</p>
+        <a class="link-arrow" href="#">14 篇 · 查看 <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 文档页形态 ══════════ -->
+<section class="section-sm" style="background:var(--bg-surface);border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle)">
+  <div class="container-wide">
+    <div class="row-between" style="margin-bottom:var(--sp-8)">
+      <div class="sec-head"><span class="t-eyebrow">Article layout</span><h2 class="t-h1">分步向导的阅读形态</h2></div>
+      <div class="row" style="gap:8px"><span class="badge">v2.8</span><span class="badge badge-success"><i class="dot"></i>已校对</span></div>
+    </div>
+
+    <div class="doc-layout">
+      <!-- 左侧目录 -->
+      <nav class="doc-nav">
+        <div class="nav-group">
+          <div class="nav-label">快速开始</div>
+          <a href="#" class="is-active">3 步完成首次连通</a>
+          <a href="#">账户安全与 MFA</a>
+          <a href="#">获取 VLESS 凭据</a>
+          <a href="#">验证节点连通</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">客户端</div>
+          <a href="#">macOS 客户端</a>
+          <a href="#">Windows 客户端</a>
+          <a href="#">Linux / CLI</a>
+          <a href="#">移动端扫码导入</a>
+          <a href="#">第三方客户端</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">计费</div>
+          <a href="#">套餐与配额</a>
+          <a href="#">超额计费规则</a>
+          <a href="#">退款政策</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">自建部署</div>
+          <a href="#">自建节点前提</a>
+          <a href="#">Docker Compose</a>
+          <a href="#">接入 accounts 计量</a>
+        </div>
+      </nav>
+
+      <!-- 正文 -->
+      <article class="prose">
+        <div class="crumbs" style="margin-bottom:var(--sp-4)"><a href="#">文档</a><svg class="ic ic-sm sep"><use href="#i-chevron-right"/></svg><a href="#">快速开始</a><svg class="ic ic-sm sep"><use href="#i-chevron-right"/></svg><span class="cur">3 步完成首次连通</span></div>
+        <h1>3 步完成首次连通</h1>
+        <p class="t-caption" style="margin-bottom:var(--sp-6)">最后更新 2026-08-11 · 阅读约 4 分钟 · 适用 v2.6 及以上</p>
+
+        <p>本文覆盖从注册到确认节点连通的完整路径。<strong>控制台会按同样的顺序引导你</strong>，两边的状态是同一份 API 数据，不会出现文档说完成了但控制台还显示待办的情况。</p>
+
+        <div class="alert alert-info" style="margin-top:var(--sp-5)">
+          <svg class="ic alert-icon"><use href="#i-info"/></svg>
+          <div><span class="alert-title">开始前</span><p class="alert-body">准备一个可收信的邮箱和一个支持 TOTP 的验证器 App。Free 套餐不需要信用卡。</p></div>
+        </div>
+
+        <h2 id="s1">第 1 步 · 完善账户安全</h2>
+        <p>验证邮箱后，账户即可正常浏览控制台。但发起支付、变更订阅或进入 Stripe 客户门户前，必须绑定多因素认证。</p>
+        <ol>
+          <li>进入 <code>用户中心 → 账户安全</code>，确认邮箱状态为 <strong>已验证</strong>。</li>
+          <li>点击「去绑定 MFA」，用验证器扫描二维码。</li>
+          <li>输入 6 位动态码完成绑定，并保存备用恢复码。</li>
+        </ol>
+
+        <h2 id="s2">第 2 步 · 获取 VLESS 连接凭据</h2>
+        <p>凭据由 <code>代理 UUID</code> 派生，可独立于账户身份轮换。轮换后旧链接立即失效。</p>
+        <div class="code-box" style="margin-top:var(--sp-4)"><span class="c-dim"># 复制订阅链接</span><br><span class="c-key">vless</span>://01a0124f-97b1-7670-a3f3-febea17970c9@<span class="c-str">sg1.xconn.net</span>:443<br>&nbsp;&nbsp;?encryption=none&amp;security=tls&amp;type=ws#XConnect-SG1</div>
+
+        <h2 id="s3">第 3 步 · 验证连接</h2>
+        <p>导入客户端并发起一次请求后，回到控制台的「运行节点」。服务端收到握手时，节点状态会从 <strong>待验证</strong> 变为 <strong>已连通</strong>，并开始回传延迟。</p>
+        <div class="alert alert-warning" style="margin-top:var(--sp-5)">
+          <svg class="ic alert-icon"><use href="#i-alert"/></svg>
+          <div><span class="alert-title">状态一直是待验证？</span><p class="alert-body">先确认客户端确实走了代理（而不是直连），再检查本地时间偏差是否超过 90 秒 —— TLS 握手对时间敏感。</p></div>
+        </div>
+
+        <div class="divider" style="margin:var(--sp-10) 0 var(--sp-5)"></div>
+        <div class="row-between">
+          <div><div class="t-caption">这篇文档有帮助吗？</div><div class="row" style="gap:8px;margin-top:8px"><button class="btn btn-secondary btn-sm">有帮助</button><button class="btn btn-secondary btn-sm">没解决</button></div></div>
+          <a class="link-arrow" href="#">下一篇：账户安全与 MFA <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a>
+        </div>
+      </article>
+
+      <!-- 右侧 on-this-page -->
+      <aside class="toc">
+        <div class="nav-label" style="padding:0 0 var(--sp-2) 11px">本页内容</div>
+        <a href="#s1" class="is-active">第 1 步 · 完善账户安全</a>
+        <a href="#s2">第 2 步 · 获取 VLESS 凭据</a>
+        <a href="#s3">第 3 步 · 验证连接</a>
+        <div class="card" style="margin-top:var(--sp-5);padding:var(--sp-4)">
+          <div class="t-caption" style="color:var(--text-primary);font-weight:var(--fw-medium)">对应控制台位置</div>
+          <a class="link-arrow t-caption" href="#" style="margin-top:8px">开始使用 <svg class="ic ic-sm"><use href="#i-external"/></svg></a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 全部文档集 ══════════ -->
+<section class="section-sm">
+  <div class="container">
+    <div class="row-between" style="align-items:flex-end">
+      <div class="sec-head"><span class="t-eyebrow">Collections</span><h2 class="t-h1">全部文档集</h2></div>
+      <span class="badge">7 个文档集 · 62 篇</span>
+    </div>
+    <div class="grid g-3" style="margin-top:var(--sp-8);gap:var(--sp-3)">
+      <a class="card card-hover card-pad" href="#"><div class="row-between"><h4>快速开始</h4><svg class="ic ic-sm subtle"><use href="#i-arrow-right"/></svg></div><p class="t-caption" style="margin-top:8px">注册、安全设置与首次连通的完整路径。</p><div class="row" style="gap:6px;margin-top:var(--sp-4)"><span class="tag">6 篇</span><span class="tag">新手</span></div></a>
+      <a class="card card-hover card-pad" href="#"><div class="row-between"><h4>客户端指南</h4><svg class="ic ic-sm subtle"><use href="#i-arrow-right"/></svg></div><p class="t-caption" style="margin-top:8px">五大平台与主流第三方客户端的导入方式。</p><div class="row" style="gap:6px;margin-top:var(--sp-4)"><span class="tag">11 篇</span><span class="tag">客户端</span></div></a>
+      <a class="card card-hover card-pad" href="#"><div class="row-between"><h4>订阅与计费</h4><svg class="ic ic-sm subtle"><use href="#i-arrow-right"/></svg></div><p class="t-caption" style="margin-top:8px">套餐、配额、超额规则、发票与退款。</p><div class="row" style="gap:6px;margin-top:var(--sp-4)"><span class="tag">8 篇</span><span class="tag">计费</span></div></a>
+      <a class="card card-hover card-pad" href="#"><div class="row-between"><h4>自建部署</h4><svg class="ic ic-sm subtle"><use href="#i-arrow-right"/></svg></div><p class="t-caption" style="margin-top:8px">自建节点、接入统一计量与策略组下发。</p><div class="row" style="gap:6px;margin-top:var(--sp-4)"><span class="tag">9 篇</span><span class="tag">自建</span></div></a>
+      <a class="card card-hover card-pad" href="#"><div class="row-between"><h4>排查手册</h4><svg class="ic ic-sm subtle"><use href="#i-arrow-right"/></svg></div><p class="t-caption" style="margin-top:8px">按症状索引的定位路径与错误码对照表。</p><div class="row" style="gap:6px;margin-top:var(--sp-4)"><span class="tag">14 篇</span><span class="tag">排查</span></div></a>
+      <a class="card card-hover card-pad" href="#"><div class="row-between"><h4>API 与自动化</h4><svg class="ic ic-sm subtle"><use href="#i-arrow-right"/></svg></div><p class="t-caption" style="margin-top:8px">accounts / billing 接口、Webhook 与用量导出。</p><div class="row" style="gap:6px;margin-top:var(--sp-4)"><span class="tag">14 篇</span><span class="tag">API</span></div></a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 仍需帮助 ══════════ -->
+<section class="section-sm" style="background:var(--bg-surface);border-top:1px solid var(--border-subtle)">
+  <div class="container">
+    <div class="sec-head" style="margin-bottom:var(--sp-8)"><span class="t-eyebrow">Still stuck</span><h2 class="t-h1">还没解决？</h2></div>
+    <div class="contact-grid">
+      <div class="card card-pad"><div class="task-ico"><svg class="ic"><use href="#i-message"/></svg></div><h4 style="margin:var(--sp-4) 0 6px">提交工单</h4><p class="t-caption">附上账户 UUID 与节点名，工作日 4 小时内首次响应。</p><a class="link-arrow t-caption" href="#" style="display:inline-flex;margin-top:var(--sp-4)">新建工单 <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a></div>
+      <div class="card card-pad"><div class="task-ico"><svg class="ic"><use href="#i-activity"/></svg></div><h4 style="margin:var(--sp-4) 0 6px">服务状态页</h4><p class="t-caption">先确认是不是区域性故障，节点事件会在这里实时公布。</p><a class="link-arrow t-caption" href="#" style="display:inline-flex;margin-top:var(--sp-4)">查看状态 <svg class="ic ic-sm"><use href="#i-external"/></svg></a></div>
+      <div class="card card-pad"><div class="task-ico"><svg class="ic"><use href="#i-book"/></svg></div><h4 style="margin:var(--sp-4) 0 6px">社区讨论</h4><p class="t-caption">自建部署与第三方客户端的踩坑经验大多在这里。</p><a class="link-arrow t-caption" href="#" style="display:inline-flex;margin-top:var(--sp-4)">进入社区 <svg class="ic ic-sm"><use href="#i-external"/></svg></a></div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a class="logo" href="#"><span class="logo-mark"><svg class="ic ic-sm"><use href="#i-zap"/></svg></span>XConnect</a>
+        <p class="t-caption" style="margin-top:var(--sp-3);max-width:26ch">AI Connectivity · 为 AI Workspace 提供全球连接能力与私有环境穿透。</p>
+      </div>
+      <div><h5>产品</h5><ul><li><a href="#">XConnect</a></li><li><a href="#">XWorkmate</a></li><li><a href="#">XStream</a></li><li><a href="#">开放平台</a></li></ul></div>
+      <div><h5>资源</h5><ul><li><a href="#">文档中心</a></li><li><a href="#">快速开始</a></li><li><a href="#">状态页</a></li><li><a href="#">更新日志</a></li></ul></div>
+      <div><h5>账户</h5><ul><li><a href="#">用户中心</a></li><li><a href="#">订阅与配额</a></li><li><a href="#">账单</a></li><li><a href="#">安全设置</a></li></ul></div>
+      <div><h5>公司</h5><ul><li><a href="#">关于</a></li><li><a href="#">联系</a></li><li><a href="#">隐私政策</a></li><li><a href="#">服务条款</a></li></ul></div>
+    </div>
+    <div class="divider" style="margin:var(--sp-8) 0 var(--sp-5)"></div>
+    <div class="row-between"><span class="t-caption">© 2026 onwalk.net</span><span class="t-caption t-mono">docs v2.8</span></div>
+  </div>
+</footer>
+
+        </div>
+      </div>
+      <div class="tile-foot">
+        <div><h4>4. 帮助中心</h4><p>自建与 SaaS 服务使用详细向导</p></div>
+        <span class="n">1440px · 61%</span>
+      </div>
+    </section>
+    <section class="tile">
+      <div class="tile-bar">
+        <span class="tl"><i></i><i></i><i></i></span>
+        <span class="tile-url">console.onwalk.net/panel/subscription</span>
+        <span class="tile-tag">Console</span>
+      </div>
+      <div class="frame" style="height:1564px">
+        <div class="scale" style="width:1440px;transform:scale(0.6111)">
+<style>
+  .gate { display: flex; gap: var(--sp-4); align-items: center; padding: var(--sp-4) var(--sp-5); border: 1px solid var(--warning-border); background: var(--warning-bg); border-radius: var(--r-md); }
+  .gate-ico { width: 34px; height: 34px; border-radius: var(--r-sm); background: rgba(138,83,0,.10); color: var(--warning); display: grid; place-items: center; flex: none; }
+  .plan-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); }
+  .plan { padding: var(--sp-5); position: relative; }
+  .plan.is-current { border-color: var(--blue-300); background: linear-gradient(180deg, var(--blue-50), var(--bg-surface) 55%); }
+  .plan-amt { font-family: var(--font-mono); font-size: 1.75rem; font-weight: var(--fw-medium); letter-spacing: -0.03em; line-height: 1; margin-top: var(--sp-4); }
+  .plan-amt .per { font-size: var(--fs-caption); color: var(--text-tertiary); font-weight: var(--fw-regular); letter-spacing: 0; }
+  .plan ul { margin-top: var(--sp-4); }
+  .plan li { display: flex; gap: 7px; font-size: var(--fs-caption); color: var(--text-secondary); align-items: flex-start; }
+  .plan li + li { margin-top: 7px; }
+  .plan li .ic { color: var(--success); margin-top: 2px; }
+  .usage-bars { display: flex; align-items: flex-end; gap: 3px; height: 88px; }
+  .usage-bars i { flex: 1; background: var(--blue-100); border-radius: 2px 2px 0 0; min-height: 2px; }
+  .usage-bars i.hi { background: var(--blue-500); }
+  .axis { display: flex; justify-content: space-between; margin-top: 7px; }
+  .danger-zone { border-color: var(--danger-border); }
+  .danger-zone .card-head { border-bottom-color: var(--danger-border); background: var(--danger-bg); border-radius: var(--r-md) var(--r-md) 0 0; }
+  .pm { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4); border: 1px solid var(--border-default); border-radius: var(--r-sm); }
+  .pm-brand { width: 40px; height: 26px; border-radius: var(--r-xs); background: var(--gray-900); color: #fff; display: grid; place-items: center; font-family: var(--font-mono); font-size: 9px; letter-spacing: .06em; flex: none; }
+  .sec-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-3) 0; border-bottom: 1px solid var(--border-subtle); }
+  .sec-row:last-child { border-bottom: 0; }
+  
+</style>
+
+<div class="shell">
+  <nav class="rail">
+    <div class="rail-item" title="总览"><svg class="ic"><use href="#i-grid"/></svg></div>
+    <div class="rail-item" title="节点"><svg class="ic"><use href="#i-server"/></svg></div>
+    <div class="rail-item" title="API"><svg class="ic"><use href="#i-code"/></svg></div>
+    <div class="rail-item is-active" title="账单"><svg class="ic"><use href="#i-credit-card"/></svg></div>
+    <div class="rail-item" title="安全"><svg class="ic"><use href="#i-shield"/></svg></div>
+    <div style="flex:1"></div>
+    <div class="rail-item" title="文档"><svg class="ic"><use href="#i-book"/></svg></div>
+    <div class="rail-item" title="设置"><svg class="ic"><use href="#i-settings"/></svg></div>
+  </nav>
+
+  <aside class="sidebar">
+    <div class="row" style="gap:8px;padding:0 var(--sp-2) var(--sp-4)">
+      <span class="logo-mark"><svg class="ic ic-sm"><use href="#i-zap"/></svg></span>
+      <div style="min-width:0"><div style="font-size:var(--fs-body-sm);font-weight:var(--fw-semibold);line-height:1.2">XConnect</div><div class="t-caption" style="line-height:1.2">用户中心</div></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Overview</div>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-grid"/></svg>开始使用</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-activity"/></svg>实时流量</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-server"/></svg>运行节点</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Account</div>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-user"/></svg>账户概览</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-shield"/></svg>账户安全</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-key"/></svg>连接凭据</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Billing</div>
+      <a class="nav-item is-active" href="#"><svg class="ic"><use href="#i-credit-card"/></svg>订阅与配额</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-file"/></svg>账单记录</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Support</div>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-book"/></svg>帮助中心</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-message"/></svg>提交工单</a>
+    </div>
+  </aside>
+
+  <div style="min-width:0">
+    <header class="topbar">
+      <div class="crumbs">
+        <a href="#">控制台</a><svg class="ic ic-sm sep"><use href="#i-chevron-right"/></svg>
+        <a href="#">计费</a><svg class="ic ic-sm sep"><use href="#i-chevron-right"/></svg>
+        <span class="cur">订阅与配额</span>
+      </div>
+      <div class="row" style="gap:var(--sp-3)">
+        <span class="badge badge-warning"><i class="dot"></i>UAT 环境</span>
+        <button class="rail-item" style="color:var(--text-tertiary);width:30px;height:30px"><svg class="ic"><use href="#i-bell"/></svg></button>
+        <div class="row" style="gap:7px"><span class="avatar">A</span><span class="t-body-sm" style="font-weight:var(--fw-medium)">admin</span><svg class="ic ic-sm subtle"><use href="#i-chevron-down"/></svg></div>
+      </div>
+    </header>
+
+    <main class="main stack" style="--sp-4:20px">
+      <div class="page-head">
+        <h1 class="page-title">订阅与配额</h1>
+        <p class="page-sub">套餐、用量、余额和账单分录均来自现有订阅与 accounts.svc.plus 接口。所有支付统一经 Stripe 结算。</p>
+      </div>
+
+      <!-- ══ 安全门禁：单一位置，不再重复放一个禁用按钮 ══ -->
+      <div class="gate">
+        <div class="gate-ico"><svg class="ic ic-lg"><use href="#i-lock"/></svg></div>
+        <div style="flex:1;min-width:0">
+          <div class="t-body-sm" style="font-weight:var(--fw-semibold);color:var(--warning)">绑定 MFA 后即可发起支付</div>
+          <p class="t-caption" style="color:var(--warning);opacity:.85;margin-top:3px">浏览用量、配额和账单不受影响。发起 Stripe 购买、变更订阅或进入客户门户前需要完成一次身份验证。</p>
+        </div>
+        <a class="btn btn-primary" href="#" style="flex:none"><svg class="ic ic-sm"><use href="#i-shield"/></svg>去绑定 MFA</a>
+      </div>
+
+      <!-- ══ Tabs ══ -->
+      <div class="tabs" style="margin-top:var(--sp-2)">
+        <button class="tab is-active">概览</button>
+        <button class="tab">用量明细</button>
+        <button class="tab">账单记录</button>
+        <button class="tab">付款方式</button>
+        <button class="tab">发票抬头</button>
+      </div>
+
+      <!-- ══ 当前用量与配额 ══ -->
+      <section class="grid g-4" style="gap:var(--sp-3)">
+        <div class="card stat">
+          <div class="row-between"><div class="stat-label">权威用量</div><span class="tag t-mono" style="font-size:10px">postgresql</span></div>
+          <div class="stat-value">0<span class="unit">B</span></div>
+          <div class="stat-meta">由 accounts.svc.plus 汇总，不以本地客户端计数为准</div>
+        </div>
+        <div class="card stat">
+          <div class="stat-label">月度配额</div>
+          <div class="stat-value">0.0<span class="unit">%</span></div>
+          <div class="meter" style="margin-top:var(--sp-3)"><i style="width:0%"></i></div>
+          <div class="stat-meta">已用 0 B / 10 GB · 本期重置 09-01</div>
+        </div>
+        <div class="card stat">
+          <div class="stat-label">账户余额</div>
+          <div class="stat-value">¥0.00</div>
+          <div class="stat-meta">套餐 default · 超额规则 —</div>
+        </div>
+        <div class="card stat">
+          <div class="stat-label">策略 / 同步</div>
+          <div class="stat-value" style="font-size:1.3rem;margin-top:9px"><span class="badge badge-success"><i class="dot"></i>normal · active</span></div>
+          <div class="stat-meta">统计延迟 ~0 s · 策略组 —</div>
+        </div>
+      </section>
+
+      <!-- ══ 套餐 ══ -->
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <div class="panel-title">选择套餐</div>
+            <p class="t-caption" style="margin-top:3px">按量购买或订阅购买都会映射到统一的 Stripe 价格配置，回调与 webhook 自动更新订阅状态。</p>
+          </div>
+          <div class="seg"><button class="is-active">按月</button><button>按年 −16%</button></div>
+        </div>
+        <div class="card-body">
+          <div class="plan-grid">
+            <article class="card plan is-current">
+              <div class="row-between"><h4>Free</h4><span class="badge badge-info"><i class="dot"></i>当前套餐</span></div>
+              <div class="plan-amt">¥0<span class="per"> /月</span></div>
+              <ul>
+                <li><svg class="ic ic-sm"><use href="#i-check"/></svg>10 GB 月度配额</li>
+                <li><svg class="ic ic-sm"><use href="#i-check"/></svg>3 个区域节点</li>
+                <li><svg class="ic ic-sm"><use href="#i-check"/></svg>社区支持</li>
+              </ul>
+              <button class="btn btn-secondary btn-block is-disabled" style="margin-top:var(--sp-5)">使用中</button>
+            </article>
+            <article class="card plan">
+              <div class="row-between"><h4>Pro</h4><span class="badge badge-info">推荐</span></div>
+              <div class="plan-amt">¥69<span class="per"> /月</span></div>
+              <ul>
+                <li><svg class="ic ic-sm"><use href="#i-check"/></svg>500 GB 月度配额</li>
+                <li><svg class="ic ic-sm"><use href="#i-check"/></svg>全部 32 个节点</li>
+                <li><svg class="ic ic-sm"><use href="#i-check"/></svg>私有环境穿透</li>
+                <li><svg class="ic ic-sm"><use href="#i-check"/></svg>超额 ¥0.12/GB</li>
+              </ul>
+              <button class="btn btn-primary btn-block" style="margin-top:var(--sp-5)"><svg class="ic ic-sm"><use href="#i-lock"/></svg>升级到 Pro</button>
+              <p class="t-caption" style="text-align:center;margin-top:8px">需先绑定 MFA</p>
+            </article>
+            <article class="card plan">
+              <div class="row-between"><h4>Team</h4><span class="badge">5 席起</span></div>
+              <div class="plan-amt">¥199<span class="per"> /月</span></div>
+              <ul>
+                <li><svg class="ic ic-sm"><use href="#i-check"/></svg>2 TB 共享配额</li>
+                <li><svg class="ic ic-sm"><use href="#i-check"/></svg>策略组与成员配额</li>
+                <li><svg class="ic ic-sm"><use href="#i-check"/></svg>用量导出与发票抬头</li>
+                <li><svg class="ic ic-sm"><use href="#i-check"/></svg>SLA 99.95%</li>
+              </ul>
+              <button class="btn btn-secondary btn-block" style="margin-top:var(--sp-5)">联系我们</button>
+            </article>
+          </div>
+          <div class="alert alert-info" style="margin-top:var(--sp-5)">
+            <svg class="ic alert-icon"><use href="#i-info"/></svg>
+            <div><span class="alert-title">支付如何进行</span><p class="alert-body">选择套餐 → 跳转 Stripe Checkout（本地不保存任何支付方式入口）→ 回调与 webhook 自动识别到账并更新订阅记录，无需手工同步。</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 用量趋势 + 付款方式 ══ -->
+      <section class="grid" style="grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:var(--sp-3);align-items:start">
+        <div class="card">
+          <div class="card-head">
+            <div class="panel-title">本期用量趋势</div>
+            <div class="seg"><button>7 天</button><button class="is-active">30 天</button><button>本期</button></div>
+          </div>
+          <div class="card-body">
+            <div class="usage-bars" aria-hidden="true">
+              <i style="height:6%"></i><i style="height:9%"></i><i style="height:5%"></i><i style="height:14%"></i><i style="height:11%"></i><i style="height:22%"></i><i style="height:18%"></i><i style="height:31%"></i><i style="height:26%"></i><i style="height:39%"></i><i style="height:34%"></i><i style="height:48%"></i><i style="height:42%"></i><i class="hi" style="height:61%"></i><i class="hi" style="height:55%"></i><i class="hi" style="height:72%"></i><i style="height:47%"></i><i style="height:52%"></i><i style="height:38%"></i><i style="height:44%"></i><i style="height:29%"></i><i style="height:35%"></i><i style="height:24%"></i><i style="height:19%"></i><i style="height:27%"></i><i style="height:16%"></i><i style="height:12%"></i><i style="height:8%"></i><i style="height:10%"></i><i style="height:5%"></i>
+            </div>
+            <div class="axis"><span class="t-caption">07-20</span><span class="t-caption">08-04</span><span class="t-caption">08-18</span></div>
+            <div class="divider" style="margin:var(--sp-4) 0"></div>
+            <div class="grid g-3">
+              <div><div class="stat-label">本期已用</div><div class="t-mono t-body" style="margin-top:4px">0 B</div></div>
+              <div><div class="stat-label">日均</div><div class="t-mono t-body" style="margin-top:4px">0 B</div></div>
+              <div><div class="stat-label">预计月末</div><div class="t-mono t-body" style="margin-top:4px">0 B <span class="stat-delta">·0%</span></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div class="panel-title">付款方式</div><span class="badge">Stripe</span></div>
+          <div class="card-body">
+            <div class="empty" style="padding:var(--sp-6) var(--sp-4)">
+              <svg class="ic empty-icon"><use href="#i-credit-card"/></svg>
+              <div class="empty-title">尚未绑定付款方式</div>
+              <div class="empty-desc">首次购买时在 Stripe Checkout 中添加，卡号不会存储在本站。</div>
+            </div>
+            <div class="divider" style="margin:var(--sp-4) 0"></div>
+            <div class="sec-row"><span class="t-caption">结算币种</span><span class="t-body-sm t-mono">CNY</span></div>
+            <div class="sec-row"><span class="t-caption">下次扣费</span><span class="t-caption subtle">—</span></div>
+            <div class="sec-row"><span class="t-caption">客户门户</span><span class="badge badge-warning"><i class="dot"></i>需 MFA</span></div>
+            <button class="btn btn-secondary btn-block" style="margin-top:var(--sp-4)"><svg class="ic ic-sm"><use href="#i-external"/></svg>进入 Stripe 客户门户</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 账单记录 ══ -->
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <div class="panel-title">账单记录</div>
+            <p class="t-caption" style="margin-top:3px">Stripe 购买记录与订阅分录，支持下载 PDF 发票。</p>
+          </div>
+          <div class="row" style="gap:8px">
+            <button class="btn btn-secondary btn-sm">全部状态 <svg class="ic ic-sm"><use href="#i-chevron-down"/></svg></button>
+            <button class="btn btn-secondary btn-sm"><svg class="ic ic-sm"><use href="#i-download"/></svg>导出 CSV</button>
+          </div>
+        </div>
+        <table class="table">
+          <thead><tr><th>账单号</th><th>日期</th><th>说明</th><th>周期</th><th style="text-align:right">金额</th><th>状态</th><th style="width:1%"></th></tr></thead>
+          <tbody>
+            <tr><td colspan="7" style="padding:0;border:0">
+              <div class="empty" style="border:0;border-radius:0;background:transparent;padding:var(--sp-10) var(--sp-5)">
+                <svg class="ic empty-icon"><use href="#i-file"/></svg>
+                <div class="empty-title">暂无订阅记录</div>
+                <div class="empty-desc">完成首次购买后，账单与发票会在这里按周期列出，并可申请退款。</div>
+                <a class="btn btn-secondary btn-sm" href="#" style="margin-top:var(--sp-4)">查看套餐</a>
+              </div>
+            </td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ══ 账单记录（有数据形态，作为设计参考） ══ -->
+      <section class="card">
+        <div class="card-head">
+          <div><div class="panel-title">账单记录 · 有数据形态</div><p class="t-caption" style="margin-top:3px">设计参考：状态徽标、金额右对齐等宽数字、行内退款入口。</p></div>
+          <span class="badge badge-info">Design reference</span>
+        </div>
+        <table class="table">
+          <thead><tr><th>账单号</th><th>日期</th><th>说明</th><th>周期</th><th style="text-align:right">金额</th><th>状态</th><th style="width:1%"></th></tr></thead>
+          <tbody>
+            <tr><td class="t-mono">IN-2608-0417</td><td class="subtle">2026-08-01</td><td>Pro 订阅</td><td class="subtle">08-01 → 08-31</td><td class="num">¥69.00</td><td><span class="badge badge-success"><i class="dot"></i>已支付</span></td><td><button class="btn btn-ghost btn-sm"><svg class="ic ic-sm"><use href="#i-download"/></svg>发票</button></td></tr>
+            <tr><td class="t-mono">IN-2607-0392</td><td class="subtle">2026-07-01</td><td>Pro 订阅 + 超额 42 GB</td><td class="subtle">07-01 → 07-31</td><td class="num">¥74.04</td><td><span class="badge badge-success"><i class="dot"></i>已支付</span></td><td><button class="btn btn-ghost btn-sm"><svg class="ic ic-sm"><use href="#i-download"/></svg>发票</button></td></tr>
+            <tr><td class="t-mono">IN-2606-0288</td><td class="subtle">2026-06-01</td><td>Pro 订阅</td><td class="subtle">06-01 → 06-30</td><td class="num">¥69.00</td><td><span class="badge badge-warning"><i class="dot"></i>退款处理中</span></td><td><button class="btn btn-ghost btn-sm">详情</button></td></tr>
+            <tr><td class="t-mono">IN-2605-0201</td><td class="subtle">2026-05-01</td><td>按量购买 100 GB</td><td class="subtle">一次性</td><td class="num">¥12.00</td><td><span class="badge badge-danger"><i class="dot"></i>已退款</span></td><td><button class="btn btn-ghost btn-sm"><svg class="ic ic-sm"><use href="#i-download"/></svg>发票</button></td></tr>
+          </tbody>
+        </table>
+        <div class="card-foot"><div class="row-between"><span class="t-caption">显示 4 条 · 共 4 条</span><span class="t-caption">合计 <span class="t-mono" style="color:var(--text-primary)">¥224.04</span></span></div></div>
+      </section>
+
+      <!-- ══ 退款与取消 ══ -->
+      <section class="card danger-zone">
+        <div class="card-head">
+          <div>
+            <div class="panel-title" style="color:var(--danger)">退款与取消订阅</div>
+            <p class="t-caption" style="color:var(--danger);opacity:.85;margin-top:3px">这些操作不可撤销，执行前需要完成 MFA 验证。</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="sec-row">
+            <div style="max-width:64ch"><div class="t-body-sm" style="font-weight:var(--fw-medium)">申请退款</div><p class="t-caption" style="margin-top:3px">首次订阅 7 天内可全额退款；超额用量部分不参与退款。审核后 5–10 个工作日原路退回。</p></div>
+            <button class="btn btn-secondary is-disabled" style="flex:none">申请退款</button>
+          </div>
+          <div class="sec-row">
+            <div style="max-width:64ch"><div class="t-body-sm" style="font-weight:var(--fw-medium)">取消订阅</div><p class="t-caption" style="margin-top:3px">当前周期结束前服务保持可用，之后自动降级到 Free 套餐，连接凭据保留。</p></div>
+            <button class="btn btn-danger is-disabled" style="flex:none">取消订阅</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+        </div>
+      </div>
+      <div class="tile-foot">
+        <div><h4>3. 订阅与计费</h4><p>订阅 / 账单 / 付款 / 退款</p></div>
+        <span class="n">1440px · 61%</span>
+      </div>
+    </section>
+    </div>
+  </div>
+
+  <!-- ══ 规范附录 ══ -->
+  <section class="spec">
+    <h2 class="t-h2" style="margin-bottom:6px">共用 Token 摘要</h2>
+    <p class="t-body-sm muted" style="margin-bottom:24px">4 个页面全部由下面这些变量驱动，没有页面级的一次性数值。</p>
+
+    <div class="card card-pad" style="margin-bottom:16px">
+      <div class="t-eyebrow" style="margin-bottom:12px">Type scale · 借鉴 Supabase</div>
+      <div class="type-row"><span class="meta">display-1 · 68/1.04 · 500</span><span class="t-display-1" style="font-size:34px">连接层</span></div>
+      <div class="type-row"><span class="meta">display-2 · 48/1.08 · 500</span><span class="t-display-2" style="font-size:28px">3 分钟接入</span></div>
+      <div class="type-row"><span class="meta">h1 · 36/1.18 · 500</span><span class="t-h1" style="font-size:24px">3 步开启安全加速连接</span></div>
+      <div class="type-row"><span class="meta">h2 · 28/1.18 · 500</span><span class="t-h2" style="font-size:20px">订阅与配额</span></div>
+      <div class="type-row"><span class="meta">h4 · 17/1.18 · 600</span><span class="t-h4">运行节点</span></div>
+      <div class="type-row"><span class="meta">body · 15/1.6 · 400</span><span class="t-body">用量由 accounts.svc.plus 汇总，不以本地客户端计数为准。</span></div>
+      <div class="type-row"><span class="meta">body-sm · 14/1.6 · 400</span><span class="t-body-sm">控制台默认正文与表格正文。</span></div>
+      <div class="type-row"><span class="meta">caption · 13/1.35 · 400</span><span class="t-caption">卡片补充说明与表格次要信息。</span></div>
+      <div class="type-row"><span class="meta">eyebrow · 11 · 600 · mono</span><span class="t-eyebrow">Billing &amp; quota</span></div>
+      <div class="type-row" style="border-bottom:0"><span class="meta">mono · 数值 / 标识符</span><span class="t-mono t-body">01a0124f-97b1-7670-a3f3 · 99.95% · ¥69.00</span></div>
+    </div>
+
+    <div class="spec-grid">
+      <div class="card card-pad">
+        <div class="t-eyebrow" style="margin-bottom:12px">Neutral</div>
+        <div class="sw-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="sw"><div class="c" style="background:#f7f8fa"></div><div class="l">50</div></div>
+          <div class="sw"><div class="c" style="background:#eff1f5"></div><div class="l">100</div></div>
+          <div class="sw"><div class="c" style="background:#e3e7ee"></div><div class="l">200</div></div>
+          <div class="sw"><div class="c" style="background:#d0d6e0"></div><div class="l">300</div></div>
+          <div class="sw"><div class="c" style="background:#9aa4b5"></div><div class="l">400</div></div>
+          <div class="sw"><div class="c" style="background:#6b7688"></div><div class="l">500</div></div>
+          <div class="sw"><div class="c" style="background:#525c6e"></div><div class="l">600</div></div>
+          <div class="sw"><div class="c" style="background:#3d4553"></div><div class="l">700</div></div>
+          <div class="sw"><div class="c" style="background:#141920"></div><div class="l">900</div></div>
+        </div>
+      </div>
+      <div class="card card-pad">
+        <div class="t-eyebrow" style="margin-bottom:12px">Brand blue</div>
+        <div class="sw-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="sw"><div class="c" style="background:#eef4fd"></div><div class="l">50</div></div>
+          <div class="sw"><div class="c" style="background:#dbe8fa"></div><div class="l">100</div></div>
+          <div class="sw"><div class="c" style="background:#b4cef4"></div><div class="l">200</div></div>
+          <div class="sw"><div class="c" style="background:#7ba9e9"></div><div class="l">300</div></div>
+          <div class="sw"><div class="c" style="background:#0058bd"></div><div class="l">500</div></div>
+          <div class="sw"><div class="c" style="background:#004a9e"></div><div class="l">600</div></div>
+        </div>
+        <p class="t-caption" style="margin-top:12px">#0058bd on #fff = 7.6:1 · AA Large &amp; Normal 通过</p>
+      </div>
+      <div class="card card-pad">
+        <div class="t-eyebrow" style="margin-bottom:12px">Buttons</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button class="btn btn-primary btn-sm">Primary</button>
+          <button class="btn btn-secondary btn-sm">Secondary</button>
+          <button class="btn btn-ghost btn-sm">Ghost</button>
+          <button class="btn btn-danger btn-sm">Danger</button>
+          <button class="btn btn-primary btn-sm is-disabled">Disabled</button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+          <button class="btn btn-primary">Default 36px</button>
+          <button class="btn btn-primary btn-lg">Large 44px</button>
+        </div>
+      </div>
+      <div class="card card-pad">
+        <div class="t-eyebrow" style="margin-bottom:12px">Status</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <span class="badge badge-success"><i class="dot"></i>已连通</span>
+          <span class="badge badge-warning"><i class="dot"></i>高延迟</span>
+          <span class="badge badge-danger"><i class="dot"></i>已退款</span>
+          <span class="badge badge-info"><i class="dot"></i>当前套餐</span>
+          <span class="badge"><i class="dot"></i>待验证</span>
+        </div>
+        <div class="meter" style="margin-top:16px"><i style="width:38%"></i></div>
+        <div class="meter is-warning" style="margin-top:8px"><i style="width:78%"></i></div>
+        <div class="meter is-danger" style="margin-top:8px"><i style="width:96%"></i></div>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

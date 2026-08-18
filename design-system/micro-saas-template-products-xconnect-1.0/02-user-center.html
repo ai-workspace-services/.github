@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户中心 · XConnect</title>
+<style>
+/* ============================================================
+   XConnect Micro SaaS 模版 — Design Tokens v1.0
+   排版语言借鉴 Supabase（轻字重、宽行高、无阴影、边框分层）
+   品牌色沿用 portal 控制台 --color-primary #0058bd
+   ============================================================ */
+
+:root {
+  /* ---------- 1. 字体族 ---------- */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: "SF Mono", "SFMono-Regular", ui-monospace, "JetBrains Mono",
+    "Cascadia Code", Consolas, monospace;
+
+  /* ---------- 2. 字号阶梯（1.200 Minor Third，marketing / console 双密度）---------- */
+  --fs-display-1: 4.25rem;  /* 68px  marketing hero */
+  --fs-display-2: 3rem;     /* 48px  section hero */
+  --fs-h1: 2.25rem;         /* 36px */
+  --fs-h2: 1.75rem;         /* 28px */
+  --fs-h3: 1.3125rem;       /* 21px */
+  --fs-h4: 1.0625rem;       /* 17px */
+  --fs-body-lg: 1.0625rem;  /* 17px  marketing 正文 */
+  --fs-body: 0.9375rem;     /* 15px  默认正文 */
+  --fs-body-sm: 0.875rem;   /* 14px  console 正文 */
+  --fs-caption: 0.8125rem;  /* 13px  辅助说明 */
+  --fs-micro: 0.75rem;      /* 12px  标签 / 表头 */
+  --fs-eyebrow: 0.6875rem;  /* 11px  全大写眉标 */
+
+  /* ---------- 3. 行高（Supabase 关键差异：正文 1.6，标题 1.1）---------- */
+  --lh-display: 1.04;
+  --lh-heading: 1.18;
+  --lh-snug: 1.35;
+  --lh-body: 1.6;
+  --lh-relaxed: 1.75;
+
+  /* ---------- 4. 字重（Supabase 只用 400/500，最重 600）---------- */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  /* ---------- 5. 字距 ---------- */
+  --ls-display: -0.032em;
+  --ls-heading: -0.018em;
+  --ls-body: 0;
+  --ls-eyebrow: 0.09em;
+  --ls-mono: -0.01em;
+
+  /* ---------- 6. 中性色阶 ---------- */
+  --gray-0: #ffffff;
+  --gray-25: #fcfcfd;
+  --gray-50: #f7f8fa;
+  --gray-100: #eff1f5;
+  --gray-200: #e3e7ee;
+  --gray-300: #d0d6e0;
+  --gray-400: #9aa4b5;
+  --gray-500: #616c80;
+  --gray-600: #525c6e;
+  --gray-700: #3d4553;
+  --gray-800: #262c37;
+  --gray-900: #141920;
+
+  /* ---------- 7. 品牌蓝 ---------- */
+  --blue-50: #eef4fd;
+  --blue-100: #dbe8fa;
+  --blue-200: #b4cef4;
+  --blue-300: #7ba9e9;
+  --blue-500: #0058bd;
+  --blue-600: #004a9e;
+  --blue-700: #003c80;
+
+  /* ---------- 8. 语义色 ---------- */
+  --success: #0f7c46;
+  --success-bg: #e6f5ed;
+  --success-border: #bfe3d0;
+  --warning: #8a5300;
+  --warning-bg: #fdf3e0;
+  --warning-border: #f0dcb4;
+  --danger: #b42318;
+  --danger-bg: #fdeceb;
+  --danger-border: #f5c9c5;
+  --info: var(--blue-500);
+  --info-bg: var(--blue-50);
+  --info-border: var(--blue-200);
+
+  /* ---------- 9. 语义别名 ---------- */
+  --bg-canvas: var(--gray-50);
+  --bg-surface: var(--gray-0);
+  --bg-raised: var(--gray-25);
+  --bg-sunken: var(--gray-100);
+  --bg-hover: var(--gray-50);
+  --bg-inverse: var(--gray-900);
+
+  --text-primary: var(--gray-900);
+  --text-secondary: var(--gray-600);
+  --text-tertiary: var(--gray-500);
+  --text-disabled: var(--gray-400);
+  --text-inverse: #ffffff;
+  --text-brand: var(--blue-500);
+
+  --border-subtle: var(--gray-100);
+  --border-default: var(--gray-200);
+  --border-strong: var(--gray-300);
+  --border-brand: var(--blue-200);
+
+  /* ---------- 10. 圆角（只保留 4 档）---------- */
+  --r-xs: 4px;   /* badge / input / tag */
+  --r-sm: 6px;   /* button / 卡内元素 */
+  --r-md: 10px;  /* card / panel */
+  --r-lg: 14px;  /* 大容器 / 模态 */
+  --r-pill: 999px;
+
+  /* ---------- 11. 阴影（Supabase 原则：仅浮层用；平面靠边框分层）---------- */
+  --shadow-none: none;
+  --shadow-overlay: 0 4px 12px rgba(20, 25, 32, 0.08), 0 1px 3px rgba(20, 25, 32, 0.06);
+  --shadow-modal: 0 16px 48px rgba(20, 25, 32, 0.14), 0 2px 8px rgba(20, 25, 32, 0.08);
+  --focus-ring: 0 0 0 3px rgba(0, 88, 189, 0.22);
+
+  /* ---------- 12. 间距（4px 基准）---------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-14: 56px;
+  --sp-20: 80px;
+  --sp-30: 120px;
+
+  /* ---------- 13. 动效 ---------- */
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ---------- 14. 布局 ---------- */
+  --container: 1200px;
+  --container-wide: 1360px;
+  --rail-w: 56px;
+  --sidebar-w: 236px;
+  --topbar-h: 52px;
+}
+
+/* ============================================================
+   Reset + Base
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: var(--fw-regular);
+  color: var(--text-primary);
+  background: var(--bg-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: var(--fw-medium); line-height: var(--lh-heading); letter-spacing: var(--ls-heading); color: var(--text-primary); }
+h1 { font-size: var(--fs-h1); }
+h2 { font-size: var(--fs-h2); }
+h3 { font-size: var(--fs-h3); }
+h4 { font-size: var(--fs-h4); font-weight: var(--fw-semibold); }
+p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+input, select, textarea { font: inherit; color: inherit; }
+img, svg { display: block; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; }
+:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--r-xs); }
+
+/* ============================================================
+   Typography utilities
+   ============================================================ */
+.t-display-1 { font-size: var(--fs-display-1); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: var(--fw-medium); }
+.t-display-2 { font-size: var(--fs-display-2); line-height: 1.08; letter-spacing: var(--ls-display); font-weight: var(--fw-medium); }
+.t-h1 { font-size: var(--fs-h1); }
+.t-h2 { font-size: var(--fs-h2); }
+.t-h3 { font-size: var(--fs-h3); }
+.t-h4 { font-size: var(--fs-h4); font-weight: var(--fw-semibold); }
+.t-lead { font-size: var(--fs-body-lg); line-height: var(--lh-relaxed); color: var(--text-secondary); }
+.t-body { font-size: var(--fs-body); line-height: var(--lh-body); }
+.t-body-sm { font-size: var(--fs-body-sm); line-height: var(--lh-body); }
+.t-caption { font-size: var(--fs-caption); line-height: var(--lh-snug); color: var(--text-tertiary); }
+.t-micro { font-size: var(--fs-micro); line-height: var(--lh-snug); }
+.t-eyebrow {
+  font-size: var(--fs-eyebrow); font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-eyebrow); text-transform: uppercase;
+  color: var(--text-tertiary); font-family: var(--font-mono);
+}
+.t-mono { font-family: var(--font-mono); letter-spacing: var(--ls-mono); font-size: 0.92em; }
+.muted { color: var(--text-secondary); }
+.subtle { color: var(--text-tertiary); }
+.brand { color: var(--text-brand); }
+
+/* ============================================================
+   Layout primitives
+   ============================================================ */
+.container { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 var(--sp-6); }
+.container-wide { width: 100%; max-width: var(--container-wide); margin: 0 auto; padding: 0 var(--sp-6); }
+.stack > * + * { margin-top: var(--sp-4); }
+.row { display: flex; align-items: center; gap: var(--sp-3); }
+.row-between { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); }
+.grid { display: grid; gap: var(--sp-4); }
+.g-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.section { padding: var(--sp-30) 0; }
+.section-sm { padding: var(--sp-20) 0; }
+.divider { height: 1px; background: var(--border-default); border: 0; margin: 0; }
+
+/* ============================================================
+   Button — 4 变体 × 3 尺寸 × 6 状态
+   ============================================================ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  height: 36px; padding: 0 14px;
+  border-radius: var(--r-sm); border: 1px solid transparent;
+  font-size: var(--fs-body-sm); font-weight: var(--fw-medium); line-height: 1;
+  white-space: nowrap; cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.btn:focus-visible { box-shadow: var(--focus-ring); }
+.btn[disabled], .btn.is-disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
+.btn-sm { height: 28px; padding: 0 10px; font-size: var(--fs-micro); }
+.btn-lg { height: 44px; padding: 0 22px; font-size: var(--fs-body); }
+.btn-primary { background: var(--blue-500); color: var(--text-inverse); border-color: var(--blue-500); }
+.btn-primary:hover { background: var(--blue-600); border-color: var(--blue-600); }
+.btn-primary:active { background: var(--blue-700); }
+.btn-secondary { background: var(--bg-surface); color: var(--text-primary); border-color: var(--border-strong); }
+.btn-secondary:hover { background: var(--bg-hover); border-color: var(--gray-400); }
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-sunken); color: var(--text-primary); }
+.btn-danger { background: var(--bg-surface); color: var(--danger); border-color: var(--danger-border); }
+.btn-danger:hover { background: var(--danger-bg); }
+.btn-pill { border-radius: var(--r-pill); }
+.btn-block { width: 100%; }
+.btn .ico { width: 15px; height: 15px; flex: none; }
+
+/* ============================================================
+   Card / Panel — 无阴影，靠边框分层
+   ============================================================ */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+}
+.card-pad { padding: var(--sp-5); }
+.card-hover { transition: border-color var(--dur-base) var(--ease-out), background var(--dur-base) var(--ease-out); }
+.card-hover:hover { border-color: var(--border-strong); background: var(--bg-raised); }
+.card-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5); border-bottom: 1px solid var(--border-subtle);
+}
+.card-body { padding: var(--sp-5); }
+.card-foot { padding: var(--sp-3) var(--sp-5); border-top: 1px solid var(--border-subtle); background: var(--bg-raised); border-radius: 0 0 var(--r-md) var(--r-md); }
+.panel-title { font-size: var(--fs-h4); font-weight: var(--fw-semibold); letter-spacing: var(--ls-heading); }
+
+/* ============================================================
+   Badge / Status
+   ============================================================ */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 20px; padding: 0 7px;
+  border-radius: var(--r-xs); border: 1px solid var(--border-default);
+  background: var(--bg-sunken); color: var(--text-secondary);
+  font-size: var(--fs-eyebrow); font-weight: var(--fw-medium); line-height: 1;
+  white-space: nowrap;
+}
+.badge-success { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+.badge-warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
+.badge-danger  { background: var(--danger-bg);  border-color: var(--danger-border);  color: var(--danger); }
+.badge-info    { background: var(--info-bg);    border-color: var(--info-border);    color: var(--blue-600); }
+.badge-pill { border-radius: var(--r-pill); padding: 0 9px; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+
+/* ============================================================
+   Eyebrow pill（hero 徽标）
+   ============================================================ */
+.pill {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  height: 28px; padding: 0 12px; border-radius: var(--r-pill);
+  border: 1px solid var(--border-brand); background: var(--blue-50);
+  color: var(--blue-600); font-size: var(--fs-micro); font-weight: var(--fw-medium);
+}
+
+/* ============================================================
+   Stepper — 向导（产品页 + 用户中心共用）
+   ============================================================ */
+.stepper { display: grid; gap: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.step { position: relative; padding: var(--sp-5); border: 1px solid var(--border-default); border-right: 0; background: var(--bg-surface); }
+.step:first-child { border-radius: var(--r-md) 0 0 var(--r-md); }
+.step:last-child { border-right: 1px solid var(--border-default); border-radius: 0 var(--r-md) var(--r-md) 0; }
+.step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 1px solid var(--border-strong); background: var(--bg-surface);
+  font-size: var(--fs-micro); font-weight: var(--fw-semibold); font-family: var(--font-mono);
+  color: var(--text-tertiary); flex: none;
+}
+.step.is-done { background: var(--bg-raised); }
+.step.is-done .step-num { background: var(--success); border-color: var(--success); color: #fff; }
+.step.is-active { border-color: var(--blue-300); box-shadow: inset 3px 0 0 var(--blue-500); }
+.step.is-active .step-num { background: var(--blue-500); border-color: var(--blue-500); color: #fff; }
+.step-title { font-size: var(--fs-h4); font-weight: var(--fw-semibold); }
+.step-desc { font-size: var(--fs-caption); color: var(--text-secondary); line-height: var(--lh-body); }
+.step-check { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-caption); }
+.step-check .ok { color: var(--success); }
+.step-check .pending { color: var(--text-disabled); }
+
+/* ============================================================
+   Meter — 配额 / 用量进度
+   ============================================================ */
+.meter { height: 6px; border-radius: var(--r-pill); background: var(--gray-200); overflow: hidden; }
+.meter > i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--blue-500); transition: width var(--dur-base) var(--ease-out); }
+.meter.is-warning > i { background: var(--warning); }
+.meter.is-danger > i { background: var(--danger); }
+.meter-seg { display: flex; gap: 2px; height: 6px; }
+.meter-seg > i { flex: 1; border-radius: 1px; background: var(--gray-200); }
+.meter-seg > i.on { background: var(--blue-500); }
+
+/* ============================================================
+   Stat tile — 数据卡
+   ============================================================ */
+.stat { padding: var(--sp-4) var(--sp-5); }
+.stat-label { font-size: var(--fs-micro); color: var(--text-tertiary); font-weight: var(--fw-medium); }
+.stat-value {
+  font-family: var(--font-mono); font-size: 1.75rem; font-weight: var(--fw-medium);
+  line-height: 1.1; letter-spacing: -0.02em; color: var(--text-primary);
+  font-variant-numeric: tabular-nums; margin-top: 6px;
+}
+.stat-value .unit { font-size: 0.95rem; color: var(--text-tertiary); margin-left: 3px; }
+.stat-meta { font-size: var(--fs-caption); color: var(--text-tertiary); margin-top: var(--sp-2); }
+.stat-delta { font-size: var(--fs-micro); font-family: var(--font-mono); }
+.stat-delta.up { color: var(--success); }
+.stat-delta.down { color: var(--danger); }
+
+/* ============================================================
+   Key-value 行（账户元信息条）
+   ============================================================ */
+.kv-strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid var(--border-default); border-radius: var(--r-md); background: var(--bg-surface); overflow: hidden; }
+.kv { padding: var(--sp-3) var(--sp-4); border-right: 1px solid var(--border-subtle); }
+.kv:last-child { border-right: 0; }
+.kv-k { font-size: var(--fs-micro); color: var(--text-tertiary); }
+.kv-v { font-size: var(--fs-body-sm); font-weight: var(--fw-medium); margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+
+/* ============================================================
+   Table
+   ============================================================ */
+.table { font-size: var(--fs-body-sm); }
+.table th {
+  text-align: left; font-size: var(--fs-micro); font-weight: var(--fw-medium);
+  color: var(--text-tertiary); padding: var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--border-default); background: var(--bg-raised); white-space: nowrap;
+}
+.table td { padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--border-subtle); vertical-align: middle; }
+.table tbody tr:last-child td { border-bottom: 0; }
+.table tbody tr:hover { background: var(--bg-hover); }
+.table .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+
+/* ============================================================
+   Tabs
+   ============================================================ */
+.tabs { display: flex; gap: var(--sp-5); border-bottom: 1px solid var(--border-default); }
+.tab {
+  position: relative; padding: 0 0 10px; font-size: var(--fs-body-sm);
+  font-weight: var(--fw-medium); color: var(--text-tertiary);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.tab:hover { color: var(--text-primary); }
+.tab.is-active { color: var(--text-primary); }
+.tab.is-active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--blue-500); border-radius: 1px; }
+
+/* ============================================================
+   Segmented control
+   ============================================================ */
+.seg { display: inline-flex; padding: 2px; gap: 2px; background: var(--bg-sunken); border: 1px solid var(--border-default); border-radius: var(--r-sm); }
+.seg > button { padding: 4px 12px; border-radius: 4px; font-size: var(--fs-micro); font-weight: var(--fw-medium); color: var(--text-tertiary); white-space: nowrap; }
+.seg > button.is-active { background: var(--bg-surface); color: var(--text-primary); box-shadow: 0 1px 2px rgba(20,25,32,.06); }
+
+/* ============================================================
+   Alert / Callout
+   ============================================================ */
+.alert { display: flex; gap: var(--sp-3); padding: var(--sp-4); border-radius: var(--r-md); border: 1px solid; font-size: var(--fs-body-sm); }
+.alert-icon { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+.alert-info { background: var(--info-bg); border-color: var(--info-border); color: var(--blue-700); }
+.alert-warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
+.alert-danger { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+.alert-success { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+.alert-title { font-weight: var(--fw-semibold); }
+.alert-body { color: inherit; opacity: .88; margin-top: 2px; line-height: var(--lh-body); }
+
+/* ============================================================
+   Empty state
+   ============================================================ */
+.empty { text-align: center; padding: var(--sp-10) var(--sp-5); border: 1px dashed var(--border-strong); border-radius: var(--r-md); background: var(--bg-raised); }
+.empty-icon { width: 36px; height: 36px; margin: 0 auto var(--sp-3); color: var(--text-disabled); }
+.empty-title { font-size: var(--fs-body-sm); font-weight: var(--fw-semibold); }
+.empty-desc { font-size: var(--fs-caption); color: var(--text-tertiary); margin-top: 4px; }
+
+/* ============================================================
+   Code / value box
+   ============================================================ */
+.code-box {
+  font-family: var(--font-mono); font-size: var(--fs-caption);
+  background: var(--gray-900); color: #e6eaf0;
+  border-radius: var(--r-sm); padding: var(--sp-3) var(--sp-4);
+  overflow-x: auto; line-height: 1.65;
+}
+.code-box .c-key { color: #7fb2ff; }
+.code-box .c-str { color: #7fd8a8; }
+.code-box .c-dim { color: #8b95a5; }
+.value-box {
+  font-family: var(--font-mono); font-size: var(--fs-caption);
+  background: var(--bg-sunken); border: 1px solid var(--border-default);
+  border-radius: var(--r-sm); padding: 8px 10px; word-break: break-all;
+  color: var(--text-primary);
+}
+
+/* ============================================================
+   Input / Search
+   ============================================================ */
+.input {
+  display: flex; align-items: center; gap: var(--sp-2);
+  height: 36px; padding: 0 12px;
+  border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+  background: var(--bg-surface); color: var(--text-tertiary); font-size: var(--fs-body-sm);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.input:hover { border-color: var(--gray-400); }
+.input.is-focus { border-color: var(--blue-500); box-shadow: var(--focus-ring); }
+.input-lg { height: 46px; font-size: var(--fs-body); border-radius: var(--r-md); }
+.kbd {
+  font-family: var(--font-mono); font-size: 11px; padding: 2px 6px;
+  border: 1px solid var(--border-default); border-bottom-width: 2px;
+  border-radius: var(--r-xs); background: var(--bg-raised); color: var(--text-tertiary);
+}
+
+/* ============================================================
+   Console shell
+   ============================================================ */
+.shell { display: grid; grid-template-columns: var(--rail-w) var(--sidebar-w) minmax(0, 1fr); min-height: 100%; background: var(--bg-canvas); }
+.rail { background: var(--gray-900); display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); padding: var(--sp-3) 0; }
+.rail-item { width: 34px; height: 34px; border-radius: var(--r-sm); display: grid; place-items: center; color: #8b95a5; transition: all var(--dur-fast) var(--ease-out); }
+.rail-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+.rail-item.is-active { background: var(--blue-500); color: #fff; }
+.sidebar { background: var(--bg-surface); border-right: 1px solid var(--border-default); padding: var(--sp-4) var(--sp-3); }
+.nav-group + .nav-group { margin-top: var(--sp-5); }
+.nav-label { font-size: var(--fs-eyebrow); font-family: var(--font-mono); letter-spacing: var(--ls-eyebrow); text-transform: uppercase; color: var(--text-tertiary); padding: 0 var(--sp-2); margin-bottom: var(--sp-2); }
+.nav-item { display: flex; align-items: center; gap: var(--sp-2); height: 30px; padding: 0 var(--sp-2); border-radius: var(--r-sm); font-size: var(--fs-body-sm); color: var(--text-secondary); transition: all var(--dur-fast) var(--ease-out); }
+.nav-item:hover { background: var(--bg-sunken); color: var(--text-primary); }
+.nav-item.is-active { background: var(--blue-50); color: var(--blue-600); font-weight: var(--fw-medium); }
+.nav-item .ico { width: 15px; height: 15px; flex: none; opacity: .8; }
+.topbar { height: var(--topbar-h); border-bottom: 1px solid var(--border-default); background: rgba(255,255,255,.86); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: space-between; padding: 0 var(--sp-6); position: sticky; top: 0; z-index: 5; }
+.crumbs { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-body-sm); color: var(--text-tertiary); }
+.crumbs .sep { color: var(--text-disabled); }
+.crumbs .cur { color: var(--text-primary); font-weight: var(--fw-medium); }
+.main { padding: var(--sp-6); max-width: 1180px; }
+.page-head { margin-bottom: var(--sp-5); }
+.page-title { font-size: var(--fs-h2); font-weight: var(--fw-medium); letter-spacing: var(--ls-heading); }
+.page-sub { font-size: var(--fs-body-sm); color: var(--text-secondary); margin-top: 6px; max-width: 68ch; }
+.avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--blue-500); color: #fff; display: grid; place-items: center; font-size: var(--fs-micro); font-weight: var(--fw-semibold); }
+
+/* ============================================================
+   Marketing nav / footer
+   ============================================================ */
+.mnav { position: sticky; top: 0; z-index: 20; height: 56px; border-bottom: 1px solid var(--border-default); background: rgba(255,255,255,.82); backdrop-filter: blur(12px); }
+.mnav-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 8px; font-size: var(--fs-h4); font-weight: var(--fw-semibold); letter-spacing: -0.02em; }
+.logo-mark { width: 22px; height: 22px; border-radius: var(--r-xs); background: var(--blue-500); display: grid; place-items: center; color: #fff; }
+.mnav-links { display: flex; align-items: center; gap: var(--sp-6); }
+.mnav-links a { font-size: var(--fs-body-sm); color: var(--text-secondary); transition: color var(--dur-fast) var(--ease-out); }
+.mnav-links a:hover { color: var(--text-primary); }
+.footer { border-top: 1px solid var(--border-default); background: var(--bg-surface); padding: var(--sp-14) 0 var(--sp-8); }
+.footer-grid { display: grid; grid-template-columns: 1.6fr repeat(4, 1fr); gap: var(--sp-8); }
+.footer h5 { font-size: var(--fs-micro); font-weight: var(--fw-semibold); color: var(--text-primary); margin-bottom: var(--sp-3); }
+.footer li + li { margin-top: 9px; }
+.footer a { font-size: var(--fs-caption); color: var(--text-tertiary); }
+.footer a:hover { color: var(--text-primary); }
+
+/* ============================================================
+   Sparkline / chart shell
+   ============================================================ */
+.spark { width: 100%; height: 46px; display: block; }
+.chart-frame { border: 1px solid var(--border-default); border-radius: var(--r-md); background: var(--bg-surface); }
+
+/* ============================================================
+   Icon
+   ============================================================ */
+.ic { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ic-sm { width: 14px; height: 14px; }
+.ic-lg { width: 20px; height: 20px; }
+.ic-xl { width: 24px; height: 24px; }
+
+/* ============================================================
+   Misc
+   ============================================================ */
+.hr-dot { border-top: 1px dashed var(--border-default); }
+.tag { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: var(--r-xs); background: var(--bg-sunken); border: 1px solid var(--border-subtle); font-size: var(--fs-micro); color: var(--text-secondary); }
+.link-arrow { display: inline-flex; align-items: center; gap: 5px; font-size: var(--fs-body-sm); font-weight: var(--fw-medium); color: var(--blue-500); }
+.link-arrow:hover { color: var(--blue-600); }
+.qr { width: 116px; height: 116px; border: 1px solid var(--border-default); border-radius: var(--r-sm); background: #fff; padding: 7px; }
+.scroll-x { overflow-x: auto; }
+
+@media (max-width: 1100px) {
+  :root { --fs-display-1: 3rem; --fs-display-2: 2.25rem; }
+  .g-3, .g-4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .kv-strip { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .stepper { grid-template-columns: 1fr; }
+  .step { border-right: 1px solid var(--border-default); border-bottom: 0; }
+  .step:first-child { border-radius: var(--r-md) var(--r-md) 0 0; }
+  .step:last-child { border-radius: 0 0 var(--r-md) var(--r-md); }
+  .shell { grid-template-columns: var(--rail-w) minmax(0,1fr); }
+  .sidebar { display: none; }
+  .footer-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 680px) {
+  .g-2, .g-3, .g-4 { grid-template-columns: 1fr; }
+  .section { padding: var(--sp-14) 0; }
+}
+
+html, body { min-height: 100%; }
+body { background: var(--bg-canvas); } .shell { min-height: 100vh; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 4.5 12.5H11l-1 8L18.5 10H12l1-8Z"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+    <symbol id="i-circle-dashed" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 1 4 1M19 7a9 9 0 0 1 2 5M20 16a9 9 0 0 1-4 4M12 21a9 9 0 0 1-4-1M5 17a9 9 0 0 1-2-5M4 8a9 9 0 0 1 4-4"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.3 2.9 8.2 7 9.5 4.1-1.3 7-5.2 7-9.5V6l-7-3Z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3Z"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l3 8 4-16 3 8h4"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></symbol>
+    <symbol id="i-network" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="5" rx="1.5"/><rect x="2.5" y="15" width="6" height="5" rx="1.5"/><rect x="15.5" y="15" width="6" height="5" rx="1.5"/><path d="M12 8v3.5M5.5 15v-2a1.5 1.5 0 0 1 1.5-1.5h10a1.5 1.5 0 0 1 1.5 1.5v2"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="6" height="6" rx="1"/><rect x="14.5" y="3.5" width="6" height="6" rx="1"/><rect x="3.5" y="14.5" width="6" height="6" rx="1"/><path d="M14.5 14.5h3v3M20.5 17.5v3h-3"/></symbol>
+    <symbol id="i-credit-card" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v18H5.5A1.5 1.5 0 0 1 4 19.5v-15Z"/><path d="M8 3v18"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M22 12h-3M5 12H2M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1M18.4 18.4l-2.1-2.1M7.7 7.7 5.6 5.6"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19L12 4Z"/><path d="M12 10v4M12 17h.01"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V8a1.5 1.5 0 0 1 1.5-1.5H10"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14-4.5L3 9M4 13a8 8 0 0 0 14 4.5L21 15"/><path d="M3 4v5h5M21 20v-5h-5"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5L13.5 3Z"/><path d="M13.5 3v5.5H19"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 6 3.5-6 3.5v-7Z"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path d="M20.5 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 20.5 12Z"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m5 9 7 7 7-7"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16S18 14 18 9Z"/><path d="M10.5 19a2 2 0 0 0 3 0"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M12 3c3.5 2 5.5 5.5 5.5 9.5L12 18l-5.5-5.5C6.5 8.5 8.5 5 12 3Z"/><path d="M9 17.5 7 21M15 17.5 17 21M12 10.5h.01"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="14" r="4"/><path d="m11 11 8-8 2 2-2 2 2 2-3 3-2-2-2 2"/></symbol>
+  </defs>
+</svg>
+
+<style>
+  .uc-hero { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: var(--sp-4); align-items: start; }
+  .onboard { border: 1px solid var(--border-default); border-radius: var(--r-md); background: var(--bg-surface); overflow: hidden; }
+  .onboard-head { padding: var(--sp-4) var(--sp-5); border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; gap: var(--sp-4); }
+  .prog { display: flex; align-items: center; gap: var(--sp-3); }
+  .prog-track { width: 108px; }
+  .steps3 { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .s3 { padding: var(--sp-4) var(--sp-5); border-right: 1px solid var(--border-subtle); position: relative; }
+  .s3:last-child { border-right: 0; }
+  .s3.is-active { background: linear-gradient(180deg, var(--blue-50), transparent 60%); box-shadow: inset 0 2px 0 var(--blue-500); }
+  .s3-top { display: flex; align-items: center; gap: var(--sp-2); }
+  .s3-title { font-size: var(--fs-body-sm); font-weight: var(--fw-semibold); }
+  .s3-desc { font-size: var(--fs-caption); color: var(--text-secondary); margin-top: 6px; }
+  .s3-checks { margin-top: var(--sp-3); display: grid; gap: 6px; }
+  .s3-check { display: flex; align-items: center; gap: 7px; font-size: var(--fs-caption); }
+  .s3-check.ok { color: var(--text-secondary); }
+  .s3-check.ok .ic { color: var(--success); }
+  .s3-check.todo { color: var(--text-tertiary); }
+  .s3-act { margin-top: var(--sp-4); }
+
+  .uuid-card .value-box { font-size: var(--fs-body-sm); line-height: 1.5; }
+  .vless-body { display: grid; grid-template-columns: 116px minmax(0,1fr); gap: var(--sp-4); }
+  .node-flag { width: 20px; height: 15px; border-radius: 2px; border: 1px solid var(--border-default); background: var(--bg-sunken); display: grid; place-items: center; font-size: 9px; font-family: var(--font-mono); color: var(--text-tertiary); }
+  .lat { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: var(--fs-micro); }
+  .bars { display: flex; gap: 1.5px; align-items: flex-end; height: 11px; }
+  .bars i { width: 2.5px; background: var(--gray-300); border-radius: 1px; }
+  .bars i.on { background: var(--success); }
+  .sec-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-3) 0; border-bottom: 1px solid var(--border-subtle); }
+  .sec-row:last-child { border-bottom: 0; }
+  @media (max-width: 1100px) { .uc-hero { grid-template-columns: 1fr; } .steps3 { grid-template-columns: 1fr; } .s3 { border-right: 0; border-bottom: 1px solid var(--border-subtle); } }
+</style>
+
+<div class="shell">
+  <!-- ── icon rail ── -->
+  <nav class="rail">
+    <div class="rail-item is-active" title="总览"><svg class="ic"><use href="#i-grid"/></svg></div>
+    <div class="rail-item" title="节点"><svg class="ic"><use href="#i-server"/></svg></div>
+    <div class="rail-item" title="API"><svg class="ic"><use href="#i-code"/></svg></div>
+    <div class="rail-item" title="账单"><svg class="ic"><use href="#i-credit-card"/></svg></div>
+    <div class="rail-item" title="安全"><svg class="ic"><use href="#i-shield"/></svg></div>
+    <div style="flex:1"></div>
+    <div class="rail-item" title="文档"><svg class="ic"><use href="#i-book"/></svg></div>
+    <div class="rail-item" title="设置"><svg class="ic"><use href="#i-settings"/></svg></div>
+  </nav>
+
+  <!-- ── sidebar ── -->
+  <aside class="sidebar">
+    <div class="row" style="gap:8px;padding:0 var(--sp-2) var(--sp-4)">
+      <span class="logo-mark"><svg class="ic ic-sm"><use href="#i-zap"/></svg></span>
+      <div style="min-width:0">
+        <div style="font-size:var(--fs-body-sm);font-weight:var(--fw-semibold);line-height:1.2">XConnect</div>
+        <div class="t-caption" style="line-height:1.2">用户中心</div>
+      </div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Overview</div>
+      <a class="nav-item is-active" href="#"><svg class="ic"><use href="#i-grid"/></svg>开始使用</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-activity"/></svg>实时流量</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-server"/></svg>运行节点</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Account</div>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-user"/></svg>账户概览</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-shield"/></svg>账户安全</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-key"/></svg>连接凭据</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Billing</div>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-credit-card"/></svg>订阅与配额</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-file"/></svg>账单记录</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Support</div>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-book"/></svg>帮助中心</a>
+      <a class="nav-item" href="#"><svg class="ic"><use href="#i-message"/></svg>提交工单</a>
+    </div>
+  </aside>
+
+  <!-- ── content ── -->
+  <div style="min-width:0">
+    <header class="topbar">
+      <div class="crumbs">
+        <a href="#">控制台</a><svg class="ic ic-sm sep"><use href="#i-chevron-right"/></svg>
+        <a href="#">XConnect</a><svg class="ic ic-sm sep"><use href="#i-chevron-right"/></svg>
+        <span class="cur">开始使用</span>
+      </div>
+      <div class="row" style="gap:var(--sp-3)">
+        <span class="badge badge-warning"><i class="dot"></i>UAT 环境</span>
+        <button class="rail-item" style="color:var(--text-tertiary);width:30px;height:30px"><svg class="ic"><use href="#i-bell"/></svg></button>
+        <div class="row" style="gap:7px"><span class="avatar">A</span><span class="t-body-sm" style="font-weight:var(--fw-medium)">admin</span><svg class="ic ic-sm subtle"><use href="#i-chevron-down"/></svg></div>
+      </div>
+    </header>
+
+    <main class="main stack" style="--sp-4:20px">
+      <div class="page-head">
+        <div class="row-between">
+          <div>
+            <h1 class="page-title">开始使用</h1>
+            <p class="page-sub">按下面的步骤完成账户设置，即可安全使用 XConnect 服务。所有状态均以当前账号 API 返回为准。</p>
+          </div>
+          <div class="row" style="gap:var(--sp-2)">
+            <button class="btn btn-secondary btn-sm"><svg class="ic ic-sm"><use href="#i-refresh"/></svg>刷新状态</button>
+            <a class="btn btn-secondary btn-sm" href="#"><svg class="ic ic-sm"><use href="#i-book"/></svg>部署向导</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ 3 步引导 ══ -->
+      <section class="onboard">
+        <div class="onboard-head">
+          <div>
+            <div class="panel-title">账户设置进度</div>
+            <p class="t-caption" style="margin-top:3px">还差 1 步即可解锁计费与订阅操作</p>
+          </div>
+          <div class="prog">
+            <span class="t-mono t-caption" style="color:var(--text-primary)">1 / 3</span>
+            <div class="meter prog-track"><i style="width:33%"></i></div>
+          </div>
+        </div>
+        <div class="steps3">
+          <!-- step 1 -->
+          <div class="s3 is-active">
+            <div class="s3-top"><span class="step-num" style="background:var(--blue-500);border-color:var(--blue-500);color:#fff">1</span><span class="s3-title">完善账户安全</span></div>
+            <p class="s3-desc">验证邮箱并绑定多因素认证，保护登录和计费操作。</p>
+            <div class="s3-checks">
+              <div class="s3-check ok"><svg class="ic ic-sm"><use href="#i-check-circle"/></svg>邮箱已验证</div>
+              <div class="s3-check todo"><svg class="ic ic-sm"><use href="#i-circle-dashed"/></svg>多因素认证未设置</div>
+            </div>
+            <div class="s3-act"><a class="btn btn-primary btn-sm" href="#"><svg class="ic ic-sm"><use href="#i-shield"/></svg>去绑定 MFA</a></div>
+          </div>
+          <!-- step 2 -->
+          <div class="s3">
+            <div class="s3-top"><span class="step-num" style="background:var(--success);border-color:var(--success);color:#fff"><svg class="ic ic-sm" style="width:12px;height:12px"><use href="#i-check"/></svg></span><span class="s3-title">获取 VLESS 连接</span><span class="badge badge-success">可以连接</span></div>
+            <p class="s3-desc">生成二维码或复制订阅链接，导入支持 VLESS 的客户端。</p>
+            <div class="s3-checks">
+              <div class="s3-check ok"><svg class="ic ic-sm"><use href="#i-check-circle"/></svg>连接凭据已就绪</div>
+              <div class="s3-check ok"><svg class="ic ic-sm"><use href="#i-check-circle"/></svg>订阅链接可用</div>
+            </div>
+            <div class="s3-act"><a class="btn btn-secondary btn-sm" href="#"><svg class="ic ic-sm"><use href="#i-qr"/></svg>查看二维码</a></div>
+          </div>
+          <!-- step 3 -->
+          <div class="s3">
+            <div class="s3-top"><span class="step-num">3</span><span class="s3-title">验证连接</span><span class="badge">待验证</span></div>
+            <p class="s3-desc">导入客户端后回到这里确认节点与连接配置是否可用。</p>
+            <div class="s3-checks">
+              <div class="s3-check todo"><svg class="ic ic-sm"><use href="#i-circle-dashed"/></svg>等待首个客户端握手</div>
+              <div class="s3-check todo"><svg class="ic ic-sm"><use href="#i-circle-dashed"/></svg>节点连通状态未回传</div>
+            </div>
+            <div class="s3-act"><a class="btn btn-ghost btn-sm" href="#">查看运行节点 <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 账户元信息条 ══ -->
+      <div class="kv-strip">
+        <div class="kv"><div class="kv-k">账户</div><div class="kv-v">admin</div></div>
+        <div class="kv"><div class="kv-k">账户类型</div><div class="kv-v">标准用户</div></div>
+        <div class="kv"><div class="kv-k">邮箱验证</div><div class="kv-v"><span class="badge badge-success"><i class="dot"></i>已验证</span></div></div>
+        <div class="kv"><div class="kv-k">安全强度</div><div class="kv-v"><span class="badge badge-warning"><i class="dot"></i>建议启用 MFA</span></div></div>
+        <div class="kv"><div class="kv-k">账户权限</div><div class="kv-v">使用服务与查看</div></div>
+      </div>
+
+      <!-- ══ 凭据 + 连接 ══ -->
+      <section class="uc-hero">
+        <!-- VLESS -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="panel-title">VLESS 连接</div>
+              <p class="t-caption" style="margin-top:3px">扫码或复制订阅链接，导入任意支持 VLESS 的客户端。</p>
+            </div>
+            <div class="row" style="gap:8px">
+              <span class="badge badge-success"><i class="dot"></i>凭据已就绪</span>
+              <button class="btn btn-secondary btn-sm"><svg class="ic ic-sm"><use href="#i-refresh"/></svg>轮换</button>
+            </div>
+          </div>
+          <div class="card-body vless-body">
+            <div class="qr">
+              <svg viewBox="0 0 29 29" style="width:100%;height:100%" shape-rendering="crispEdges" role="img" aria-label="VLESS 订阅二维码"><rect width="29" height="29" fill="#fff"/><g fill="#141920"><rect x="1" y="1" width="7" height="7"/><rect x="2" y="2" width="5" height="5" fill="#fff"/><rect x="3" y="3" width="3" height="3"/><rect x="21" y="1" width="7" height="7"/><rect x="22" y="2" width="5" height="5" fill="#fff"/><rect x="23" y="3" width="3" height="3"/><rect x="1" y="21" width="7" height="7"/><rect x="2" y="22" width="5" height="5" fill="#fff"/><rect x="3" y="23" width="3" height="3"/><rect x="10" y="2" width="1" height="1"/><rect x="12" y="1" width="1" height="2"/><rect x="14" y="3" width="2" height="1"/><rect x="11" y="5" width="1" height="2"/><rect x="13" y="6" width="2" height="1"/><rect x="17" y="5" width="1" height="1"/><rect x="10" y="9" width="2" height="1"/><rect x="14" y="9" width="1" height="2"/><rect x="18" y="10" width="2" height="1"/><rect x="22" y="10" width="1" height="2"/><rect x="25" y="11" width="2" height="1"/><rect x="2" y="10" width="1" height="2"/><rect x="5" y="11" width="2" height="1"/><rect x="9" y="12" width="1" height="2"/><rect x="12" y="13" width="2" height="1"/><rect x="16" y="12" width="1" height="2"/><rect x="20" y="13" width="2" height="1"/><rect x="24" y="14" width="1" height="2"/><rect x="3" y="14" width="2" height="1"/><rect x="7" y="15" width="1" height="2"/><rect x="11" y="16" width="2" height="1"/><rect x="15" y="16" width="1" height="2"/><rect x="19" y="17" width="2" height="1"/><rect x="23" y="18" width="1" height="2"/><rect x="26" y="17" width="1" height="2"/><rect x="10" y="19" width="1" height="2"/><rect x="13" y="20" width="2" height="1"/><rect x="17" y="21" width="1" height="2"/><rect x="21" y="22" width="2" height="1"/><rect x="25" y="21" width="1" height="2"/><rect x="11" y="23" width="2" height="1"/><rect x="15" y="24" width="1" height="2"/><rect x="19" y="25" width="2" height="1"/><rect x="23" y="25" width="1" height="2"/><rect x="26" y="24" width="1" height="2"/><rect x="10" y="26" width="2" height="1"/><rect x="14" y="27" width="1" height="1"/><rect x="18" y="27" width="2" height="1"/></g></svg>
+            </div>
+            <div style="min-width:0">
+              <div class="t-eyebrow">Subscription URL</div>
+              <div class="value-box" style="margin-top:7px">vless://01a0124f-97b1-7670-a3f3-febea17970c9@sg1.xconn.net:443?encryption=none&amp;security=tls&amp;type=ws#XConnect-SG1</div>
+              <div class="row" style="gap:8px;margin-top:var(--sp-3)">
+                <button class="btn btn-primary btn-sm"><svg class="ic ic-sm"><use href="#i-copy"/></svg>复制订阅链接</button>
+                <button class="btn btn-secondary btn-sm"><svg class="ic ic-sm"><use href="#i-download"/></svg>下载配置</button>
+                <a class="link-arrow t-caption" href="#">导入教程</a>
+              </div>
+            </div>
+          </div>
+          <div class="card-foot"><span class="t-caption">凭据可独立于账户身份轮换。轮换后旧链接立即失效，已连接的客户端需重新导入。</span></div>
+        </div>
+
+        <!-- 代理 UUID -->
+        <div class="card uuid-card">
+          <div class="card-head" style="padding-bottom:var(--sp-3)">
+            <div class="panel-title">代理 UUID</div>
+            <button class="btn btn-ghost btn-sm" aria-label="复制代理 UUID"><svg class="ic ic-sm"><use href="#i-copy"/></svg>复制</button>
+          </div>
+          <div class="card-body" style="padding-top:var(--sp-4)">
+            <div class="value-box">01a0124f-97b1-7670-<br>a3f3-febea17970c9</div>
+            <p class="t-caption" style="margin-top:var(--sp-3)">访问代理节点的凭据，可独立于账户身份轮换。</p>
+            <div class="divider" style="margin:var(--sp-4) 0"></div>
+            <div class="sec-row"><span class="t-caption">用户名</span><span class="t-body-sm" style="font-weight:var(--fw-medium)">admin</span></div>
+            <div class="sec-row"><span class="t-caption">邮箱</span><span class="t-body-sm t-mono">admin@onwalk.net</span></div>
+            <div class="sec-row"><span class="t-caption">多因素认证</span><span class="badge badge-warning"><i class="dot"></i>未设置</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 实时流量 + 配额 ══ -->
+      <section class="grid" style="grid-template-columns:minmax(0,1.55fr) minmax(0,1fr)">
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="panel-title">实时流量</div>
+              <p class="t-caption" style="margin-top:3px">用量由 accounts.svc.plus 汇总，不以本地客户端计数为准 · 数据源 postgresql</p>
+            </div>
+            <div class="seg"><button class="is-active">1 小时</button><button>24 小时</button><button>本月</button></div>
+          </div>
+          <div class="card-body">
+            <div class="grid g-3" style="gap:var(--sp-5)">
+              <div><div class="stat-label">最近 1 小时</div><div class="stat-value">0<span class="unit">B</span></div></div>
+              <div><div class="stat-label">最近 24 小时</div><div class="stat-value">0<span class="unit">B</span></div></div>
+              <div><div class="stat-label">本月合计</div><div class="stat-value">0<span class="unit">B</span></div></div>
+            </div>
+            <div style="margin-top:var(--sp-5);border-top:1px solid var(--border-subtle);padding-top:var(--sp-4)">
+              <div class="empty" style="padding:var(--sp-8) var(--sp-5)">
+                <svg class="ic empty-icon"><use href="#i-activity"/></svg>
+                <div class="empty-title">还没有流量数据</div>
+                <div class="empty-desc">完成第 3 步验证连接后，这里会显示按分钟聚合的上下行速率曲线。</div>
+                <a class="btn btn-secondary btn-sm" href="#" style="margin-top:var(--sp-4)">查看运行节点</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="panel-title">月度配额</div>
+            <span class="badge">套餐 default</span>
+          </div>
+          <div class="card-body">
+            <div class="row-between" style="align-items:flex-end">
+              <div class="stat-value" style="font-size:2rem">0.0<span class="unit">%</span></div>
+              <span class="t-caption t-mono">0 B / 10 GB</span>
+            </div>
+            <div class="meter" style="margin-top:var(--sp-3)"><i style="width:0%"></i></div>
+            <div class="row-between" style="margin-top:var(--sp-2)"><span class="t-caption">剩余 10 GB</span><span class="t-caption">本期重置 09-01</span></div>
+            <div class="divider" style="margin:var(--sp-5) 0"></div>
+            <div class="sec-row"><span class="t-caption">余额</span><span class="t-mono t-body-sm">¥0.00</span></div>
+            <div class="sec-row"><span class="t-caption">策略组</span><span class="t-caption subtle">—</span></div>
+            <div class="sec-row"><span class="t-caption">同步状态</span><span class="badge badge-success"><i class="dot"></i>normal · active</span></div>
+            <div class="sec-row"><span class="t-caption">统计延迟</span><span class="t-mono t-caption">~0 s</span></div>
+            <a class="btn btn-secondary btn-block" href="#" style="margin-top:var(--sp-4)">管理订阅与配额</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ 运行节点 ══ -->
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <div class="panel-title">运行节点</div>
+            <p class="t-caption" style="margin-top:3px">节点连通状态会在服务端返回时显示，字段仅呈现 API 提供的值。</p>
+          </div>
+          <div class="row" style="gap:8px">
+            <div class="input" style="height:30px;width:190px"><svg class="ic ic-sm"><use href="#i-search"/></svg><span>搜索节点</span></div>
+            <button class="btn btn-secondary btn-sm">全部区域 <svg class="ic ic-sm"><use href="#i-chevron-down"/></svg></button>
+          </div>
+        </div>
+        <table class="table">
+          <thead><tr><th>节点</th><th>地址</th><th>SNI</th><th>端口</th><th>协议</th><th>延迟</th><th style="text-align:right">状态</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="row" style="gap:8px"><span class="node-flag">SG</span><span style="font-weight:var(--fw-medium)">sg1 · 新加坡</span></div></td>
+              <td class="t-mono subtle">sg1.xconn.net</td><td class="t-mono subtle">cdn.xconn.net</td><td class="t-mono subtle">443</td>
+              <td><span class="tag">VLESS / WS / TLS</span></td>
+              <td><span class="lat"><span class="bars"><i class="on" style="height:4px"></i><i class="on" style="height:6px"></i><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i></span>28ms</span></td>
+              <td style="text-align:right"><span class="badge badge-success"><i class="dot"></i>已连通</span></td>
+            </tr>
+            <tr>
+              <td><div class="row" style="gap:8px"><span class="node-flag">HK</span><span style="font-weight:var(--fw-medium)">hk2 · 香港</span></div></td>
+              <td class="t-mono subtle">hk2.xconn.net</td><td class="t-mono subtle">cdn.xconn.net</td><td class="t-mono subtle">443</td>
+              <td><span class="tag">VLESS / WS / TLS</span></td>
+              <td><span class="lat"><span class="bars"><i class="on" style="height:4px"></i><i class="on" style="height:6px"></i><i class="on" style="height:8px"></i><i style="height:11px"></i></span>41ms</span></td>
+              <td style="text-align:right"><span class="badge badge-success"><i class="dot"></i>已连通</span></td>
+            </tr>
+            <tr>
+              <td><div class="row" style="gap:8px"><span class="node-flag">JP</span><span style="font-weight:var(--fw-medium)">jp1 · 东京</span></div></td>
+              <td class="t-mono subtle">jp1.xconn.net</td><td class="t-mono subtle">cdn.xconn.net</td><td class="t-mono subtle">443 · 8443</td>
+              <td><span class="tag">VLESS / gRPC / TLS</span></td>
+              <td><span class="subtle t-mono t-micro">—</span></td>
+              <td style="text-align:right"><span class="badge"><i class="dot"></i>待验证</span></td>
+            </tr>
+            <tr>
+              <td><div class="row" style="gap:8px"><span class="node-flag">US</span><span style="font-weight:var(--fw-medium)">us-w1 · 洛杉矶</span></div></td>
+              <td class="t-mono subtle">usw1.xconn.net</td><td class="t-mono subtle">cdn.xconn.net</td><td class="t-mono subtle">443</td>
+              <td><span class="tag">VLESS / WS / TLS</span></td>
+              <td><span class="lat" style="color:var(--warning)"><span class="bars"><i class="on" style="height:4px;background:var(--warning)"></i><i class="on" style="height:6px;background:var(--warning)"></i><i style="height:8px"></i><i style="height:11px"></i></span>186ms</span></td>
+              <td style="text-align:right"><span class="badge badge-warning"><i class="dot"></i>高延迟</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="card-foot"><div class="row-between"><span class="t-caption">显示 4 / 32 个节点</span><a class="link-arrow t-caption" href="#">查看全部节点 <svg class="ic ic-sm"><use href="#i-chevron-right"/></svg></a></div></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+
+<script>
+(function () {
+  // Tabs
+  document.querySelectorAll('.tabs').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var t = e.target.closest('.tab'); if (!t) return;
+      g.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('is-active'); });
+      t.classList.add('is-active');
+    });
+  });
+  // Segmented controls
+  document.querySelectorAll('.seg').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      g.querySelectorAll('button').forEach(function (x) { x.classList.remove('is-active'); });
+      b.classList.add('is-active');
+    });
+  });
+  // Sidebar / doc nav
+  document.querySelectorAll('.sidebar, .doc-nav, .rail').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var a = e.target.closest('.nav-item, a, .rail-item'); if (!a) return;
+      var sel = a.classList.contains('rail-item') ? '.rail-item' : (a.classList.contains('nav-item') ? '.nav-item' : 'a');
+      g.querySelectorAll(sel).forEach(function (x) { x.classList.remove('is-active'); });
+      a.classList.add('is-active');
+    });
+  });
+  // FAQ 展开
+  document.querySelectorAll('.faq-item').forEach(function (it) {
+    it.style.cursor = 'pointer';
+    it.addEventListener('click', function () {
+      var a = it.querySelector('.faq-a');
+      if (a) { a.remove(); return; }
+      var p = document.createElement('p');
+      p.className = 'faq-a';
+      p.textContent = '示例答案占位。真实内容由 docs 集合提供，FAQ 与文档共用同一份来源，避免两处口径不一致。';
+      it.appendChild(p);
+    });
+  });
+  // 复制反馈
+  document.querySelectorAll('button').forEach(function (b) {
+    if (!/复制/.test(b.textContent)) return;
+    b.addEventListener('click', function () {
+      var old = b.innerHTML;
+      b.innerHTML = '<svg class="ic ic-sm"><use href="#i-check"/></svg>已复制';
+      setTimeout(function () { b.innerHTML = old; }, 1600);
+    });
+  });
+  // 输入框聚焦态
+  document.querySelectorAll('.input, .search-big').forEach(function (i) {
+    i.tabIndex = 0;
+    i.addEventListener('focus', function () { i.classList.add('is-focus'); });
+    i.addEventListener('blur', function () { i.classList.remove('is-focus'); });
+  });
+})();
+</script>
+
+</body>
+</html>

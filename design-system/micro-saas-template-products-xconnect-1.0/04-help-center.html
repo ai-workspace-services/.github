@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>帮助中心 · XConnect</title>
+<style>
+/* ============================================================
+   XConnect Micro SaaS 模版 — Design Tokens v1.0
+   排版语言借鉴 Supabase（轻字重、宽行高、无阴影、边框分层）
+   品牌色沿用 portal 控制台 --color-primary #0058bd
+   ============================================================ */
+
+:root {
+  /* ---------- 1. 字体族 ---------- */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: "SF Mono", "SFMono-Regular", ui-monospace, "JetBrains Mono",
+    "Cascadia Code", Consolas, monospace;
+
+  /* ---------- 2. 字号阶梯（1.200 Minor Third，marketing / console 双密度）---------- */
+  --fs-display-1: 4.25rem;  /* 68px  marketing hero */
+  --fs-display-2: 3rem;     /* 48px  section hero */
+  --fs-h1: 2.25rem;         /* 36px */
+  --fs-h2: 1.75rem;         /* 28px */
+  --fs-h3: 1.3125rem;       /* 21px */
+  --fs-h4: 1.0625rem;       /* 17px */
+  --fs-body-lg: 1.0625rem;  /* 17px  marketing 正文 */
+  --fs-body: 0.9375rem;     /* 15px  默认正文 */
+  --fs-body-sm: 0.875rem;   /* 14px  console 正文 */
+  --fs-caption: 0.8125rem;  /* 13px  辅助说明 */
+  --fs-micro: 0.75rem;      /* 12px  标签 / 表头 */
+  --fs-eyebrow: 0.6875rem;  /* 11px  全大写眉标 */
+
+  /* ---------- 3. 行高（Supabase 关键差异：正文 1.6，标题 1.1）---------- */
+  --lh-display: 1.04;
+  --lh-heading: 1.18;
+  --lh-snug: 1.35;
+  --lh-body: 1.6;
+  --lh-relaxed: 1.75;
+
+  /* ---------- 4. 字重（Supabase 只用 400/500，最重 600）---------- */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  /* ---------- 5. 字距 ---------- */
+  --ls-display: -0.032em;
+  --ls-heading: -0.018em;
+  --ls-body: 0;
+  --ls-eyebrow: 0.09em;
+  --ls-mono: -0.01em;
+
+  /* ---------- 6. 中性色阶 ---------- */
+  --gray-0: #ffffff;
+  --gray-25: #fcfcfd;
+  --gray-50: #f7f8fa;
+  --gray-100: #eff1f5;
+  --gray-200: #e3e7ee;
+  --gray-300: #d0d6e0;
+  --gray-400: #9aa4b5;
+  --gray-500: #616c80;
+  --gray-600: #525c6e;
+  --gray-700: #3d4553;
+  --gray-800: #262c37;
+  --gray-900: #141920;
+
+  /* ---------- 7. 品牌蓝 ---------- */
+  --blue-50: #eef4fd;
+  --blue-100: #dbe8fa;
+  --blue-200: #b4cef4;
+  --blue-300: #7ba9e9;
+  --blue-500: #0058bd;
+  --blue-600: #004a9e;
+  --blue-700: #003c80;
+
+  /* ---------- 8. 语义色 ---------- */
+  --success: #0f7c46;
+  --success-bg: #e6f5ed;
+  --success-border: #bfe3d0;
+  --warning: #8a5300;
+  --warning-bg: #fdf3e0;
+  --warning-border: #f0dcb4;
+  --danger: #b42318;
+  --danger-bg: #fdeceb;
+  --danger-border: #f5c9c5;
+  --info: var(--blue-500);
+  --info-bg: var(--blue-50);
+  --info-border: var(--blue-200);
+
+  /* ---------- 9. 语义别名 ---------- */
+  --bg-canvas: var(--gray-50);
+  --bg-surface: var(--gray-0);
+  --bg-raised: var(--gray-25);
+  --bg-sunken: var(--gray-100);
+  --bg-hover: var(--gray-50);
+  --bg-inverse: var(--gray-900);
+
+  --text-primary: var(--gray-900);
+  --text-secondary: var(--gray-600);
+  --text-tertiary: var(--gray-500);
+  --text-disabled: var(--gray-400);
+  --text-inverse: #ffffff;
+  --text-brand: var(--blue-500);
+
+  --border-subtle: var(--gray-100);
+  --border-default: var(--gray-200);
+  --border-strong: var(--gray-300);
+  --border-brand: var(--blue-200);
+
+  /* ---------- 10. 圆角（只保留 4 档）---------- */
+  --r-xs: 4px;   /* badge / input / tag */
+  --r-sm: 6px;   /* button / 卡内元素 */
+  --r-md: 10px;  /* card / panel */
+  --r-lg: 14px;  /* 大容器 / 模态 */
+  --r-pill: 999px;
+
+  /* ---------- 11. 阴影（Supabase 原则：仅浮层用；平面靠边框分层）---------- */
+  --shadow-none: none;
+  --shadow-overlay: 0 4px 12px rgba(20, 25, 32, 0.08), 0 1px 3px rgba(20, 25, 32, 0.06);
+  --shadow-modal: 0 16px 48px rgba(20, 25, 32, 0.14), 0 2px 8px rgba(20, 25, 32, 0.08);
+  --focus-ring: 0 0 0 3px rgba(0, 88, 189, 0.22);
+
+  /* ---------- 12. 间距（4px 基准）---------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-14: 56px;
+  --sp-20: 80px;
+  --sp-30: 120px;
+
+  /* ---------- 13. 动效 ---------- */
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ---------- 14. 布局 ---------- */
+  --container: 1200px;
+  --container-wide: 1360px;
+  --rail-w: 56px;
+  --sidebar-w: 236px;
+  --topbar-h: 52px;
+}
+
+/* ============================================================
+   Reset + Base
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: var(--fw-regular);
+  color: var(--text-primary);
+  background: var(--bg-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: var(--fw-medium); line-height: var(--lh-heading); letter-spacing: var(--ls-heading); color: var(--text-primary); }
+h1 { font-size: var(--fs-h1); }
+h2 { font-size: var(--fs-h2); }
+h3 { font-size: var(--fs-h3); }
+h4 { font-size: var(--fs-h4); font-weight: var(--fw-semibold); }
+p { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+input, select, textarea { font: inherit; color: inherit; }
+img, svg { display: block; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; }
+:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--r-xs); }
+
+/* ============================================================
+   Typography utilities
+   ============================================================ */
+.t-display-1 { font-size: var(--fs-display-1); line-height: var(--lh-display); letter-spacing: var(--ls-display); font-weight: var(--fw-medium); }
+.t-display-2 { font-size: var(--fs-display-2); line-height: 1.08; letter-spacing: var(--ls-display); font-weight: var(--fw-medium); }
+.t-h1 { font-size: var(--fs-h1); }
+.t-h2 { font-size: var(--fs-h2); }
+.t-h3 { font-size: var(--fs-h3); }
+.t-h4 { font-size: var(--fs-h4); font-weight: var(--fw-semibold); }
+.t-lead { font-size: var(--fs-body-lg); line-height: var(--lh-relaxed); color: var(--text-secondary); }
+.t-body { font-size: var(--fs-body); line-height: var(--lh-body); }
+.t-body-sm { font-size: var(--fs-body-sm); line-height: var(--lh-body); }
+.t-caption { font-size: var(--fs-caption); line-height: var(--lh-snug); color: var(--text-tertiary); }
+.t-micro { font-size: var(--fs-micro); line-height: var(--lh-snug); }
+.t-eyebrow {
+  font-size: var(--fs-eyebrow); font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-eyebrow); text-transform: uppercase;
+  color: var(--text-tertiary); font-family: var(--font-mono);
+}
+.t-mono { font-family: var(--font-mono); letter-spacing: var(--ls-mono); font-size: 0.92em; }
+.muted { color: var(--text-secondary); }
+.subtle { color: var(--text-tertiary); }
+.brand { color: var(--text-brand); }
+
+/* ============================================================
+   Layout primitives
+   ============================================================ */
+.container { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 var(--sp-6); }
+.container-wide { width: 100%; max-width: var(--container-wide); margin: 0 auto; padding: 0 var(--sp-6); }
+.stack > * + * { margin-top: var(--sp-4); }
+.row { display: flex; align-items: center; gap: var(--sp-3); }
+.row-between { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); }
+.grid { display: grid; gap: var(--sp-4); }
+.g-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.g-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.section { padding: var(--sp-30) 0; }
+.section-sm { padding: var(--sp-20) 0; }
+.divider { height: 1px; background: var(--border-default); border: 0; margin: 0; }
+
+/* ============================================================
+   Button — 4 变体 × 3 尺寸 × 6 状态
+   ============================================================ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  height: 36px; padding: 0 14px;
+  border-radius: var(--r-sm); border: 1px solid transparent;
+  font-size: var(--fs-body-sm); font-weight: var(--fw-medium); line-height: 1;
+  white-space: nowrap; cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+.btn:focus-visible { box-shadow: var(--focus-ring); }
+.btn[disabled], .btn.is-disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
+.btn-sm { height: 28px; padding: 0 10px; font-size: var(--fs-micro); }
+.btn-lg { height: 44px; padding: 0 22px; font-size: var(--fs-body); }
+.btn-primary { background: var(--blue-500); color: var(--text-inverse); border-color: var(--blue-500); }
+.btn-primary:hover { background: var(--blue-600); border-color: var(--blue-600); }
+.btn-primary:active { background: var(--blue-700); }
+.btn-secondary { background: var(--bg-surface); color: var(--text-primary); border-color: var(--border-strong); }
+.btn-secondary:hover { background: var(--bg-hover); border-color: var(--gray-400); }
+.btn-ghost { background: transparent; color: var(--text-secondary); }
+.btn-ghost:hover { background: var(--bg-sunken); color: var(--text-primary); }
+.btn-danger { background: var(--bg-surface); color: var(--danger); border-color: var(--danger-border); }
+.btn-danger:hover { background: var(--danger-bg); }
+.btn-pill { border-radius: var(--r-pill); }
+.btn-block { width: 100%; }
+.btn .ico { width: 15px; height: 15px; flex: none; }
+
+/* ============================================================
+   Card / Panel — 无阴影，靠边框分层
+   ============================================================ */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+}
+.card-pad { padding: var(--sp-5); }
+.card-hover { transition: border-color var(--dur-base) var(--ease-out), background var(--dur-base) var(--ease-out); }
+.card-hover:hover { border-color: var(--border-strong); background: var(--bg-raised); }
+.card-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5); border-bottom: 1px solid var(--border-subtle);
+}
+.card-body { padding: var(--sp-5); }
+.card-foot { padding: var(--sp-3) var(--sp-5); border-top: 1px solid var(--border-subtle); background: var(--bg-raised); border-radius: 0 0 var(--r-md) var(--r-md); }
+.panel-title { font-size: var(--fs-h4); font-weight: var(--fw-semibold); letter-spacing: var(--ls-heading); }
+
+/* ============================================================
+   Badge / Status
+   ============================================================ */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 20px; padding: 0 7px;
+  border-radius: var(--r-xs); border: 1px solid var(--border-default);
+  background: var(--bg-sunken); color: var(--text-secondary);
+  font-size: var(--fs-eyebrow); font-weight: var(--fw-medium); line-height: 1;
+  white-space: nowrap;
+}
+.badge-success { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+.badge-warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
+.badge-danger  { background: var(--danger-bg);  border-color: var(--danger-border);  color: var(--danger); }
+.badge-info    { background: var(--info-bg);    border-color: var(--info-border);    color: var(--blue-600); }
+.badge-pill { border-radius: var(--r-pill); padding: 0 9px; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+
+/* ============================================================
+   Eyebrow pill（hero 徽标）
+   ============================================================ */
+.pill {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  height: 28px; padding: 0 12px; border-radius: var(--r-pill);
+  border: 1px solid var(--border-brand); background: var(--blue-50);
+  color: var(--blue-600); font-size: var(--fs-micro); font-weight: var(--fw-medium);
+}
+
+/* ============================================================
+   Stepper — 向导（产品页 + 用户中心共用）
+   ============================================================ */
+.stepper { display: grid; gap: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.step { position: relative; padding: var(--sp-5); border: 1px solid var(--border-default); border-right: 0; background: var(--bg-surface); }
+.step:first-child { border-radius: var(--r-md) 0 0 var(--r-md); }
+.step:last-child { border-right: 1px solid var(--border-default); border-radius: 0 var(--r-md) var(--r-md) 0; }
+.step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 1px solid var(--border-strong); background: var(--bg-surface);
+  font-size: var(--fs-micro); font-weight: var(--fw-semibold); font-family: var(--font-mono);
+  color: var(--text-tertiary); flex: none;
+}
+.step.is-done { background: var(--bg-raised); }
+.step.is-done .step-num { background: var(--success); border-color: var(--success); color: #fff; }
+.step.is-active { border-color: var(--blue-300); box-shadow: inset 3px 0 0 var(--blue-500); }
+.step.is-active .step-num { background: var(--blue-500); border-color: var(--blue-500); color: #fff; }
+.step-title { font-size: var(--fs-h4); font-weight: var(--fw-semibold); }
+.step-desc { font-size: var(--fs-caption); color: var(--text-secondary); line-height: var(--lh-body); }
+.step-check { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-caption); }
+.step-check .ok { color: var(--success); }
+.step-check .pending { color: var(--text-disabled); }
+
+/* ============================================================
+   Meter — 配额 / 用量进度
+   ============================================================ */
+.meter { height: 6px; border-radius: var(--r-pill); background: var(--gray-200); overflow: hidden; }
+.meter > i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--blue-500); transition: width var(--dur-base) var(--ease-out); }
+.meter.is-warning > i { background: var(--warning); }
+.meter.is-danger > i { background: var(--danger); }
+.meter-seg { display: flex; gap: 2px; height: 6px; }
+.meter-seg > i { flex: 1; border-radius: 1px; background: var(--gray-200); }
+.meter-seg > i.on { background: var(--blue-500); }
+
+/* ============================================================
+   Stat tile — 数据卡
+   ============================================================ */
+.stat { padding: var(--sp-4) var(--sp-5); }
+.stat-label { font-size: var(--fs-micro); color: var(--text-tertiary); font-weight: var(--fw-medium); }
+.stat-value {
+  font-family: var(--font-mono); font-size: 1.75rem; font-weight: var(--fw-medium);
+  line-height: 1.1; letter-spacing: -0.02em; color: var(--text-primary);
+  font-variant-numeric: tabular-nums; margin-top: 6px;
+}
+.stat-value .unit { font-size: 0.95rem; color: var(--text-tertiary); margin-left: 3px; }
+.stat-meta { font-size: var(--fs-caption); color: var(--text-tertiary); margin-top: var(--sp-2); }
+.stat-delta { font-size: var(--fs-micro); font-family: var(--font-mono); }
+.stat-delta.up { color: var(--success); }
+.stat-delta.down { color: var(--danger); }
+
+/* ============================================================
+   Key-value 行（账户元信息条）
+   ============================================================ */
+.kv-strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border: 1px solid var(--border-default); border-radius: var(--r-md); background: var(--bg-surface); overflow: hidden; }
+.kv { padding: var(--sp-3) var(--sp-4); border-right: 1px solid var(--border-subtle); }
+.kv:last-child { border-right: 0; }
+.kv-k { font-size: var(--fs-micro); color: var(--text-tertiary); }
+.kv-v { font-size: var(--fs-body-sm); font-weight: var(--fw-medium); margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+
+/* ============================================================
+   Table
+   ============================================================ */
+.table { font-size: var(--fs-body-sm); }
+.table th {
+  text-align: left; font-size: var(--fs-micro); font-weight: var(--fw-medium);
+  color: var(--text-tertiary); padding: var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--border-default); background: var(--bg-raised); white-space: nowrap;
+}
+.table td { padding: var(--sp-3) var(--sp-4); border-bottom: 1px solid var(--border-subtle); vertical-align: middle; }
+.table tbody tr:last-child td { border-bottom: 0; }
+.table tbody tr:hover { background: var(--bg-hover); }
+.table .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+
+/* ============================================================
+   Tabs
+   ============================================================ */
+.tabs { display: flex; gap: var(--sp-5); border-bottom: 1px solid var(--border-default); }
+.tab {
+  position: relative; padding: 0 0 10px; font-size: var(--fs-body-sm);
+  font-weight: var(--fw-medium); color: var(--text-tertiary);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.tab:hover { color: var(--text-primary); }
+.tab.is-active { color: var(--text-primary); }
+.tab.is-active::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--blue-500); border-radius: 1px; }
+
+/* ============================================================
+   Segmented control
+   ============================================================ */
+.seg { display: inline-flex; padding: 2px; gap: 2px; background: var(--bg-sunken); border: 1px solid var(--border-default); border-radius: var(--r-sm); }
+.seg > button { padding: 4px 12px; border-radius: 4px; font-size: var(--fs-micro); font-weight: var(--fw-medium); color: var(--text-tertiary); white-space: nowrap; }
+.seg > button.is-active { background: var(--bg-surface); color: var(--text-primary); box-shadow: 0 1px 2px rgba(20,25,32,.06); }
+
+/* ============================================================
+   Alert / Callout
+   ============================================================ */
+.alert { display: flex; gap: var(--sp-3); padding: var(--sp-4); border-radius: var(--r-md); border: 1px solid; font-size: var(--fs-body-sm); }
+.alert-icon { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+.alert-info { background: var(--info-bg); border-color: var(--info-border); color: var(--blue-700); }
+.alert-warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
+.alert-danger { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+.alert-success { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+.alert-title { font-weight: var(--fw-semibold); }
+.alert-body { color: inherit; opacity: .88; margin-top: 2px; line-height: var(--lh-body); }
+
+/* ============================================================
+   Empty state
+   ============================================================ */
+.empty { text-align: center; padding: var(--sp-10) var(--sp-5); border: 1px dashed var(--border-strong); border-radius: var(--r-md); background: var(--bg-raised); }
+.empty-icon { width: 36px; height: 36px; margin: 0 auto var(--sp-3); color: var(--text-disabled); }
+.empty-title { font-size: var(--fs-body-sm); font-weight: var(--fw-semibold); }
+.empty-desc { font-size: var(--fs-caption); color: var(--text-tertiary); margin-top: 4px; }
+
+/* ============================================================
+   Code / value box
+   ============================================================ */
+.code-box {
+  font-family: var(--font-mono); font-size: var(--fs-caption);
+  background: var(--gray-900); color: #e6eaf0;
+  border-radius: var(--r-sm); padding: var(--sp-3) var(--sp-4);
+  overflow-x: auto; line-height: 1.65;
+}
+.code-box .c-key { color: #7fb2ff; }
+.code-box .c-str { color: #7fd8a8; }
+.code-box .c-dim { color: #8b95a5; }
+.value-box {
+  font-family: var(--font-mono); font-size: var(--fs-caption);
+  background: var(--bg-sunken); border: 1px solid var(--border-default);
+  border-radius: var(--r-sm); padding: 8px 10px; word-break: break-all;
+  color: var(--text-primary);
+}
+
+/* ============================================================
+   Input / Search
+   ============================================================ */
+.input {
+  display: flex; align-items: center; gap: var(--sp-2);
+  height: 36px; padding: 0 12px;
+  border: 1px solid var(--border-strong); border-radius: var(--r-sm);
+  background: var(--bg-surface); color: var(--text-tertiary); font-size: var(--fs-body-sm);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.input:hover { border-color: var(--gray-400); }
+.input.is-focus { border-color: var(--blue-500); box-shadow: var(--focus-ring); }
+.input-lg { height: 46px; font-size: var(--fs-body); border-radius: var(--r-md); }
+.kbd {
+  font-family: var(--font-mono); font-size: 11px; padding: 2px 6px;
+  border: 1px solid var(--border-default); border-bottom-width: 2px;
+  border-radius: var(--r-xs); background: var(--bg-raised); color: var(--text-tertiary);
+}
+
+/* ============================================================
+   Console shell
+   ============================================================ */
+.shell { display: grid; grid-template-columns: var(--rail-w) var(--sidebar-w) minmax(0, 1fr); min-height: 100%; background: var(--bg-canvas); }
+.rail { background: var(--gray-900); display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); padding: var(--sp-3) 0; }
+.rail-item { width: 34px; height: 34px; border-radius: var(--r-sm); display: grid; place-items: center; color: #8b95a5; transition: all var(--dur-fast) var(--ease-out); }
+.rail-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+.rail-item.is-active { background: var(--blue-500); color: #fff; }
+.sidebar { background: var(--bg-surface); border-right: 1px solid var(--border-default); padding: var(--sp-4) var(--sp-3); }
+.nav-group + .nav-group { margin-top: var(--sp-5); }
+.nav-label { font-size: var(--fs-eyebrow); font-family: var(--font-mono); letter-spacing: var(--ls-eyebrow); text-transform: uppercase; color: var(--text-tertiary); padding: 0 var(--sp-2); margin-bottom: var(--sp-2); }
+.nav-item { display: flex; align-items: center; gap: var(--sp-2); height: 30px; padding: 0 var(--sp-2); border-radius: var(--r-sm); font-size: var(--fs-body-sm); color: var(--text-secondary); transition: all var(--dur-fast) var(--ease-out); }
+.nav-item:hover { background: var(--bg-sunken); color: var(--text-primary); }
+.nav-item.is-active { background: var(--blue-50); color: var(--blue-600); font-weight: var(--fw-medium); }
+.nav-item .ico { width: 15px; height: 15px; flex: none; opacity: .8; }
+.topbar { height: var(--topbar-h); border-bottom: 1px solid var(--border-default); background: rgba(255,255,255,.86); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: space-between; padding: 0 var(--sp-6); position: sticky; top: 0; z-index: 5; }
+.crumbs { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-body-sm); color: var(--text-tertiary); }
+.crumbs .sep { color: var(--text-disabled); }
+.crumbs .cur { color: var(--text-primary); font-weight: var(--fw-medium); }
+.main { padding: var(--sp-6); max-width: 1180px; }
+.page-head { margin-bottom: var(--sp-5); }
+.page-title { font-size: var(--fs-h2); font-weight: var(--fw-medium); letter-spacing: var(--ls-heading); }
+.page-sub { font-size: var(--fs-body-sm); color: var(--text-secondary); margin-top: 6px; max-width: 68ch; }
+.avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--blue-500); color: #fff; display: grid; place-items: center; font-size: var(--fs-micro); font-weight: var(--fw-semibold); }
+
+/* ============================================================
+   Marketing nav / footer
+   ============================================================ */
+.mnav { position: sticky; top: 0; z-index: 20; height: 56px; border-bottom: 1px solid var(--border-default); background: rgba(255,255,255,.82); backdrop-filter: blur(12px); }
+.mnav-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; }
+.logo { display: flex; align-items: center; gap: 8px; font-size: var(--fs-h4); font-weight: var(--fw-semibold); letter-spacing: -0.02em; }
+.logo-mark { width: 22px; height: 22px; border-radius: var(--r-xs); background: var(--blue-500); display: grid; place-items: center; color: #fff; }
+.mnav-links { display: flex; align-items: center; gap: var(--sp-6); }
+.mnav-links a { font-size: var(--fs-body-sm); color: var(--text-secondary); transition: color var(--dur-fast) var(--ease-out); }
+.mnav-links a:hover { color: var(--text-primary); }
+.footer { border-top: 1px solid var(--border-default); background: var(--bg-surface); padding: var(--sp-14) 0 var(--sp-8); }
+.footer-grid { display: grid; grid-template-columns: 1.6fr repeat(4, 1fr); gap: var(--sp-8); }
+.footer h5 { font-size: var(--fs-micro); font-weight: var(--fw-semibold); color: var(--text-primary); margin-bottom: var(--sp-3); }
+.footer li + li { margin-top: 9px; }
+.footer a { font-size: var(--fs-caption); color: var(--text-tertiary); }
+.footer a:hover { color: var(--text-primary); }
+
+/* ============================================================
+   Sparkline / chart shell
+   ============================================================ */
+.spark { width: 100%; height: 46px; display: block; }
+.chart-frame { border: 1px solid var(--border-default); border-radius: var(--r-md); background: var(--bg-surface); }
+
+/* ============================================================
+   Icon
+   ============================================================ */
+.ic { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ic-sm { width: 14px; height: 14px; }
+.ic-lg { width: 20px; height: 20px; }
+.ic-xl { width: 24px; height: 24px; }
+
+/* ============================================================
+   Misc
+   ============================================================ */
+.hr-dot { border-top: 1px dashed var(--border-default); }
+.tag { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: var(--r-xs); background: var(--bg-sunken); border: 1px solid var(--border-subtle); font-size: var(--fs-micro); color: var(--text-secondary); }
+.link-arrow { display: inline-flex; align-items: center; gap: 5px; font-size: var(--fs-body-sm); font-weight: var(--fw-medium); color: var(--blue-500); }
+.link-arrow:hover { color: var(--blue-600); }
+.qr { width: 116px; height: 116px; border: 1px solid var(--border-default); border-radius: var(--r-sm); background: #fff; padding: 7px; }
+.scroll-x { overflow-x: auto; }
+
+@media (max-width: 1100px) {
+  :root { --fs-display-1: 3rem; --fs-display-2: 2.25rem; }
+  .g-3, .g-4 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .kv-strip { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .stepper { grid-template-columns: 1fr; }
+  .step { border-right: 1px solid var(--border-default); border-bottom: 0; }
+  .step:first-child { border-radius: var(--r-md) var(--r-md) 0 0; }
+  .step:last-child { border-radius: 0 0 var(--r-md) var(--r-md); }
+  .shell { grid-template-columns: var(--rail-w) minmax(0,1fr); }
+  .sidebar { display: none; }
+  .footer-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 680px) {
+  .g-2, .g-3, .g-4 { grid-template-columns: 1fr; }
+  .section { padding: var(--sp-14) 0; }
+}
+
+html, body { min-height: 100%; }
+
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 4.5 12.5H11l-1 8L18.5 10H12l1-8Z"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+    <symbol id="i-circle-dashed" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 1 4 1M19 7a9 9 0 0 1 2 5M20 16a9 9 0 0 1-4 4M12 21a9 9 0 0 1-4-1M5 17a9 9 0 0 1-2-5M4 8a9 9 0 0 1 4-4"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.3 2.9 8.2 7 9.5 4.1-1.3 7-5.2 7-9.5V6l-7-3Z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3Z"/></symbol>
+    <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l3 8 4-16 3 8h4"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></symbol>
+    <symbol id="i-network" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="5" rx="1.5"/><rect x="2.5" y="15" width="6" height="5" rx="1.5"/><rect x="15.5" y="15" width="6" height="5" rx="1.5"/><path d="M12 8v3.5M5.5 15v-2a1.5 1.5 0 0 1 1.5-1.5h10a1.5 1.5 0 0 1 1.5 1.5v2"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="6" height="6" rx="1"/><rect x="14.5" y="3.5" width="6" height="6" rx="1"/><rect x="3.5" y="14.5" width="6" height="6" rx="1"/><path d="M14.5 14.5h3v3M20.5 17.5v3h-3"/></symbol>
+    <symbol id="i-credit-card" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v18H5.5A1.5 1.5 0 0 1 4 19.5v-15Z"/><path d="M8 3v18"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M22 12h-3M5 12H2M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1M18.4 18.4l-2.1-2.1M7.7 7.7 5.6 5.6"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 2.5 20h19L12 4Z"/><path d="M12 10v4M12 17h.01"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V8a1.5 1.5 0 0 1 1.5-1.5H10"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14-4.5L3 9M4 13a8 8 0 0 0 14 4.5L21 15"/><path d="M3 4v5h5M21 20v-5h-5"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5L13.5 3Z"/><path d="M13.5 3v5.5H19"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 6 3.5-6 3.5v-7Z"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24"><path d="M20.5 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.9A8 8 0 1 1 20.5 12Z"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m5 9 7 7 7-7"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16S18 14 18 9Z"/><path d="M10.5 19a2 2 0 0 0 3 0"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M12 3c3.5 2 5.5 5.5 5.5 9.5L12 18l-5.5-5.5C6.5 8.5 8.5 5 12 3Z"/><path d="M9 17.5 7 21M15 17.5 17 21M12 10.5h.01"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="14" r="4"/><path d="m11 11 8-8 2 2-2 2 2 2-3 3-2-2-2 2"/></symbol>
+  </defs>
+</svg>
+
+<style>
+  .help-hero { padding: var(--sp-14) 0 var(--sp-10); border-bottom: 1px solid var(--border-subtle); background: var(--bg-surface); position: relative; overflow: hidden; }
+  .help-hero::before { content:""; position:absolute; inset:-140px 0 auto 0; height:340px; background: radial-gradient(ellipse 560px 220px at 50% 100%, rgba(0,88,189,.08), transparent 70%); }
+  .help-hero > * { position: relative; }
+  .search-wrap { max-width: 620px; margin: var(--sp-6) auto 0; }
+  .search-big { display: flex; align-items: center; gap: var(--sp-3); height: 50px; padding: 0 var(--sp-4); border: 1px solid var(--border-strong); border-radius: var(--r-md); background: var(--bg-surface); }
+  .search-big:hover { border-color: var(--gray-400); }
+  .hot { display: flex; gap: var(--sp-2); justify-content: center; flex-wrap: wrap; margin-top: var(--sp-4); }
+  .hot a { font-size: var(--fs-caption); color: var(--text-secondary); border: 1px solid var(--border-default); border-radius: var(--r-pill); padding: 4px 11px; background: var(--bg-surface); }
+  .hot a:hover { border-color: var(--border-strong); color: var(--text-primary); }
+
+  .task-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); }
+  .task { padding: var(--sp-5); display: flex; flex-direction: column; }
+  .task-ico { width: 30px; height: 30px; border-radius: var(--r-sm); background: var(--blue-50); border: 1px solid var(--blue-100); color: var(--blue-500); display: grid; place-items: center; }
+  .task h4 { margin: var(--sp-4) 0 6px; }
+  .task .link-arrow { margin-top: auto; padding-top: var(--sp-4); font-size: var(--fs-caption); }
+
+  .doc-layout { display: grid; grid-template-columns: 214px minmax(0,1fr) 196px; gap: var(--sp-8); }
+  .doc-nav .nav-label { padding: 0; }
+  .doc-nav a { display: block; font-size: var(--fs-body-sm); color: var(--text-secondary); padding: 5px 10px; border-radius: var(--r-xs); border-left: 2px solid transparent; margin-left: -2px; }
+  .doc-nav a:hover { color: var(--text-primary); background: var(--bg-sunken); }
+  .doc-nav a.is-active { color: var(--blue-600); border-left-color: var(--blue-500); background: var(--blue-50); font-weight: var(--fw-medium); }
+  .doc-nav .nav-group + .nav-group { margin-top: var(--sp-5); }
+
+  .prose { font-size: var(--fs-body); line-height: var(--lh-relaxed); color: var(--text-secondary); }
+  .prose h1 { font-size: var(--fs-h1); color: var(--text-primary); margin-bottom: var(--sp-3); }
+  .prose h2 { font-size: var(--fs-h3); color: var(--text-primary); margin: var(--sp-10) 0 var(--sp-3); scroll-margin-top: 80px; }
+  .prose p + p { margin-top: var(--sp-4); }
+  .prose ol { counter-reset: n; margin-top: var(--sp-4); }
+  .prose ol li { counter-increment: n; position: relative; padding-left: 30px; }
+  .prose ol li + li { margin-top: var(--sp-4); }
+  .prose ol li::before { content: counter(n); position: absolute; left: 0; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--bg-sunken); border: 1px solid var(--border-default); color: var(--text-tertiary); font-family: var(--font-mono); font-size: 11px; display: grid; place-items: center; }
+  .prose code { font-family: var(--font-mono); font-size: .88em; background: var(--bg-sunken); border: 1px solid var(--border-subtle); border-radius: var(--r-xs); padding: 1px 5px; color: var(--text-primary); }
+  .prose strong { color: var(--text-primary); font-weight: var(--fw-semibold); }
+  .toc { position: sticky; top: 76px; align-self: start; }
+  .toc a { display: block; font-size: var(--fs-caption); color: var(--text-tertiary); padding: 4px 0 4px 11px; border-left: 2px solid var(--border-subtle); }
+  .toc a.is-active { color: var(--blue-600); border-left-color: var(--blue-500); }
+  .toc a:hover { color: var(--text-primary); }
+
+  .contact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); }
+  @media (max-width: 1100px) { .task-grid { grid-template-columns: repeat(2,1fr); } .doc-layout { grid-template-columns: 1fr; } .toc { display: none; } .contact-grid { grid-template-columns: 1fr; } }
+</style>
+
+<header class="mnav">
+  <div class="container-wide mnav-inner">
+    <div class="row" style="gap:var(--sp-8)">
+      <a class="logo" href="#"><span class="logo-mark"><svg class="ic ic-sm"><use href="#i-zap"/></svg></span>XConnect</a>
+      <nav class="mnav-links"><a href="#">如何开始</a><a href="#">能力</a><a href="#">下载</a><a href="#">定价</a><a href="#" style="color:var(--text-primary);font-weight:var(--fw-medium)">文档</a></nav>
+    </div>
+    <div class="row" style="gap:var(--sp-3)">
+      <div class="input" style="height:30px;width:160px"><svg class="ic ic-sm"><use href="#i-search"/></svg><span style="flex:1">搜索</span><span class="kbd">⌘K</span></div>
+      <a class="btn btn-primary btn-sm" href="#">进入控制台</a>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════ HERO ══════════ -->
+<section class="help-hero">
+  <div class="container" style="text-align:center">
+    <span class="t-eyebrow">Help center</span>
+    <h1 class="t-display-2" style="margin-top:var(--sp-3)">需要帮忙做什么？</h1>
+    <p class="t-lead" style="max-width:36rem;margin:var(--sp-3) auto 0">从注册到第一次连通，再到订阅与对账，每一步都有对应的分步向导。</p>
+    <div class="search-wrap">
+      <div class="search-big">
+        <svg class="ic ic-lg subtle"><use href="#i-search"/></svg>
+        <span class="subtle" style="flex:1;text-align:left">搜索文档、错误码或客户端名称…</span>
+        <span class="kbd">⌘K</span>
+      </div>
+      <div class="hot">
+        <a href="#">导入 VLESS 订阅</a><a href="#">绑定 MFA</a><a href="#">用量对不上</a><a href="#">申请退款</a><a href="#">私有环境穿透</a><a href="#">节点显示待验证</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 任务导向入口 ══════════ -->
+<section class="section-sm">
+  <div class="container">
+    <div class="sec-head">
+      <span class="t-eyebrow">Start here</span>
+      <h2 class="t-h1">按任务开始</h2>
+      <p class="t-lead">不确定从哪看起，就从下面四条主线里挑一条。每条都是端到端的完整流程。</p>
+    </div>
+    <div class="task-grid" style="margin-top:var(--sp-8)">
+      <article class="card card-hover task">
+        <div class="task-ico"><svg class="ic"><use href="#i-rocket"/></svg></div>
+        <h4>第一次连通</h4>
+        <p class="t-caption">注册 → 绑定 MFA → 导入 VLESS → 验证节点。约 5 分钟。</p>
+        <a class="link-arrow" href="#">6 篇 · 开始 <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a>
+      </article>
+      <article class="card card-hover task">
+        <div class="task-ico"><svg class="ic"><use href="#i-monitor"/></svg></div>
+        <h4>客户端配置</h4>
+        <p class="t-caption">macOS / Windows / Linux / iOS / Android 与第三方客户端导入。</p>
+        <a class="link-arrow" href="#">11 篇 · 查看 <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a>
+      </article>
+      <article class="card card-hover task">
+        <div class="task-ico"><svg class="ic"><use href="#i-credit-card"/></svg></div>
+        <h4>订阅与账单</h4>
+        <p class="t-caption">套餐差异、超额计费、发票抬头、退款与取消流程。</p>
+        <a class="link-arrow" href="#">8 篇 · 查看 <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a>
+      </article>
+      <article class="card card-hover task">
+        <div class="task-ico"><svg class="ic"><use href="#i-alert"/></svg></div>
+        <h4>排查与错误码</h4>
+        <p class="t-caption">连不上、用量异常、节点待验证、握手失败的定位路径。</p>
+        <a class="link-arrow" href="#">14 篇 · 查看 <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 文档页形态 ══════════ -->
+<section class="section-sm" style="background:var(--bg-surface);border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle)">
+  <div class="container-wide">
+    <div class="row-between" style="margin-bottom:var(--sp-8)">
+      <div class="sec-head"><span class="t-eyebrow">Article layout</span><h2 class="t-h1">分步向导的阅读形态</h2></div>
+      <div class="row" style="gap:8px"><span class="badge">v2.8</span><span class="badge badge-success"><i class="dot"></i>已校对</span></div>
+    </div>
+
+    <div class="doc-layout">
+      <!-- 左侧目录 -->
+      <nav class="doc-nav">
+        <div class="nav-group">
+          <div class="nav-label">快速开始</div>
+          <a href="#" class="is-active">3 步完成首次连通</a>
+          <a href="#">账户安全与 MFA</a>
+          <a href="#">获取 VLESS 凭据</a>
+          <a href="#">验证节点连通</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">客户端</div>
+          <a href="#">macOS 客户端</a>
+          <a href="#">Windows 客户端</a>
+          <a href="#">Linux / CLI</a>
+          <a href="#">移动端扫码导入</a>
+          <a href="#">第三方客户端</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">计费</div>
+          <a href="#">套餐与配额</a>
+          <a href="#">超额计费规则</a>
+          <a href="#">退款政策</a>
+        </div>
+        <div class="nav-group">
+          <div class="nav-label">自建部署</div>
+          <a href="#">自建节点前提</a>
+          <a href="#">Docker Compose</a>
+          <a href="#">接入 accounts 计量</a>
+        </div>
+      </nav>
+
+      <!-- 正文 -->
+      <article class="prose">
+        <div class="crumbs" style="margin-bottom:var(--sp-4)"><a href="#">文档</a><svg class="ic ic-sm sep"><use href="#i-chevron-right"/></svg><a href="#">快速开始</a><svg class="ic ic-sm sep"><use href="#i-chevron-right"/></svg><span class="cur">3 步完成首次连通</span></div>
+        <h1>3 步完成首次连通</h1>
+        <p class="t-caption" style="margin-bottom:var(--sp-6)">最后更新 2026-08-11 · 阅读约 4 分钟 · 适用 v2.6 及以上</p>
+
+        <p>本文覆盖从注册到确认节点连通的完整路径。<strong>控制台会按同样的顺序引导你</strong>，两边的状态是同一份 API 数据，不会出现文档说完成了但控制台还显示待办的情况。</p>
+
+        <div class="alert alert-info" style="margin-top:var(--sp-5)">
+          <svg class="ic alert-icon"><use href="#i-info"/></svg>
+          <div><span class="alert-title">开始前</span><p class="alert-body">准备一个可收信的邮箱和一个支持 TOTP 的验证器 App。Free 套餐不需要信用卡。</p></div>
+        </div>
+
+        <h2 id="s1">第 1 步 · 完善账户安全</h2>
+        <p>验证邮箱后，账户即可正常浏览控制台。但发起支付、变更订阅或进入 Stripe 客户门户前，必须绑定多因素认证。</p>
+        <ol>
+          <li>进入 <code>用户中心 → 账户安全</code>，确认邮箱状态为 <strong>已验证</strong>。</li>
+          <li>点击「去绑定 MFA」，用验证器扫描二维码。</li>
+          <li>输入 6 位动态码完成绑定，并保存备用恢复码。</li>
+        </ol>
+
+        <h2 id="s2">第 2 步 · 获取 VLESS 连接凭据</h2>
+        <p>凭据由 <code>代理 UUID</code> 派生，可独立于账户身份轮换。轮换后旧链接立即失效。</p>
+        <div class="code-box" style="margin-top:var(--sp-4)"><span class="c-dim"># 复制订阅链接</span><br><span class="c-key">vless</span>://01a0124f-97b1-7670-a3f3-febea17970c9@<span class="c-str">sg1.xconn.net</span>:443<br>&nbsp;&nbsp;?encryption=none&amp;security=tls&amp;type=ws#XConnect-SG1</div>
+
+        <h2 id="s3">第 3 步 · 验证连接</h2>
+        <p>导入客户端并发起一次请求后，回到控制台的「运行节点」。服务端收到握手时，节点状态会从 <strong>待验证</strong> 变为 <strong>已连通</strong>，并开始回传延迟。</p>
+        <div class="alert alert-warning" style="margin-top:var(--sp-5)">
+          <svg class="ic alert-icon"><use href="#i-alert"/></svg>
+          <div><span class="alert-title">状态一直是待验证？</span><p class="alert-body">先确认客户端确实走了代理（而不是直连），再检查本地时间偏差是否超过 90 秒 —— TLS 握手对时间敏感。</p></div>
+        </div>
+
+        <div class="divider" style="margin:var(--sp-10) 0 var(--sp-5)"></div>
+        <div class="row-between">
+          <div><div class="t-caption">这篇文档有帮助吗？</div><div class="row" style="gap:8px;margin-top:8px"><button class="btn btn-secondary btn-sm">有帮助</button><button class="btn btn-secondary btn-sm">没解决</button></div></div>
+          <a class="link-arrow" href="#">下一篇：账户安全与 MFA <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a>
+        </div>
+      </article>
+
+      <!-- 右侧 on-this-page -->
+      <aside class="toc">
+        <div class="nav-label" style="padding:0 0 var(--sp-2) 11px">本页内容</div>
+        <a href="#s1" class="is-active">第 1 步 · 完善账户安全</a>
+        <a href="#s2">第 2 步 · 获取 VLESS 凭据</a>
+        <a href="#s3">第 3 步 · 验证连接</a>
+        <div class="card" style="margin-top:var(--sp-5);padding:var(--sp-4)">
+          <div class="t-caption" style="color:var(--text-primary);font-weight:var(--fw-medium)">对应控制台位置</div>
+          <a class="link-arrow t-caption" href="#" style="margin-top:8px">开始使用 <svg class="ic ic-sm"><use href="#i-external"/></svg></a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 全部文档集 ══════════ -->
+<section class="section-sm">
+  <div class="container">
+    <div class="row-between" style="align-items:flex-end">
+      <div class="sec-head"><span class="t-eyebrow">Collections</span><h2 class="t-h1">全部文档集</h2></div>
+      <span class="badge">7 个文档集 · 62 篇</span>
+    </div>
+    <div class="grid g-3" style="margin-top:var(--sp-8);gap:var(--sp-3)">
+      <a class="card card-hover card-pad" href="#"><div class="row-between"><h4>快速开始</h4><svg class="ic ic-sm subtle"><use href="#i-arrow-right"/></svg></div><p class="t-caption" style="margin-top:8px">注册、安全设置与首次连通的完整路径。</p><div class="row" style="gap:6px;margin-top:var(--sp-4)"><span class="tag">6 篇</span><span class="tag">新手</span></div></a>
+      <a class="card card-hover card-pad" href="#"><div class="row-between"><h4>客户端指南</h4><svg class="ic ic-sm subtle"><use href="#i-arrow-right"/></svg></div><p class="t-caption" style="margin-top:8px">五大平台与主流第三方客户端的导入方式。</p><div class="row" style="gap:6px;margin-top:var(--sp-4)"><span class="tag">11 篇</span><span class="tag">客户端</span></div></a>
+      <a class="card card-hover card-pad" href="#"><div class="row-between"><h4>订阅与计费</h4><svg class="ic ic-sm subtle"><use href="#i-arrow-right"/></svg></div><p class="t-caption" style="margin-top:8px">套餐、配额、超额规则、发票与退款。</p><div class="row" style="gap:6px;margin-top:var(--sp-4)"><span class="tag">8 篇</span><span class="tag">计费</span></div></a>
+      <a class="card card-hover card-pad" href="#"><div class="row-between"><h4>自建部署</h4><svg class="ic ic-sm subtle"><use href="#i-arrow-right"/></svg></div><p class="t-caption" style="margin-top:8px">自建节点、接入统一计量与策略组下发。</p><div class="row" style="gap:6px;margin-top:var(--sp-4)"><span class="tag">9 篇</span><span class="tag">自建</span></div></a>
+      <a class="card card-hover card-pad" href="#"><div class="row-between"><h4>排查手册</h4><svg class="ic ic-sm subtle"><use href="#i-arrow-right"/></svg></div><p class="t-caption" style="margin-top:8px">按症状索引的定位路径与错误码对照表。</p><div class="row" style="gap:6px;margin-top:var(--sp-4)"><span class="tag">14 篇</span><span class="tag">排查</span></div></a>
+      <a class="card card-hover card-pad" href="#"><div class="row-between"><h4>API 与自动化</h4><svg class="ic ic-sm subtle"><use href="#i-arrow-right"/></svg></div><p class="t-caption" style="margin-top:8px">accounts / billing 接口、Webhook 与用量导出。</p><div class="row" style="gap:6px;margin-top:var(--sp-4)"><span class="tag">14 篇</span><span class="tag">API</span></div></a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 仍需帮助 ══════════ -->
+<section class="section-sm" style="background:var(--bg-surface);border-top:1px solid var(--border-subtle)">
+  <div class="container">
+    <div class="sec-head" style="margin-bottom:var(--sp-8)"><span class="t-eyebrow">Still stuck</span><h2 class="t-h1">还没解决？</h2></div>
+    <div class="contact-grid">
+      <div class="card card-pad"><div class="task-ico"><svg class="ic"><use href="#i-message"/></svg></div><h4 style="margin:var(--sp-4) 0 6px">提交工单</h4><p class="t-caption">附上账户 UUID 与节点名，工作日 4 小时内首次响应。</p><a class="link-arrow t-caption" href="#" style="display:inline-flex;margin-top:var(--sp-4)">新建工单 <svg class="ic ic-sm"><use href="#i-arrow-right"/></svg></a></div>
+      <div class="card card-pad"><div class="task-ico"><svg class="ic"><use href="#i-activity"/></svg></div><h4 style="margin:var(--sp-4) 0 6px">服务状态页</h4><p class="t-caption">先确认是不是区域性故障，节点事件会在这里实时公布。</p><a class="link-arrow t-caption" href="#" style="display:inline-flex;margin-top:var(--sp-4)">查看状态 <svg class="ic ic-sm"><use href="#i-external"/></svg></a></div>
+      <div class="card card-pad"><div class="task-ico"><svg class="ic"><use href="#i-book"/></svg></div><h4 style="margin:var(--sp-4) 0 6px">社区讨论</h4><p class="t-caption">自建部署与第三方客户端的踩坑经验大多在这里。</p><a class="link-arrow t-caption" href="#" style="display:inline-flex;margin-top:var(--sp-4)">进入社区 <svg class="ic ic-sm"><use href="#i-external"/></svg></a></div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a class="logo" href="#"><span class="logo-mark"><svg class="ic ic-sm"><use href="#i-zap"/></svg></span>XConnect</a>
+        <p class="t-caption" style="margin-top:var(--sp-3);max-width:26ch">AI Connectivity · 为 AI Workspace 提供全球连接能力与私有环境穿透。</p>
+      </div>
+      <div><h5>产品</h5><ul><li><a href="#">XConnect</a></li><li><a href="#">XWorkmate</a></li><li><a href="#">XStream</a></li><li><a href="#">开放平台</a></li></ul></div>
+      <div><h5>资源</h5><ul><li><a href="#">文档中心</a></li><li><a href="#">快速开始</a></li><li><a href="#">状态页</a></li><li><a href="#">更新日志</a></li></ul></div>
+      <div><h5>账户</h5><ul><li><a href="#">用户中心</a></li><li><a href="#">订阅与配额</a></li><li><a href="#">账单</a></li><li><a href="#">安全设置</a></li></ul></div>
+      <div><h5>公司</h5><ul><li><a href="#">关于</a></li><li><a href="#">联系</a></li><li><a href="#">隐私政策</a></li><li><a href="#">服务条款</a></li></ul></div>
+    </div>
+    <div class="divider" style="margin:var(--sp-8) 0 var(--sp-5)"></div>
+    <div class="row-between"><span class="t-caption">© 2026 onwalk.net</span><span class="t-caption t-mono">docs v2.8</span></div>
+  </div>
+</footer>
+
+
+<script>
+(function () {
+  // Tabs
+  document.querySelectorAll('.tabs').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var t = e.target.closest('.tab'); if (!t) return;
+      g.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('is-active'); });
+      t.classList.add('is-active');
+    });
+  });
+  // Segmented controls
+  document.querySelectorAll('.seg').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      g.querySelectorAll('button').forEach(function (x) { x.classList.remove('is-active'); });
+      b.classList.add('is-active');
+    });
+  });
+  // Sidebar / doc nav
+  document.querySelectorAll('.sidebar, .doc-nav, .rail').forEach(function (g) {
+    g.addEventListener('click', function (e) {
+      var a = e.target.closest('.nav-item, a, .rail-item'); if (!a) return;
+      var sel = a.classList.contains('rail-item') ? '.rail-item' : (a.classList.contains('nav-item') ? '.nav-item' : 'a');
+      g.querySelectorAll(sel).forEach(function (x) { x.classList.remove('is-active'); });
+      a.classList.add('is-active');
+    });
+  });
+  // FAQ 展开
+  document.querySelectorAll('.faq-item').forEach(function (it) {
+    it.style.cursor = 'pointer';
+    it.addEventListener('click', function () {
+      var a = it.querySelector('.faq-a');
+      if (a) { a.remove(); return; }
+      var p = document.createElement('p');
+      p.className = 'faq-a';
+      p.textContent = '示例答案占位。真实内容由 docs 集合提供，FAQ 与文档共用同一份来源，避免两处口径不一致。';
+      it.appendChild(p);
+    });
+  });
+  // 复制反馈
+  document.querySelectorAll('button').forEach(function (b) {
+    if (!/复制/.test(b.textContent)) return;
+    b.addEventListener('click', function () {
+      var old = b.innerHTML;
+      b.innerHTML = '<svg class="ic ic-sm"><use href="#i-check"/></svg>已复制';
+      setTimeout(function () { b.innerHTML = old; }, 1600);
+    });
+  });
+  // 输入框聚焦态
+  document.querySelectorAll('.input, .search-big').forEach(function (i) {
+    i.tabIndex = 0;
+    i.addEventListener('focus', function () { i.classList.add('is-focus'); });
+    i.addEventListener('blur', function () { i.classList.remove('is-focus'); });
+  });
+})();
+</script>
+
+</body>
+</html>

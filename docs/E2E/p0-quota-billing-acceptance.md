@@ -56,11 +56,13 @@ Accounts 脚本：
 ./scripts/test-p0-quota-group-management.sh
 ```
 
-Portal 必跑其管理组件和 BFF 路由测试：
+Portal 必跑 P0-Q 的管理组件和 BFF 路由测试：
 
 ```bash
-yarn vitest run src/modules/extensions/builtin/user-center/management
+./scripts/test-p0-quota-group-management.sh
 ```
+
+该脚本使用仓库的 jsdom Vitest 配置，仅选择本 P0 引入的预览、批量确认和仅有效期变更用例。全量管理组件套件中仍有与本特性无关的既有展示断言失配，需另立修复任务，不能用来阻塞本 P0 的验收。
 
 覆盖的核心断言：
 

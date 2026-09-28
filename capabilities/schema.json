@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ai-workspace-services/.github/blob/main/capabilities/schema.json",
+  "title": "AI Workspace capability manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "modules"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^v[0-9]+$"
+    },
+    "modules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/module"
+      }
+    }
+  },
+  "$defs": {
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "owner_repo",
+        "title",
+        "product",
+        "editions",
+        "domains",
+        "surface",
+        "routes",
+        "api_prefixes",
+        "tables",
+        "depends_on"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$"
+        },
+        "owner_repo": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+/[a-z0-9._-]+$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "enum": ["appModules", "builtinExtension", "routeSurface"]
+        },
+        "product": {
+          "type": "string",
+          "enum": [
+            "xworkmate",
+            "xconnect",
+            "ai-workspace",
+            "open-platform",
+            "global-mesh"
+          ]
+        },
+        "editions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["selfhost", "managed", "paygo", "saas"]
+          }
+        },
+        "domains": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["web-saas", "ai-workspace", "agent-proxy", "open-platform"]
+          }
+        },
+        "surface": {
+          "type": "string",
+          "enum": ["public", "app", "internal"]
+        },
+        "routes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          }
+        },
+        "api_prefixes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^/"
+          }
+        },
+        "tables": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)?$"
+          }
+        },
+        "depends_on": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$"
+          }
+        }
+      }
+    }
+  }
+}

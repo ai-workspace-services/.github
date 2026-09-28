@@ -1,0 +1,173 @@
+version: v1
+
+# Descriptive v1 only. Runtime feature toggles and extension registration remain
+# the source of behavior until a later task introduces generated projections.
+modules:
+  - id: portal.app.cloud_iac
+    owner_repo: ai-workspace-services/portal
+    title: Cloud IaC catalog
+    source: appModules
+    product: open-platform
+    editions: [selfhost, managed, paygo, saas]
+    domains: [web-saas, open-platform]
+    surface: app
+    routes: [/cloud_iac, "/cloud_iac/*"]
+    api_prefixes: []
+    tables: []
+    depends_on: [portal.route.products]
+
+  - id: portal.app.docs
+    owner_repo: ai-workspace-services/portal
+    title: Documentation
+    source: appModules
+    product: open-platform
+    editions: [selfhost, managed, paygo, saas]
+    domains: [web-saas]
+    surface: public
+    routes: [/docs, "/docs/*"]
+    api_prefixes: [/api/docs]
+    tables: []
+    depends_on: []
+
+  - id: portal.app.download
+    owner_repo: ai-workspace-services/portal
+    title: Download catalog
+    source: appModules
+    product: xconnect
+    editions: [selfhost, managed, paygo, saas]
+    domains: [web-saas]
+    surface: public
+    routes: [/download, "/download/*"]
+    api_prefixes: [/api/dl-index]
+    tables: []
+    depends_on: []
+
+  - id: portal.app.insight
+    owner_repo: ai-workspace-services/portal
+    title: Insight workbench
+    source: appModules
+    product: open-platform
+    editions: [managed, saas]
+    domains: [web-saas, open-platform]
+    surface: public
+    routes: [/services/insight]
+    api_prefixes: []
+    tables: []
+    depends_on: [portal.route.products]
+
+  - id: portal.app.demo
+    owner_repo: ai-workspace-services/portal
+    title: Product demo
+    source: appModules
+    product: xworkmate
+    editions: [managed, saas]
+    domains: [web-saas]
+    surface: public
+    routes: [/demo]
+    api_prefixes: [/api/guest]
+    tables: []
+    depends_on: [accounts.auth]
+
+  - id: portal.app.ai_aggregator
+    owner_repo: ai-workspace-services/portal
+    title: AI Aggregator console
+    source: appModules
+    product: ai-workspace
+    editions: [managed, paygo, saas]
+    domains: [web-saas, ai-workspace]
+    surface: app
+    routes: [/panel/ai-aggregator]
+    api_prefixes: [/api/ai-workspace]
+    tables: []
+    depends_on: [accounts.auth]
+
+  - id: portal.builtin.user_center
+    owner_repo: ai-workspace-services/portal
+    title: User center
+    source: builtinExtension
+    product: xconnect
+    editions: [selfhost, managed, paygo, saas]
+    domains: [web-saas]
+    surface: app
+    routes: [/panel, "/panel/*"]
+    api_prefixes: [/api/auth, /api/entitlements]
+    tables: [public.users, public.subscriptions, public.billing_plans, public.account_quota_states]
+    depends_on: [accounts.auth]
+
+  - id: portal.builtin.infra
+    owner_repo: ai-workspace-services/portal
+    title: Infrastructure management
+    source: builtinExtension
+    product: open-platform
+    editions: [selfhost, managed, paygo, saas]
+    domains: [web-saas, open-platform]
+    surface: app
+    routes: [/panel/deployments, /panel/resources, /panel/api-keys, /panel/observability, /panel/settings]
+    api_prefixes: [/api/platform]
+    tables: []
+    depends_on: [portal.builtin.platform_operations]
+
+  - id: portal.builtin.xconnect_zero
+    owner_repo: ai-workspace-services/portal
+    title: XConnect Zero control plane
+    source: builtinExtension
+    product: xconnect
+    editions: [selfhost, managed, paygo, saas]
+    domains: [web-saas, agent-proxy]
+    surface: app
+    routes: [/panel/xconnect-zero]
+    api_prefixes: [/api/xconnect-zero]
+    tables: [public.overlay_registrations]
+    depends_on: [accounts.auth, portal.builtin.user_center]
+
+  - id: portal.builtin.platform_operations
+    owner_repo: ai-workspace-services/portal
+    title: Platform operations
+    source: builtinExtension
+    product: open-platform
+    editions: [managed, saas]
+    domains: [web-saas, open-platform]
+    surface: internal
+    routes: [/panel/operations, "/panel/operations/*"]
+    api_prefixes: [/api/platform-operations]
+    tables: []
+    depends_on: [accounts.auth]
+
+  - id: portal.route.products
+    owner_repo: ai-workspace-services/portal
+    title: Public product pages
+    source: routeSurface
+    product: xworkmate
+    editions: [selfhost, managed, paygo, saas]
+    domains: [web-saas]
+    surface: public
+    routes: ["/products/*"]
+    api_prefixes: []
+    tables: []
+    depends_on: []
+
+  - id: portal.route.ai_workspace
+    owner_repo: ai-workspace-services/portal
+    title: AI Workspace application
+    source: routeSurface
+    product: ai-workspace
+    editions: [managed, paygo, saas]
+    domains: [ai-workspace]
+    surface: app
+    routes: [/ai-workspace, "/ai-workspace/*"]
+    api_prefixes: [/api/ai-workspace]
+    tables: []
+    depends_on: [accounts.auth]
+
+  - id: accounts.auth
+    owner_repo: ai-workspace-services/accounts
+    title: Accounts and authentication
+    source: routeSurface
+    product: xconnect
+    editions: [selfhost, managed, paygo, saas]
+    domains: [web-saas]
+    surface: internal
+    routes: []
+    api_prefixes: [/api/auth]
+    tables: [public.users, public.subscriptions, public.billing_plans]
+    depends_on: []

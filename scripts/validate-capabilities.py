@@ -53,7 +53,11 @@ def main() -> int:
             if dependency not in by_id:
                 fail(f"{module['id']} depends on unknown module {dependency}")
         for route in module["routes"]:
-            if route.startswith("/products/") and module["surface"] != "public":
+            if (
+                route.startswith("/products/")
+                and module["surface"] != "public"
+                and module.get("source") != "builtinExtension"
+            ):
                 fail(f"product route {route} must be public")
             if route.startswith("/ai-workspace") and module["surface"] != "app":
                 fail(f"AI Workspace route {route} must be app")

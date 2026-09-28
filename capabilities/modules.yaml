@@ -89,10 +89,177 @@ modules:
     editions: [selfhost, managed, paygo, saas]
     domains: [web-saas]
     surface: app
-    routes: [/panel, "/panel/*"]
+    routes: [/panel, "/panel/*", /products/global-mesh]
     api_prefixes: [/api/auth, /api/entitlements]
     tables: [public.users, public.subscriptions, public.billing_plans, public.account_quota_states]
     depends_on: [accounts.auth]
+    extension_routes:
+      - id: dashboard
+        path: /panel
+        label: Dashboard
+        description: 专属于你的信息总览
+        match: startsWith
+        guard: {require_login: true}
+        redirect: {unauthenticated: /login}
+        sidebar: {section: workspace, order: 0}
+      - id: finops
+        path: /panel/finops
+        label: FinOps
+        description: 多云额度、成本归集与持续优化
+        guard: {require_login: true}
+        redirect: {unauthenticated: /login}
+        sidebar: {section: workspace, order: 1}
+      - id: globalMesh
+        path: /panel/global-mesh
+        label: Global Mesh 拓扑
+        description: 全球多云互联与算力 PoP 拓扑
+        guard: {require_login: true}
+        redirect: {unauthenticated: /login}
+        sidebar: {section: workspace, order: 2}
+      - id: productsGlobalMesh
+        path: /products/global-mesh
+        label: Global Mesh 产品页
+        description: 全球多云互联与算力 PoP 产品全景
+        guard: {}
+        sidebar: {section: workspace, order: 3}
+      - id: agents
+        path: /panel/agent
+        label: 区域入口池
+        description: 查看区域入口与 pool 数量
+        guard: {require_login: true, roles: [admin]}
+        redirect: {unauthenticated: /login, forbidden: /panel}
+        sidebar: {section: admin, order: 9}
+        feature_flag:
+          id: user-center.agent
+          title: 区域入口池
+          description: 启用管理员区域入口页面。
+          env_var: NEXT_PUBLIC_FEATURE_AGENT_MODULE
+          default_enabled: true
+      - id: apis
+        path: /panel/api
+        label: Integrations
+        description: 统一管理 OpenClaw、Vault 与 AI Gateway
+        guard: {require_login: true}
+        redirect: {unauthenticated: /login}
+        sidebar: {section: productivity, order: 11}
+        feature_flag:
+          id: user-center.api
+          title: 接口集成
+          description: 启用 OpenClaw、Vault 与 APISIX AI Gateway 集成页面。
+          env_var: NEXT_PUBLIC_FEATURE_API_MODULE
+          default_enabled: true
+      - id: ai-aggregator
+        path: /panel/ai-aggregator
+        label: AI Aggregator
+        description: 多模型算力汇聚与 API 网关调度控制台
+        guard: {require_login: true}
+        redirect: {unauthenticated: /login}
+        sidebar: {section: productivity, order: 12}
+        feature_flag:
+          id: user-center.ai_aggregator
+          title: AI Aggregator 控制台
+          description: 启用 AI Aggregator 调度控制台页面。
+          env_var: NEXT_PUBLIC_FEATURE_AI_AGGREGATOR
+          default_enabled: false
+      - id: accounts
+        path: /panel/account
+        label: Accounts
+        description: 目录与多因素设置
+        guard: {require_login: true}
+        redirect: {unauthenticated: /login}
+        sidebar: {section: management, order: 20, hidden: true}
+      - id: subscription
+        path: /panel/subscription
+        label: Subscription
+        description: 订阅方案与计费规则
+        guard: {require_login: true}
+        redirect: {unauthenticated: /login}
+        sidebar: {section: management, order: 21}
+        feature_flag:
+          id: user-center.subscription
+          title: 订阅与计费
+          description: 启用订阅与计费配置页面。
+          env_var: NEXT_PUBLIC_FEATURE_SUBSCRIPTION_MODULE
+          default_enabled: true
+      - id: ldp
+        path: /panel/ldp
+        label: LDP
+        description: 低时延身份平面
+        guard: {require_login: true}
+        redirect: {unauthenticated: /login}
+        sidebar: {section: management, order: 22}
+        feature_flag:
+          id: user-center.ldp
+          title: LDP 管理
+          description: 启用低时延身份平面管理模块。
+          env_var: NEXT_PUBLIC_FEATURE_LDP_MODULE
+          default_enabled: false
+      - id: appearance
+        path: /panel/appearance
+        label: Appearance
+        description: 个性化主题设置
+        guard: {require_login: true}
+        redirect: {unauthenticated: /login}
+        sidebar: {section: preferences, order: 30}
+      - id: management
+        path: /panel/management
+        label: Management
+        description: 集中化的权限矩阵与用户编排
+        match: startsWith
+        guard:
+          require_login: true
+          roles: [admin, operator]
+          permissions: [admin.settings.read, admin.users.metrics.read, admin.users.list.read, admin.agents.status.read, admin.blacklist.read]
+        redirect: {unauthenticated: /login, forbidden: /panel}
+        sidebar: {section: admin, order: 99}
+      - id: ops
+        path: /panel/ops
+        label: 运营工作台
+        description: 经营状态与账号处置
+        match: startsWith
+        guard: {require_login: true, roles: [admin, operator]}
+        redirect: {unauthenticated: /login, forbidden: /panel}
+        sidebar: {section: admin, order: 10}
+      - id: ops-accounts
+        path: /panel/ops/accounts
+        label: 账号处置台
+        description: 检索账号并执行运营处置
+        match: startsWith
+        guard: {require_login: true, roles: [admin, operator]}
+        redirect: {unauthenticated: /login, forbidden: /panel}
+        sidebar: {section: admin, order: 11, hidden: true}
+      - id: ops-billing-plans
+        path: /panel/ops/billing/plans
+        label: 套餐与订阅
+        description: 运营工作台子模块
+        match: startsWith
+        guard: {require_login: true, roles: [admin, operator]}
+        redirect: {unauthenticated: /login, forbidden: /panel}
+        sidebar: {section: admin, order: 12, hidden: true}
+      - id: ops-billing-ledger
+        path: /panel/ops/billing/ledger
+        label: 账单与对账
+        description: 运营工作台子模块
+        match: startsWith
+        guard: {require_login: true, roles: [admin, operator]}
+        redirect: {unauthenticated: /login, forbidden: /panel}
+        sidebar: {section: admin, order: 12, hidden: true}
+      - id: ops-audit
+        path: /panel/ops/audit
+        label: 审计与系统
+        description: 运营工作台子模块
+        match: startsWith
+        guard: {require_login: true, roles: [admin, operator]}
+        redirect: {unauthenticated: /login, forbidden: /panel}
+        sidebar: {section: admin, order: 12, hidden: true}
+      - id: ops-system
+        path: /panel/ops/system
+        label: 系统管理
+        description: 运营工作台子模块
+        match: startsWith
+        guard: {require_login: true, roles: [admin, operator]}
+        redirect: {unauthenticated: /login, forbidden: /panel}
+        sidebar: {section: admin, order: 12, hidden: true}
 
   - id: portal.builtin.infra
     owner_repo: ai-workspace-services/portal
@@ -106,6 +273,37 @@ modules:
     api_prefixes: [/api/platform]
     tables: []
     depends_on: [portal.builtin.platform_operations]
+    extension_routes:
+      - id: deployments
+        path: /panel/deployments
+        label: Deployments
+        description: 部署任务与运行状态
+        guard: {require_login: true}
+        sidebar: {section: infra, order: 0}
+      - id: resources
+        path: /panel/resources
+        label: Resources
+        description: 云资源与数据库实例
+        guard: {require_login: true}
+        sidebar: {section: infra, order: 1}
+      - id: apiKeys
+        path: /panel/api-keys
+        label: API Keys
+        description: 接口密钥与访问凭证
+        guard: {require_login: true}
+        sidebar: {section: infra, order: 2}
+      - id: logs
+        path: /panel/observability
+        label: Observability
+        description: 监控、日志与 AI 分析
+        guard: {require_login: true}
+        sidebar: {section: infra, order: 3}
+      - id: settings
+        path: /panel/settings
+        label: Settings
+        description: 全局系统配置
+        guard: {require_login: true, roles: [admin, operator], permissions: [admin.settings.read]}
+        sidebar: {section: preferences, order: 99}
 
   - id: portal.builtin.xconnect_zero
     owner_repo: ai-workspace-services/portal
@@ -119,6 +317,20 @@ modules:
     api_prefixes: [/api/xconnect-zero]
     tables: [public.overlay_registrations]
     depends_on: [accounts.auth, portal.builtin.user_center]
+    extension_routes:
+      - id: xconnectZero
+        path: /panel/xconnect-zero
+        label: XConnect Zero
+        description: 管理 Zero 控面与私有网络
+        guard: {require_login: true, roles: [admin, operator, user], permissions: [xconnect.zero.read]}
+        redirect: {unauthenticated: /login, forbidden: /panel}
+        sidebar: {section: management, order: 23}
+        feature_flag:
+          id: builtin.xconnect-zero
+          title: XConnect Zero 控面
+          description: 启用 XConnect Zero WebUI。
+          env_var: NEXT_PUBLIC_FEATURE_XCONNECT_ZERO_MODULE
+          default_enabled: true
 
   - id: portal.builtin.platform_operations
     owner_repo: ai-workspace-services/portal
@@ -132,6 +344,37 @@ modules:
     api_prefixes: [/api/platform-operations]
     tables: []
     depends_on: [accounts.auth]
+    extension_routes:
+      - id: platformOperations
+        path: /panel/operations
+        label: Overview
+        description: 平台运行与操作总览
+        guard: {require_login: true, roles: [admin, operator], permissions: [platform.ops.read], groups: [platform-ops, platform-operations], tenant_scoped: true}
+        sidebar: {section: management, order: 24}
+      - id: platformOperationsReleases
+        path: /panel/operations/releases
+        label: Releases
+        description: 跨仓库 Tag 与环境发布
+        guard: {require_login: true, roles: [admin, operator], permissions: [platform.ops.read], groups: [platform-ops, platform-operations], tenant_scoped: true}
+        sidebar: {section: management, order: 25}
+      - id: platformOperationsEnvironments
+        path: /panel/operations/environments
+        label: Environments
+        description: Pages、SSR、Cloud Run 与 Hybrid
+        guard: {require_login: true, roles: [admin, operator], permissions: [platform.ops.read], groups: [platform-ops, platform-operations], tenant_scoped: true}
+        sidebar: {section: management, order: 26}
+      - id: platformOperationsAudit
+        path: /panel/operations/audit
+        label: Audit
+        description: 审批、执行与审计时间线
+        guard: {require_login: true, roles: [admin, operator], permissions: [platform.ops.read], groups: [platform-ops, platform-operations], tenant_scoped: true}
+        sidebar: {section: management, order: 27}
+      - id: platformOperationsVault
+        path: /panel/operations/vault-access
+        label: Vault & Access
+        description: 角色声明、MFA 与访问边界
+        guard: {require_login: true, roles: [admin, operator], permissions: [platform.ops.read], groups: [platform-ops, platform-operations], tenant_scoped: true}
+        sidebar: {section: management, order: 28}
 
   - id: portal.route.products
     owner_repo: ai-workspace-services/portal

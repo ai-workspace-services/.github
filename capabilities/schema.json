@@ -115,7 +115,101 @@
             "type": "string",
             "pattern": "^[a-z0-9][a-z0-9._-]*$"
           }
+        },
+        "extension_routes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/extensionRoute"
+          }
         }
+      }
+    },
+    "extensionRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "path", "label", "guard"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]*$"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^/"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "match": {
+          "type": "string",
+          "enum": ["exact", "startsWith"]
+        },
+        "sidebar": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["section"],
+          "properties": {
+            "section": { "type": "string", "minLength": 1 },
+            "order": { "type": "integer" },
+            "hidden": { "type": "boolean" }
+          }
+        },
+        "guard": {
+          "$ref": "#/$defs/accessRule"
+        },
+        "redirect": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "unauthenticated": { "type": "string", "pattern": "^/" },
+            "forbidden": { "type": "string", "pattern": "^/" }
+          }
+        },
+        "feature_flag": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "title", "description", "env_var", "default_enabled"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "title": { "type": "string", "minLength": 1 },
+            "description": { "type": "string", "minLength": 1 },
+            "env_var": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+            "default_enabled": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "accessRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "require_login": { "type": "boolean" },
+        "allow_guests": { "type": "boolean" },
+        "roles": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["user", "operator", "admin"]
+          }
+        },
+        "permissions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "groups": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "tenant_scoped": { "type": "boolean" }
       }
     }
   }

@@ -89,7 +89,7 @@ modules:
     editions: [selfhost, managed, paygo, saas]
     domains: [web-saas]
     surface: app
-    routes: [/panel, "/panel/*", /products/global-mesh]
+    routes: [/panel, "/panel/*", /products/cloud-hub]
     api_prefixes: [/api/auth, /api/entitlements]
     tables: [public.users, public.subscriptions, public.billing_plans, public.account_quota_states]
     depends_on: [accounts.auth]
@@ -110,14 +110,14 @@ modules:
         redirect: {unauthenticated: /login}
         sidebar: {section: workspace, order: 1}
       - id: globalMesh
-        path: /panel/global-mesh
+        path: /panel/cloud-hub
         label: Global Mesh 拓扑
         description: 全球多云互联与算力 PoP 拓扑
         guard: {require_login: true}
         redirect: {unauthenticated: /login}
         sidebar: {section: workspace, order: 2}
       - id: productsGlobalMesh
-        path: /products/global-mesh
+        path: /products/cloud-hub
         label: Global Mesh 产品页
         description: 全球多云互联与算力 PoP 产品全景
         guard: {}

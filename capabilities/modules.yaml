@@ -341,40 +341,40 @@ modules:
     domains: [web-saas, open-platform]
     surface: internal
     routes: [/panel/operations, "/panel/operations/*"]
-    api_prefixes: [/api/platform-operations]
+    api_prefixes: [/api/platform-operations, /api/operations/catalog, /api/operations/plans, /api/operations/mcp, /api/operations/releases]
     tables: []
     depends_on: [accounts.auth]
     extension_routes:
       - id: platformOperations
         path: /panel/operations
-        label: Overview
+        label: Operations
         description: 平台运行与操作总览
         guard: {require_login: true, roles: [admin, operator], permissions: [platform.ops.read], groups: [platform-ops, platform-operations], tenant_scoped: true}
-        sidebar: {section: management, order: 24}
+        sidebar: {section: platform-operations, order: 24}
       - id: platformOperationsReleases
         path: /panel/operations/releases
         label: Releases
         description: 跨仓库 Tag 与环境发布
         guard: {require_login: true, roles: [admin, operator], permissions: [platform.ops.read], groups: [platform-ops, platform-operations], tenant_scoped: true}
-        sidebar: {section: management, order: 25}
+        sidebar: {section: platform-operations, order: 25}
       - id: platformOperationsEnvironments
         path: /panel/operations/environments
         label: Environments
         description: Pages、SSR、Cloud Run 与 Hybrid
         guard: {require_login: true, roles: [admin, operator], permissions: [platform.ops.read], groups: [platform-ops, platform-operations], tenant_scoped: true}
-        sidebar: {section: management, order: 26}
+        sidebar: {section: platform-operations, order: 26}
       - id: platformOperationsAudit
         path: /panel/operations/audit
         label: Audit
         description: 审批、执行与审计时间线
         guard: {require_login: true, roles: [admin, operator], permissions: [platform.ops.read], groups: [platform-ops, platform-operations], tenant_scoped: true}
-        sidebar: {section: management, order: 27}
+        sidebar: {section: platform-operations, order: 27}
       - id: platformOperationsVault
         path: /panel/operations/vault-access
         label: Vault & Access
         description: 角色声明、MFA 与访问边界
         guard: {require_login: true, roles: [admin, operator], permissions: [platform.ops.read], groups: [platform-ops, platform-operations], tenant_scoped: true}
-        sidebar: {section: management, order: 28}
+        sidebar: {section: platform-operations, order: 28}
 
   - id: portal.route.products
     owner_repo: ai-workspace-services/portal

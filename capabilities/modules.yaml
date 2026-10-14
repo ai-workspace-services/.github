@@ -181,13 +181,20 @@ modules:
           description: 启用订阅与计费配置页面。
           env_var: NEXT_PUBLIC_FEATURE_SUBSCRIPTION_MODULE
           default_enabled: true
+      - id: team
+        path: /panel/team
+        label: Team management
+        description: Dedicated team resources and members
+        guard: {require_login: true}
+        redirect: {unauthenticated: /login}
+        sidebar: {section: management, order: 22}
       - id: ldp
         path: /panel/ldp
         label: LDP
         description: 低时延身份平面
         guard: {require_login: true}
         redirect: {unauthenticated: /login}
-        sidebar: {section: management, order: 22}
+        sidebar: {section: management, order: 23}
         feature_flag:
           id: user-center.ldp
           title: LDP 管理

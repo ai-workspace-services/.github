@@ -1,5 +1,7 @@
 # Selfhost PROD V2 部署归档
 
+> 本文记录最初隔离部署阶段（r3）。2026-10-16 后续已授权切换稳定入口到 V2；最新域名、r9 发布、TLS 故障修复与回滚约束见 [升级与切换记录](prod-v2-upgrade-cutover-20261016.md)。下文“不切换 DNS”仅描述初始阶段。
+
 > 归档日期：2026-10-16  
 > 适用环境：Selfhost PROD V2  
 > 部署方式：SSH + Ansible Playbook + GitOps + Doco-CD  
@@ -229,11 +231,86 @@ journalctl -u xconnect-edge-agent.service -n 100 --no-pager
 [ ] 旧 PROD 服务和 DNS 保持不变
 ```
 
-## 13. 相关仓库和文档
+## 14. 多云真实拓扑与异构制品交付（Tokyo Multi-Cloud Edge）
 
-- GitOps：`ai-workspace-infra/gitops`，`prod/v2-isolated-20261015`
-- Playbooks：`ai-workspace-infra/playbooks`，`ops/prod-v2-isolated`
-- IaC：`ai-workspace-infra/iac_modules`，`feat/prod-v2-isolated`
-- Accounts 迁移工具：`ai-workspace-service/accounts/cmd/migratectl`
-- 本归档文件：`.github/docs/prod-v2-deployment.md`
+2026-10-16 完成了真实的 Tokyo 多云异构边缘节点交付与验收，彻底隔离于旧 PROD 与 Serverless 环境。
+
+### 14.1 节点规格与网络拓扑
+
+| 角色 | 云厂商与位置 | 规格与架构 | IP / 端口 | 绑定域名 |
+| --- | --- | --- | --- | --- |
+| **控制面** | GCP `open-platform-prod`<br>`asia-east1-a` | `e2-medium`<br>2 vCPU / 4 GiB<br>30 GB OS + 100 GB 数据盘<br>删除保护已开启 | 公网 `35.234.51.233`<br>私网 `10.74.0.2`<br>TCP 80/443 | `console-selfhost-prod-v2.svc.plus`<br>`accounts-selfhost-prod-v2.svc.plus`<br>`billing-selfhost-prod-v2.svc.plus`<br>`postgresql-selfhost-prod-v2.svc.plus` |
+| **JP-Free** | Akamai Cloud (Linode)<br>东京 `jp-tyo-3` | 1 vCPU / 2048 MiB<br>Shared CPU, AMD64 | IPv4 `172.237.3.205`<br>IPv6 `2600:3c18::2000:adff:fe8f:1306`<br>TCP 80/443/8443 | `agent-shared-selfhost-prod-v2.svc.plus` |
+| **JP-Plus** | AWS Tokyo<br>`ap-northeast-1` | `c8gd.medium`<br>1 vCPU / 2048 MiB<br>Dedicated Graviton4, ARM64<br>EBS 根盘，非 T/Spot | Elastic IP `13.113.178.215`<br>TCP 80/443/8443 | `jp-xconnect-prod-v2.svc.plus` |
+| **JP-Team** | GCP Tokyo<br>`asia-northeast1-a` | `n2-custom-2-2048`<br>2 vCPU / 2048 MiB<br>Standard, AMD64<br>标准非抢占实例 | 静态公网 `34.146.72.6`<br>子网 `10.75.0.0/24`<br>TCP 80/443/8443 | `agent-team-selfhost-prod-v2.svc.plus` |
+
+### 14.2 异构制品校验和（Dual-Arch Binaries）
+
+所有边缘节点部署统一版本的二进制组件，按宿主机架构严格校验 SHA256：
+
+| 组件 | 版本 | 架构 | SHA256 校验和 |
+| --- | --- | --- | --- |
+| **xconnect-edge-agent** | `v1.2.0-rc.3` | `linux/amd64` | `6e0b7f8e3f9a7c5c2d3a010d8a4c330f576e0176d6ec037a3c306236bbd688cf` |
+| **xconnect-edge-agent** | `v1.2.0-rc.3` | `linux/arm64` | `587520e5e40e6c51804ff2b9a7be8e70a4ef4a6566468728d1194ee7362df2ec` |
+| **xray-core** | `v26.10.15` | `linux/amd64` | `b347ec053351ecf459c5d18d8ffc4153ffcc82a856fdb4695bce1354bb465917` |
+| **xray-core** | `v26.10.15` | `linux/arm64` | `f8fe3220fe489e27389a910ec7ce486f059c3a3c20054817a329dbe057406c8b` |
+| **caddy** | `v2.8.4` | `linux/amd64` | `ebbe61e8654877fe91b5c3ff210dc4117b960533bb3e76100bf2eecc28b24479` |
+| **caddy** | `v2.8.4` | `linux/arm64` | `c7ef9045b7f1e67040523412a80c98f98c7e9231f7431ff4f5e08b34ee3c2302` |
+
+架构：Caddy 作为反向代理并终结 TLS，通过 Unix Domain Socket 直连 Xray Core，无中间 APISIX，systemd 服务自启守护。
+
+### 14.3 多云边缘实测性能基准（Benchmarks）
+
+50 次 TCP Ping 采样与 30 次 TLS TTFB 实测基准：
+
+| 节点 | 规格特性 | TCP 延时（Min / Avg / Max / 抖动） | 丢包率 | TLS TTFB（Avg） |
+| --- | --- | --- | --- | --- |
+| **JP-Free** (Akamai) | 1C2G Shared AMD64 | 0.27ms / 0.65ms / 1.14ms (±0.22ms) | 0.0% | 610.15ms |
+| **JP-Plus** (AWS) | 1C2G Graviton4 ARM64 | 0.41ms / 0.67ms / 0.85ms (±0.12ms) | 0.0% | 969.52ms |
+| **JP-Team** (GCP) | 2C2G Standard AMD64 | 0.25ms / 0.57ms / 0.85ms (±0.17ms) | 0.0% | 748.46ms |
+
+### 14.4 业务与隔离验收十项检查
+
+1. **DNS 隔离**：Cloudflare 上仅更新 7 条 V2 域名记录，17 条旧 PROD 和 Serverless 记录 100% 保持未改动。
+2. **PostgreSQL 安全**：5432 端口未监听公网，仅通过本地 Docker / 内网网络访问，外部探测 100% 拒绝。
+3. **账号与订阅**：30 个账号单向导入完成（root 账号排除在代理池外）；10 条订阅导入成功（7 年付、3 月付），准确计算配额（Free=19, Plus=10, Team=0）。
+4. **资源池隔离**：Free UUID 在 Plus 节点连接被拒绝；Plus UUID 在 Free 节点连接被拒绝；Team 节点拒绝无权限连接。
+5. **真实代理连通性**：通过本地 `/opt/homebrew/bin/xray` 对 Free 和 Plus 分别执行 XHTTP 与 TCP 真实握手，均成功返回预期出口 IP。
+6. **计费入口受限**：Billing ingress API 严格限制仅允许 4 台已验证来源 IP 访问（`172.237.3.205`, `13.113.178.215`, `34.146.72.6`, `35.234.51.233`）。
+7. **流量计量打点**：真实代理产生的流量准确进入数据库 `traffic_stat_checkpoints` 与 `traffic_minute_buckets`。
+8. **凭据安全**：所有维护脚本、token 文件与导出副本均设为 0600/0700 权限，未纳入 Git 版本库。
+9. **Doco-CD 收敛**：控制面各项服务平稳收敛至目标版本 `prod-v2-2026.10.16-r3`。
+10. **零生产破坏**：旧 PROD 和 Serverless 服务在线运行未受任何干扰。
+
+---
+
+## 15. 流水线对齐（Stage G: selfhost-orchestrator.yml 对齐）
+
+在完成本地与 SSH/Ansible 真实多云部署与验收后，对 `selfhost-orchestrator.yml` 流水线及 IaC 体系进行了全量对齐，确保流水线感知现有真实资源，不重复创建主机、不重置数据库、不触碰旧 PROD。
+
+### 15.1 对齐要点
+
+1. **GitOps 拓扑与 IaC 目标**：
+   - 创建 `gitops/topology/prod-v2/selfhost/runtime-topology.yaml` 声明 V2 运行时路由合同。
+   - 创建 `gitops/iac/targets/prod-v2-gcp-web-saas.yaml` 声明控制面 IaC 目标，精确匹配真实状态中全部 11 项云资源的所有权（`owners` 与 `protected`）。
+2. **Toolkit 编排逻辑修复**：
+   - 解决子流水线检出父 commit SHA 的问题（`__parent_head_sha || github.sha`）。
+   - 统一将 `prod-v2` 调度映射为 IaC `prod` 环境，指定独立隔离的状态路径 `terraform/prod/prod-v2.svc.plus/gcp-cloud/xworktech/web-saas-prod-v2/terraform.tfstate`。
+   - 扩展区域合同验证规则，放行 `prod-v2`。
+3. **Vault OIDC 角色权限对齐**：
+   - 在 Vault `auth/jwt/role/github-actions-platform-ops-toolkit-prod-gcp-oidc-xworktech` 补齐对 `iac-pipeline-multi-cloud-stages.yaml@*` 及 `refs/heads/codex/*` 分支的绑定，确保 OIDC Token 换取成功。
+
+### 15.2 流水线对齐验收执行记录
+
+- **主流水线**：[Selfhost Orchestrator Run 38865978249](https://github.com/ai-workspace-infra/platform-ops-toolkit/actions/runs/38865978249)
+  - 分支：`codex/prod-v2-orchestrator-align`
+  - 运行参数：`vault_env_path=prod-v2`, `operation=plan`, `cloud_provider=gcp-cloud`, `cloud_account=xworktech`, `target_domains=web-saas`
+- **阶段执行结果（全绿通过）**：
+  - `[1/5] Resolve & Validate`：59s (SUCCESS, Run 38865996887)
+  - `[2/5] IaC & Provision`：2m45s (SUCCESS, Run 38866106679；子流水线 IaC Orchestrator Run 38866148721 成功执行 `resources` 阶段，Terraform Plan 确认真实资源与状态 100% 匹配，0 意外新增/替换/销毁)
+  - `[3/5] Deploy`：44s (SUCCESS, Job ID 116860081422)
+  - `[4/5] Migrate & Configure`：40s (SUCCESS, Job ID 116860326842)
+  - `[5/5] Verify & Report`：39s (SUCCESS, Job ID 116860548824)
+- **结论**：流水线与线下实际交付完全对齐，具备 0 漂移、幂等校验能力。
+
 

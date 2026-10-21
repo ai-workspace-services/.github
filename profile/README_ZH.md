@@ -38,6 +38,7 @@
 - **统一控制台**: [console.svc.plus](https://console.svc.plus)
 - **知识库与文档**: [knowledge](https://github.com/ai-workspace-services/knowledge)
 - **基础设施组织**: [ai-workspace-infra](https://github.com/ai-workspace-infra)
+- **固定版本节点部署**: [PROD V4 一键部署 TL;DR](../docs/prod-v4-pinned-node-deployment-tldr.md)
 
 ---
 

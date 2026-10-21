@@ -94,12 +94,19 @@ flowchart LR
 | :--- | :--- | :--- |
 | ☁️ **Zero-ops cloud** | Try it now | Sign in at [console.svc.plus](https://console.svc.plus) with GitHub / Google |
 | 📱 **Native client** | Daily use | [Download XConnect preview](https://console.svc.plus/products/xstream) (macOS / Windows / iOS / Linux) |
-| 🖥️ **3-min self-host** | Full control | 1 VPS + 1 domain pointing to it, then run: |
+| 🖥️ **Self-hosted control plane** | Run Console, Accounts, Billing and PostgreSQL yourself | Use the reviewed SSH → Playbook → fixed GitOps → Doco-CD deployment path; see the [Selfhost deployment guide](../docs/selfhost-orchestrator-one-shell-uat-prod.md). |
+| 🔌 **Proxy node** | Add one XConnect edge node to an existing control plane | 1 VPS + 1 node domain pointing to it, then run the proxy installer below. |
 
 ```bash
+# Proxy node only; this does not deploy the self-hosted control plane.
 curl -fsSL https://raw.githubusercontent.com/ai-workspace-services/.github/main/scripts/setup-proxy.sh \
   | bash -s -- --node xhttp.example.com
 ```
+
+For the self-hosted control plane, use separate control-plane domains such as
+`console-sit-v4.<base domain>`, `accounts-sit-v4.<base domain>`,
+`billing-sit-v4.<base domain>`, and `postgresql-sit-v4.<base domain>`.
+PostgreSQL remains tunnel-only and is never exposed as a public database.
 
 ---
 

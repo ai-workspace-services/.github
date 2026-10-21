@@ -85,6 +85,37 @@ ansible-playbook --syntax-check -i "$INVENTORY" "$PLAYBOOK"
 
 ## 2. Quickstart
 
+### Self-hosted control plane 与 Proxy 入口
+
+Self-hosted control plane（自托管控制面）使用独立的 Shell 入口生成四个服务域名；它不安装边缘代理，也不创建 DNS 或公网 PostgreSQL 监听：
+
+~~~sh
+export ENV=sit
+export DEPLOYMENT_ID=v4
+export DOMAIN_BASE='svc.plus'
+bash scripts/setup-selfhost.sh
+~~~
+
+输出规则为：
+
+~~~text
+console-sit-v4.<base domain>
+accounts-sit-v4.<base domain>
+billing-sit-v4.<base domain>
+postgresql-sit-v4.<base domain>
+~~~
+
+`ENV` 仅允许 `sit` 或 `uat`，`DEPLOYMENT_ID` 和 `DOMAIN_BASE` 可覆盖。部署仍必须使用审核过的固定 IaC/GitOps manifest，沿 SSH → Playbook → 固定 GitOps → Doco-CD 执行。
+
+Proxy 节点使用另一条入口，不要把控制面参数传给代理安装器：
+
+~~~sh
+curl -fsSL https://raw.githubusercontent.com/ai-workspace-services/.github/main/scripts/setup-proxy.sh \\
+  | bash -s -- --node xhttp.example.com
+~~~
+
+生产或受控环境必须将上述 URL 固定到已审核 commit/tag，并通过 Vault/受保护运行时注入节点凭据；不要把真实 Token 放入命令行或 Shell 历史。
+
 以下是执行顺序和最小参数集。脚本统一实现 --help、参数校验、阶段边界和幂等回执；执行前仍必须使用目标环境自己的 manifest、inventory、受保护 vars 和固定 release。
 
 先准备每个环境自己的参数文件。环境、部署 ID、所有域名、manifest、inventory 和 vars 都是输入，不从 uat/prod 拼接域名：

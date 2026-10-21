@@ -95,12 +95,19 @@ flowchart LR
 | :--- | :--- | :--- |
 | ☁️ **云端免运维** | 立即体验 | 访问 [console.svc.plus](https://console.svc.plus)，GitHub / Google 登录 |
 | 📱 **跨平台客户端** | 日常使用 | [下载 XConnect 预览版](https://console.svc.plus/products/xstream)（macOS / Windows / iOS / Linux） |
-| 🖥️ **3 分钟自建** | 完全自主 | 1 台 VPS + 1 个已解析域名，执行下方脚本 |
+| 🖥️ **自托管控制面** | 自建 Console、Accounts、Billing 和 PostgreSQL | 使用审核过的 SSH → Playbook → 固定 GitOps → Doco-CD 部署路径 |
+| 🔌 **Proxy 节点** | 为已有控制面增加一个 XConnect 边缘节点 | 1 台 VPS + 1 个节点域名，执行下方代理脚本 |
 
 ```bash
+# 仅部署 Proxy 节点，不会部署自托管控制面。
 curl -fsSL https://raw.githubusercontent.com/ai-workspace-services/.github/main/scripts/setup-proxy.sh \
   | bash -s -- --node xhttp.example.com
 ```
+
+自托管控制面使用独立域名，例如
+`console-sit-v4.<base domain>`、`accounts-sit-v4.<base domain>`、
+`billing-sit-v4.<base domain>`、`postgresql-sit-v4.<base domain>`。
+PostgreSQL 只允许隧道访问，不开放公网数据库端口。
 
 ---
 

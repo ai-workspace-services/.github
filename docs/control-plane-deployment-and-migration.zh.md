@@ -14,7 +14,7 @@
 | 脚本 | 用途 | 接口 |
 | --- | --- | --- |
 | [`install-control-plane.sh`](../scripts/install-control-plane.sh) | 安装 Accounts、Billing、Console/Portal、Content、PostgreSQL 及声明的运行依赖 | `--config <GitOps 相对 YAML> --gitops-ref <完整 SHA> [--check]` |
-| `scripts/migrate-core-data.sh`（Accounts worker 负责） | 通过 Accounts URL 单向迁移身份与完整计费关联数据 | `--source-url`、`--target-url`、两端认证引用；默认预览，隔离验收待完成 |
+| `scripts/migrate-core-data.sh`（Accounts worker 负责） | 通过 Accounts URL 单向迁移身份与完整计费关联数据 | 固定 `MIGRATECTL_BIN` / `MIGRATECTL_SHA256`，源/目标 URL 与两端认证引用；默认预览，隔离验收待完成 |
 | [`setup-proxy.sh`](../scripts/setup-proxy.sh) | 为已有控制面接入边缘节点 | 保留当前 `--node` 等接口及节点凭据合同，脚本原样保留 |
 
 旧 `setup-selfhost.sh` 域名打印入口已合并到新安装入口；域名由固定 GitOps 声明提供。
@@ -68,6 +68,12 @@ tag 或 registry 构件存在不能证明运行健康。发布使用审核后的
 `CONTROL_PLANE_VARS_FILE` 只保存非敏感运行策略和 Vault 引用，不存明文凭据。
 Playbooks owner 在执行内部解析 Vault 凭据；包装脚本不解析或复制秘密值，不传命令行、不进入公开回执。
 
+所选 owner 要求 Python 3.11+、Ansible 及其文档规定的 collections；实际执行还要求 Vault CLI 和已签发的短期 Vault 身份。
+策略文件须由操作者拥有，权限为 0600 或 0400；根 `control_plane_runtime` 中包含
+`vault_addr`、`vault_token_env: VAULT_TOKEN` 和 owner 要求的完整 `secret_refs` 映射。
+`vault_addr` 为显式 HTTPS origin，单独继承 `VAULT_ADDR` 不能替代策略。
+`--check` 检查本地声明/策略，不登录 Vault，不证明凭据、SSH 或目标可用。
+
 ```bash
 export ENTRYPOINT_RELEASE='<审核过的不可变 .github release 或完整 SHA>'
 export GITOPS_SHA='<审核过的40位 GitOps commit SHA>'
@@ -98,8 +104,26 @@ python3 scripts/control_plane/entrypoint.py --config <resolved-path> --gitops-re
 GitOps 无需创建同名服务快照 tag。记录两种身份，不能互相替代。
 
 传给 owner 的 `GITOPS_CHECKOUT`、`PLAYBOOKS_CHECKOUT`、`CONTROL_PLANE_CMDB`、`CONTROL_PLANE_VARS_FILE`
-均为绝对路径。完整 schema、目标、固定构件和受保护配置由 owner 验证。
+均为绝对路径。owner 须验证已审查声明、目标、固定构件和受保护配置；跨仓 schema 一致性仍是集成门禁，包装脚本 mock 测试不证明该门禁通过。
 缺 commit、owner 或前置条件立即失败，不回退分支或 main。`--check` 仅委派预检，不代表业务运行验收。
+
+路径与输入边界：
+
+| 输入 | 解析/归属 |
+| --- | --- |
+| 公开 `--config` | 相对 GitOps 根目录的已跟踪 YAML；包装脚本向 owner 传已解析的绝对路径 |
+| `GITOPS_CHECKOUT`、`PLAYBOOKS_CHECKOUT` | 包装脚本生成的固定 checkout；操作者覆盖仅供离线测试 |
+| `CONTROL_PLANE_CMDB`、`CONTROL_PLANE_VARS_FILE` | 必填外部文件，相对路径在切换工作目录前按调用目录解析 |
+| `AI_WORKSPACE_CMDB_JSON`、`CMDB_FILE` | owner 调用 inventory 前，从 `CONTROL_PLANE_CMDB` 同时设置两者 |
+| `release.doco_cd.target` / `storage_target` | 选择 GitOps 根目录的 `.doco-cd.<selection>.yml`；`working_dir` 相对 GitOps 根目录，Compose/env 文件相对该工作目录 |
+
+公开 GitOps schema 禁止 `target.cmdb_file` 和顶层 `vars_files`；即使更宽的 owner parser 接受，也应使用外部操作者输入。
+部署声明的 `source.host` / `source.generation` 仅为审计元数据，不是迁移端点。
+独立的 `kind: accounts-migration` 示例不能交给 `install-control-plane.sh`；URL 迁移使用下方 flags，本文不声称已有自动迁移 YAML 消费器。
+两个 GitOps 示例均刻意不可执行，须另行准备审核过的执行声明。
+
+CMDB 还须声明 `storage`（或 `host_vars.control_plane_storage`）：`profile` 选择 `root` 或 `dedicated`，并给出 `data_path`；
+独立盘再声明 `mount_path` / `device_path`。固定 PostgreSQL bind 必须匹配 `data_path`；根盘模式不要求另加数据盘，实际存储由 owner 执行时核验。
 
 离线测试可同时设置 `CONTROL_PLANE_OFFLINE_TEST=1`、`GITOPS_CHECKOUT`、`PLAYBOOKS_CHECKOUT`，并必须传 `--check`。
 两者必须是仓库根目录、上述 canonical origin（HTTPS 或对应的 `git@github.com:` SSH 写法）、匹配 HEAD，且没有修改、未跟踪或忽略文件。
@@ -110,6 +134,8 @@ GitOps 无需创建同名服务快照 tag。记录两种身份，不能互相替
 客户端由 Accounts worker 实现。以下是已接受的计划参数，不声称现有环境已有 API：
 
 ```bash
+export MIGRATECTL_BIN='/secure/tools/migratectl'
+export MIGRATECTL_SHA256='<已核验发布清单中的64位 SHA-256>'
 bash scripts/migrate-core-data.sh \
   --source-url https://accounts-source.example.com \
   --source-token-env SOURCE_MIGRATION_TOKEN \
@@ -118,6 +144,11 @@ bash scripts/migrate-core-data.sh \
 # 原参数基础上应用已审查预览：
 # 追加 --apply --plan-id '<id>' --plan-sha256 '<sha256>'
 ```
+
+审核过的 Accounts 二进制须单独准备。`MIGRATECTL_BIN` 必须是普通可执行文件的绝对路径，不能符号链接，不能允许组/其他用户写入。
+`MIGRATECTL_SHA256` 来自独立核验的发布证据，不能只对不可信本地下载计算 hash 后当作可信来源。
+Python 3 包装脚本校验该 digest 后执行 `transfer-api`；不安装、不下载二进制、不从 `PATH` 发现客户端。
+已核对 Accounts 所属脚本中的固定二进制合同；API 隔离验收仍待完成。
 
 每端可用 `--source-auth-kv` / `--target-auth-kv` 替换对应 token-env；同端两种方式互斥。
 参数只传引用名称，绝不传 Token 值。迁移凭据短期、限定对端/用途，独立于共享服务 Token。

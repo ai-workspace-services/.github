@@ -133,6 +133,13 @@ CMDB 还须声明 `storage`（或 `host_vars.control_plane_storage`）：`profil
 
 客户端由 Accounts worker 实现。以下是已接受的计划参数，不声称现有环境已有 API：
 
+已检查的 Accounts 候选为 [Draft #267](https://github.com/ai-workspace-services/accounts/pull/267)，
+源码 `a7c7f8743e409f21d49a9b0b55291e788312a865`。该版本将范围内行数据限制为 32 MiB、对象限制为 64 MiB，
+恢复粒度为快照/计划 ID，尚无逐分块可恢复获取。已接受的大数据分块、校验和与断点续传要求，
+以及 Playbooks 对真实含业务数据备份恢复的验证，仍为集成阻断项。
+跟踪：[GitOps #505](https://github.com/ai-workspace-infra/gitops/issues/505)。
+提交此包装脚本及固定二进制测试，不代表这些门禁通过、二进制版本发布或现有环境提供 API。
+
 ```bash
 export MIGRATECTL_BIN='/secure/tools/migratectl'
 export MIGRATECTL_SHA256='<已核验发布清单中的64位 SHA-256>'

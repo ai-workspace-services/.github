@@ -172,6 +172,15 @@ use fresh temporary fixed-commit checkouts.
 The Accounts worker owns the client implementation. These are the accepted
 planned flags, not a claim that the API is available on existing deployments:
 
+The inspected Accounts candidate is [Draft #267](https://github.com/ai-workspace-services/accounts/pull/267),
+source `a7c7f8743e409f21d49a9b0b55291e788312a865`. This version bounds scoped row
+data to 32 MiB and objects to 64 MiB; recovery is by snapshot/plan ID, not resumable
+per-chunk retrieval. The accepted large-data chunking/checksum/resume requirement
+and Playbooks verification of a real populated backup restore remain integration
+blockers, tracked in [GitOps #505](https://github.com/ai-workspace-infra/gitops/issues/505).
+Committing this caller and its pin tests does not complete those gates,
+publish a binary release, or make an existing deployment expose the API.
+
 ```bash
 export MIGRATECTL_BIN='/secure/tools/migratectl'
 export MIGRATECTL_SHA256='<64-character SHA-256 from the verified release manifest>'

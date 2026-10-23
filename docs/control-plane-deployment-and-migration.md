@@ -6,16 +6,17 @@ Status: implementation candidate, isolated integration acceptance pending. Comma
 below describe the reviewed interface; no published installer release or runtime
 availability is claimed. Replace every placeholder with reviewed release evidence.
 
-Companion declaration: [GitOps Draft #504](https://github.com/ai-workspace-infra/gitops/pull/504)
-([contract task #503](https://github.com/ai-workspace-infra/gitops/issues/503)). Its
-templates are illustrative and cannot execute with `example_only: true`.
+Declaration contract: [GitOps #504](https://github.com/ai-workspace-infra/gitops/pull/504)
+(merged; [contract task #503](https://github.com/ai-workspace-infra/gitops/issues/503)).
+[Follow-up #506](https://github.com/ai-workspace-infra/gitops/pull/506) remains pending.
+The contract templates are illustrative and cannot execute with `example_only: true`.
 
 ## Three entrypoints
 
 | Script | Purpose | Contract |
 | --- | --- | --- |
 | [`install-control-plane.sh`](../scripts/install-control-plane.sh) | Install Accounts, Billing, Console/Portal, Content, PostgreSQL and declared dependencies | `--config <GitOps-relative YAML> --gitops-ref <full SHA> [--check]` |
-| `scripts/migrate-core-data.sh` (Accounts worker) | One-way identity and complete billing migration through Accounts URLs | Pinned `MIGRATECTL_BIN` / `MIGRATECTL_SHA256`; source/target URL and authentication references; preview by default; isolated acceptance pending |
+| [`migrate-core-data.sh`](../scripts/migrate-core-data.sh) | Accounts migration client for one-way identity and complete billing transfer through Accounts URLs | Pinned `MIGRATECTL_BIN` / `MIGRATECTL_SHA256`; source/target URL and authentication references; preview by default; isolated acceptance pending |
 | [`setup-proxy.sh`](../scripts/setup-proxy.sh) | Edge node onboarding to an existing control plane | Existing `--node` and node credential contract; implementation unchanged |
 
 The legacy `setup-selfhost.sh` domain printer has been merged into the new
@@ -182,8 +183,8 @@ use fresh temporary fixed-commit checkouts.
 
 ## Migration URL contract — isolated acceptance pending
 
-The Accounts worker owns the client implementation. These are the accepted
-planned flags, not a claim that the API is available on existing deployments:
+The Accounts migration client uses the interface below. URL/API mode still awaits
+isolated acceptance; existing deployments are not claimed to expose this API.
 
 The inspected Accounts candidate is [Draft #267](https://github.com/ai-workspace-services/accounts/pull/267),
 source `a7c7f8743e409f21d49a9b0b55291e788312a865`. This version bounds scoped row

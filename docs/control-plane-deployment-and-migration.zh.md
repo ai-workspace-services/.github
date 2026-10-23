@@ -5,16 +5,17 @@
 状态：实现候选，隔离联调与完整验收待完成。以下是可审查的接口合同，
 不代表已发布安装版本或现有环境已提供 API。占位符必须替换为审核过的固定版本。
 
-配套声明见 [GitOps Draft #504](https://github.com/ai-workspace-infra/gitops/pull/504)
-（[合同任务 #503](https://github.com/ai-workspace-infra/gitops/issues/503)）。其中模板为示例，
-`example_only: true` 不允许执行。
+配套声明合同 [GitOps #504](https://github.com/ai-workspace-infra/gitops/pull/504) 已合并
+（[合同任务 #503](https://github.com/ai-workspace-infra/gitops/issues/503)）；
+[后续对齐 #506](https://github.com/ai-workspace-infra/gitops/pull/506) 仍待完成。
+合同模板为示例，`example_only: true` 不允许执行。
 
 ## 三个入口
 
 | 脚本 | 用途 | 接口 |
 | --- | --- | --- |
 | [`install-control-plane.sh`](../scripts/install-control-plane.sh) | 安装 Accounts、Billing、Console/Portal、Content、PostgreSQL 及声明的运行依赖 | `--config <GitOps 相对 YAML> --gitops-ref <完整 SHA> [--check]` |
-| `scripts/migrate-core-data.sh`（Accounts worker 负责） | 通过 Accounts URL 单向迁移身份与完整计费关联数据 | 固定 `MIGRATECTL_BIN` / `MIGRATECTL_SHA256`，源/目标 URL 与两端认证引用；默认预览，隔离验收待完成 |
+| [`migrate-core-data.sh`](../scripts/migrate-core-data.sh) | Accounts 迁移客户端：通过 Accounts URL 单向迁移身份与完整计费关联数据 | 固定 `MIGRATECTL_BIN` / `MIGRATECTL_SHA256`，源/目标 URL 与两端认证引用；默认预览，隔离验收待完成 |
 | [`setup-proxy.sh`](../scripts/setup-proxy.sh) | 为已有控制面接入边缘节点 | 保留当前 `--node` 等接口及节点凭据合同，脚本原样保留 |
 
 旧 `setup-selfhost.sh` 域名打印入口已合并到新安装入口；域名由固定 GitOps 声明提供。
@@ -139,7 +140,7 @@ CMDB 还须声明 `storage`（或 `host_vars.control_plane_storage`）：`profil
 
 ## URL 迁移合同：隔离验收待完成
 
-客户端由 Accounts worker 实现。以下是已接受的计划参数，不声称现有环境已有 API：
+以下为 Accounts 迁移客户端接口。URL/API 模式仍待隔离验收，不代表现有环境已有 API。
 
 已检查的 Accounts 候选为 [Draft #267](https://github.com/ai-workspace-services/accounts/pull/267)，
 源码 `a7c7f8743e409f21d49a9b0b55291e788312a865`。该版本将范围内行数据限制为 32 MiB、对象限制为 64 MiB，

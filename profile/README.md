@@ -100,7 +100,7 @@ flowchart LR
 | Script | Purpose | Inputs |
 | :--- | :--- | :--- |
 | [`install-control-plane.sh`](../scripts/install-control-plane.sh) | Fixed-commit Playbooks delegation | `--config`, full-SHA `--gitops-ref`, optional `--check` |
-| `migrate-core-data.sh` | One-way core data migration; Accounts worker, isolated API acceptance pending | `MIGRATECTL_BIN` / `MIGRATECTL_SHA256`, source/target URL and authentication references; preview by default |
+| [`migrate-core-data.sh`](../scripts/migrate-core-data.sh) | Accounts migration client for one-way core data transfer; isolated API acceptance pending | `MIGRATECTL_BIN` / `MIGRATECTL_SHA256`, source/target URL and authentication references; preview by default |
 | [`setup-proxy.sh`](../scripts/setup-proxy.sh) | Edge node onboarding | Existing `--node` interface; unchanged implementation |
 
 Control-plane candidate interface, from a reviewed immutable checkout:

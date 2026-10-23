@@ -101,7 +101,7 @@ flowchart LR
 | 脚本 | 用途 | 输入 |
 | :--- | :--- | :--- |
 | [`install-control-plane.sh`](../scripts/install-control-plane.sh) | 调用固定提交的 Playbooks | `--config`、完整 SHA 的 `--gitops-ref`、可选 `--check` |
-| `migrate-core-data.sh` | 单向迁移核心数据，Accounts worker 负责，API 隔离验收待完成 | `MIGRATECTL_BIN` / `MIGRATECTL_SHA256`、源/目标 URL 与认证引用，默认预览 |
+| [`migrate-core-data.sh`](../scripts/migrate-core-data.sh) | Accounts 迁移客户端，单向迁移核心数据，API 隔离验收待完成 | `MIGRATECTL_BIN` / `MIGRATECTL_SHA256`、源/目标 URL 与认证引用，默认预览 |
 | [`setup-proxy.sh`](../scripts/setup-proxy.sh) | 边缘节点接入 | 保留当前 `--node` 等接口，脚本原样保留 |
 
 从审核过的不可变 checkout 使用控制面候选入口：

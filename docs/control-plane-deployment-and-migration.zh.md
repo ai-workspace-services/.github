@@ -27,18 +27,19 @@ IaC 管理资源、DNS、state、CMDB；GitOps 保存不含秘密值的期望状
 
 | 阶段 | 动作 | 通过条件 |
 | --- | --- | --- |
-| 1 | 准备 GitOps | 环境、资源、域名、密钥引用及源/目标身份明确 |
-| 2 | IaC 创建资源 | 计划审核、独立 state、CMDB、主机与 SSH 身份核实 |
-| 3 | 创建统一不可变快照 | 五仓全部构建成功，固定源码 SHA、镜像 digest、schema 与迁移校验和 |
-| 4 | 安装 Selfhost Control Plane | SSH → Playbook → 固定 GitOps → Doco-CD，核验已加载构件 |
-| 5 | 核心数据单向迁移 | 目标可恢复备份、一致性预览无冲突、事务导入与业务指纹通过 |
-| 6 | 新环境完整验收 | 含业务数据的隔离恢复、全量适用回归、重复部署、中断恢复和稳定观察 |
-| 7 | 准备切换报告 | 明确写入权交接、最终追齐、DNS、观察与恢复计划，等待人工确认 |
-| 8 | 经确认切换并正式验收 | 隔离源写入、最终追齐、移交写入权、切流量并观察真实业务 |
+| 1 | 准备 GitOps | 审核环境/资源/域名声明、密钥引用、源与目标身份及固定执行版本 |
+| 2 | IaC 创建资源 | 计划审核、独立 state、生成 CMDB、主机与 SSH 身份核实；不执行未审核替换 |
+| 3 | 创建统一不可变五仓快照 | 五仓源码 SHA、构建来源、构件 digest、schema 与迁移校验和均可验证；使用 GitHub Actions 或已批准的本地构建路径 |
+| 4 | 通过 SSH 安装控制面 | SSH → Playbook → 固定 GitOps → Doco-CD；核验目标实际加载的构件与配置 |
+| 5 | 使用 `migratectl` 迁移核心数据 | 目标可恢复备份、无冲突预览、审核计划、事务性单向导入与业务指纹 |
+| 6 | 对候选环境执行完整回归 | 含业务数据的隔离恢复、全部适用回归、幂等重跑、中断恢复和稳定观察 |
+| 7 | 准备 DNS 切换，不改变流量 | 审核精确记录/TTL、写入权交接、最终追齐步骤、观察与回滚计划；仍须等待人工明确确认 |
+| 8 | 经明确确认后切换并验收 | 记录授权人及确认范围；隔离源写入、最终追齐、移交写入权、修改 DNS、回读并观察真实业务 |
 
 全新空环境执行 1–4、6，记录跳过迁移的原因；代际升级执行全部阶段。
 已有环境滚动更新采用盘点与备份 → IaC 无破坏增量 → 固定发布收敛 → 仅显式增量迁移 → 边缘节点收敛 → 验证。
-重跑不隐式初始化、清库、重导入或创建第二个 writer。源持续服务时记录快照边界；最终追齐属于阶段 8，阶段 7 不自动授权执行。
+重跑不隐式初始化、清库、重导入或创建第二个 writer。源持续服务时记录快照边界；最终追齐属于阶段 8。
+阶段 7 仅准备并审核 DNS 值，不修改 DNS 或授权写入权变化。阶段 8 必须由有权人员针对明确的环境、源、目标、数据操作及 DNS 记录作出并留存明确确认；沉默、回归通过或完成阶段 7 都不构成确认。
 
 PostgreSQL 17 验证身份/MFA、完整计费依赖、目标独有数据、冲突回滚、并发互斥、计划过期、重放、中断恢复与 schema 指纹。
 历史回归包含证书/公共 SNI、凭据范围、正式入口、Agent 注册、VLESS、OAuth/Webhook、Content，以及
@@ -48,10 +49,8 @@ Exporter → Vector → Billing → PostgreSQL → Accounts。
 ## 五仓构建与不可变发布
 
 核心五仓为 `accounts`、`billing-service`、`portal`、`content-service`、`postgresql`。
-`daily-main-snapshot.yaml` 必须显式选择这五仓，仅运行构建路径。
-创建 tag 或派发前，预检各仓 Actions 已启用、目标 workflow 为 active，且实际执行身份可派发；
-个人管理员 API 可访问不等于 GitHub App 已获 dispatch 授权。
-检查实际 workflow 和 tag 触发条件，确认仅构建，不创建资源、不部署、不迁移、不改 DNS。
+从五仓各自精确、已记录的源码 SHA 创建一个统一快照。可由 `daily-main-snapshot.yaml` 等 GitHub Actions workflow 执行纯构建路径；GitHub Actions 不是构建的强制依赖。
+经发布负责人批准后，也可使用下述本地不可变构建路径。两条路径都只能构建，不创建资源、不部署、不迁移、不改 DNS；执行前检查实际 workflow 或本地构建规程。
 
 已核实 r101：五仓 tag 均在各自源码 SHA 上 CREATED；`accounts`、`billing-service`、`portal`、`content-service`
 四仓 CI 与 release manifest 已验证成功，PostgreSQL release 缺失。
@@ -59,13 +58,26 @@ PostgreSQL 经 GitHub App 派发再次返回 HTTP 422，原文为 `Actions has b
 rerun attempt 2 仍相同，见 [run 39891515095，attempt 2](https://github.com/ai-workspace-infra/platform-ops-toolkit/actions/runs/39891515095)。
 同时，个人管理员 API 的 `actions/permissions` 返回 `enabled: true`，workflow 状态为 `active`。
 当前观测是 GitHub App dispatch 路径被拒绝，不能据此断言仓库 Actions 仍全局禁用；执行身份配置差异尚待解决。
-状态为 **五仓 tag 已创建 / 四仓构建已验证 / PG 派发被拒且 release 缺失**，整体构建未完成、不可部署；
-不是仓库筛选错误，也不是 tag 不存在。
+这一历史 r101 快照状态仍为 **五仓 tag 已创建 / 四仓构建已验证 / PostgreSQL 派发被拒且 release 缺失**，因此构建不完整、不可部署。
+这不是仓库筛选错误，也不是 tag 不存在。
 
-执行身份配置解决前，不再重试构建。保留具体 API 错误和各身份设置证据；阻断解除后，源码未变仍使用原 tag/SHA。
-只有代码/源码 SHA 变化时才新建不可变 revision，不移动已有 tag。
+HTTP 422 记录描述的是当时 GitHub App 的派发路径，不要求在使用获批的本地构建前必须先修好该身份配置。
+保留具体 API 错误和各身份设置证据作为历史事实。若以本地构建补齐缺失构件，必须使用原记录源码 SHA 和不可变快照身份，并产生下述等效来源及验证证据；不得追溯性地改写 r101 当时的结果或宣称其当时已可部署。
+不得移动、替换 tag，也不得将已有 tag 复用于不同源码。
 
-五仓逐一核对 tag、源码 SHA、成功构建 URL、构件及 digest，缺任一项不得选择部署。
+### 已批准的本地不可变构建路径
+
+发布负责人针对指定快照批准后，可采用本路径替代 Actions，同时保留不可变源码与构件控制：
+
+1. 每个仓库均检出记录中的完整 commit SHA；确认 tracked/untracked 工作区干净，并记录仓库、快照 tag 与 SHA。
+2. 按仓库已审核的构建和验证规程执行，不修改构建输入、不读取浮动分支内容；逐仓记录命令、工具链版本和结果。
+3. 在快照 manifest 中记录构件名称、大小、SHA-256、容器镜像 digest、schema 身份和迁移校验和；将 manifest 与构建日志纳入发布证据。
+4. 将输出发布或保存在批准的不可变构件存储中，并回读每个构件、按 manifest 校验 digest 后再选用。本机文件副本、可变 tag 或仅仅编译成功，都不代表已发布或运行验收。
+5. 仅当五仓源码与构件证据完整且匹配时，快照才可标记为可部署。复用 CI 构件时，也必须证明其源码 SHA 和 digest 与同一快照一致。
+
+若获批规程不能产出等效且可独立复核的来源证明和不可变构件，快照仍为不完整。有效本地构建无需启用 GitHub Actions、workflow dispatch 或重试；如使用 Actions，其结果仍须准确标注对应 workflow run。
+
+五仓逐一核对 tag、源码 SHA、构建来源与结果、构件及 digest，缺任一项不得选择部署。
 tag 或 registry 构件存在不能证明运行健康。发布使用审核后的固定构件，不从浮动分支重建；
 稳定版本永久不可变，正式发布说明提供固定脚本 URL 和匹配的 GitOps/Playbooks SHA，不编造发布版本。
 

@@ -31,14 +31,14 @@ Ansible or Compose execution in the public wrapper.
 
 | Stage | Action | Required evidence |
 | --- | --- | --- |
-| 1 | Prepare GitOps | Environment, resources, domains, secret references, source/target identities |
-| 2 | Provision through IaC | Reviewed plan, independent state, generated CMDB, host and SSH identity |
-| 3 | Build one immutable five-repository snapshot | All builds pass; source SHA, image digest, schema and migration checksums recorded |
-| 4 | Install Selfhost Control Plane | SSH → Playbook → fixed GitOps → Doco-CD; verify actual loaded artifacts |
-| 5 | Migrate core data one way | Recoverable target backup, conflict-free preview, transactional import and business fingerprints |
-| 6 | Accept the candidate environment | Restore with business data, applicable regressions, rerun, interruption recovery and observation |
-| 7 | Prepare traffic handover | Concrete writer handover, final synchronization, DNS, observation and recovery plan; human confirmation pending |
-| 8 | Execute confirmed handover and accept | Fence source writes, final synchronization, transfer writer ownership, switch traffic and observe real business |
+| 1 | Prepare GitOps | Reviewed environment/resource/domain declarations, secret references, source/target identities and pinned execution refs |
+| 2 | Provision through IaC | Reviewed plan, independent state, generated CMDB, host and SSH identity; no unreviewed resource replacement |
+| 3 | Build one immutable five-repository snapshot | All five source SHAs, build provenance, artifact digests, schema and migration checksums verified through GitHub Actions or the approved local-build path |
+| 4 | Install the control plane over SSH | SSH → Playbook → pinned GitOps → Doco-CD; verify the artifacts and configuration actually loaded on the target |
+| 5 | Migrate core data with `migratectl` | Recoverable target backup, conflict-free preview, reviewed plan, transactional one-way import and business fingerprints |
+| 6 | Run full candidate-environment regression | Restore with business data, all applicable regressions, idempotent rerun, interruption recovery, and stable observation |
+| 7 | Prepare DNS cutover, without changing traffic | Exact records/TTL, writer handover, final-sync procedure, observation and rollback plan reviewed; explicit human confirmation still required |
+| 8 | Execute explicitly confirmed cutover and accept | Record authorized confirmation and scope; fence source writes, final-sync, transfer writer ownership, change DNS, read back, then observe real business |
 
 A fresh empty environment follows stages 1–4 and 6, recording why migration is
 skipped. A generation upgrade follows all eight. An existing environment rolling
@@ -46,7 +46,11 @@ update starts with inventory and backup, makes non-destructive IaC changes,
 converges the selected release, runs only explicitly approved incremental data
 changes, converges edge nodes and verifies. Rerun never implies initialization,
 reset, import or a second writer. While the source serves, record the snapshot
-boundary; final synchronization belongs to stage 8. Stage 7 cannot authorize it.
+boundary; final synchronization belongs to stage 8. Stage 7 prepares and reviews
+DNS values but does not edit DNS or authorize a writer change. Stage 8 requires
+an explicit, recorded confirmation from the authorized human for the named
+environment, source, target, data action and DNS records; silence, a passed
+regression, or completion of stage 7 is not confirmation.
 
 Acceptance covers identity/MFA, all billing dependencies, target-only data,
 conflict rollback, concurrency locks, expired plans, replay, interrupted recovery
@@ -59,13 +63,12 @@ Required FAIL, BLOCKED or NOT_RUN results stop handover.
 ## Immutable builds and releases
 
 The five service repositories are `accounts`, `billing-service`, `portal`,
-`content-service` and `postgresql`. `daily-main-snapshot.yaml` must select that
-explicit list and run the build-only lane. Before tagging or dispatching, check
-that Actions is enabled in every repository, the intended workflow is active,
-and the workflow supports dispatch through the actual execution identity. Personal
-administrator API access does not establish GitHub App dispatch authorization.
-Inspect the actual workflow and tag-triggered
-jobs: a build must not provision, deploy, migrate or change DNS.
+`content-service` and `postgresql`. Produce one snapshot from exact, recorded
+source SHAs. GitHub Actions may run the build-only lane (for example,
+`daily-main-snapshot.yaml`); GitHub Actions is not a mandatory build dependency.
+An operator may instead use the approved local immutable-build path below.
+Either path must build only: it must not provision, deploy, migrate or change
+DNS. Inspect the actual workflow or local build procedure before use.
 
 Verified r101 evidence: all five tags were CREATED at their source SHAs. CI runs
 and release manifests for `accounts`, `billing-service`, `portal` and
@@ -77,18 +80,52 @@ Separately, the personal administrator API reports `actions/permissions`
 `enabled: true` and workflow state `active`. The observed failure is a rejection
 of the GitHub App dispatch path; it does not establish that Actions remains
 globally disabled for the repository. The actor configuration discrepancy remains
-unresolved. The snapshot is **tags-created / four builds verified / PostgreSQL
-dispatch rejected and release absent**, therefore build-incomplete and not
-deployable. This is not a repository-filter bug or evidence of absent tags.
+unresolved. The historical r101 + HTTP 422 result remains **tags-created / four
+builds verified / PostgreSQL dispatch rejected and release absent**, therefore
+build-incomplete and not deployable. This is not a repository-filter bug or
+evidence of absent tags.
 
-Do not retry builds again until the execution actor configuration is resolved.
-Preserve the exact API response and identity-specific settings evidence. Once
-that blocker is resolved, unchanged source retains the existing tag/SHA; a new
-immutable revision is needed only when code/source SHA changes. Never move a tag.
+The 422 record describes the GitHub App dispatch path at that time; it does not
+require waiting for that actor configuration before using an approved local
+build. Preserve the exact API response and identity-specific settings evidence
+as historical facts. A local build may complete a missing artifact only if it
+uses the existing recorded source SHA and immutable snapshot identity, and emits
+the equivalent provenance and verification evidence below. It does not change
+the historical r101 result or make that snapshot deployable retroactively.
+Never move, replace or reuse a tag for different source.
 
-Each repository needs matching tag/SHA, successful build URL, expected artifact
-and digest evidence before deployment. Missing, failed or unknown builds block
-selection. Tags and registry artifacts alone do not establish runtime health.
+### Approved local immutable-build path
+
+Use this path when the release owner approves a local build for the named
+snapshot. It is an alternative to Actions, not an exception to immutable source
+and artifact controls:
+
+1. Check out each required repository at its recorded full commit SHA. Confirm
+   clean tracked and untracked state; record repository, snapshot tag and SHA.
+2. Run the repository's reviewed build and verification procedure without
+   changing build inputs or fetching mutable branch content. Record the exact
+   commands, toolchain versions and result for each repository.
+3. Record artifact names, sizes and SHA-256 values, container image digests,
+   schema identity and migration checksums in a snapshot manifest. Keep the
+   manifest and build logs with the release evidence.
+4. Publish or retain outputs in an approved immutable artifact store. Read each
+   artifact back and verify its digest against the manifest before selection.
+   Do not treat a local filesystem copy, mutable tag, or successful compile as
+   publication or runtime acceptance.
+5. Mark the snapshot deployable only when all five repositories have complete,
+   matching source and artifact evidence. Reuse already verified CI artifacts
+   only when their source SHA and digest evidence match the same snapshot.
+
+If the approved procedure cannot produce equivalent, independently reviewable
+provenance and immutable artifacts, the snapshot remains incomplete. No GitHub
+Actions enablement, workflow dispatch, or retry is required for a valid local
+build; Actions results, when used, remain separately attributed to their actual
+workflow run.
+
+Each repository needs a matching tag/SHA, build record or workflow-run URL,
+expected artifact and digest evidence before deployment. Missing, failed or
+unknown builds block selection. Tags and registry artifacts alone do not
+establish runtime health.
 Promote reviewed artifacts without rebuilding from a moving branch. Stable
 releases are immutable; formal release notes supply versioned script URLs and
 the matching GitOps/Playbooks commits. No release identifier is invented here.

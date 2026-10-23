@@ -15,7 +15,7 @@ templates are illustrative and cannot execute with `example_only: true`.
 | Script | Purpose | Contract |
 | --- | --- | --- |
 | [`install-control-plane.sh`](../scripts/install-control-plane.sh) | Install Accounts, Billing, Console/Portal, Content, PostgreSQL and declared dependencies | `--config <GitOps-relative YAML> --gitops-ref <full SHA> [--check]` |
-| `scripts/migrate-core-data.sh` (Accounts worker) | One-way identity and complete billing migration through Accounts URLs | `--source-url`, `--target-url`, authentication references; preview by default; isolated acceptance pending |
+| `scripts/migrate-core-data.sh` (Accounts worker) | One-way identity and complete billing migration through Accounts URLs | Pinned `MIGRATECTL_BIN` / `MIGRATECTL_SHA256`; source/target URL and authentication references; preview by default; isolated acceptance pending |
 | [`setup-proxy.sh`](../scripts/setup-proxy.sh) | Edge node onboarding to an existing control plane | Existing `--node` and node credential contract; implementation unchanged |
 
 The legacy `setup-selfhost.sh` domain printer has been merged into the new
@@ -89,6 +89,15 @@ Vault references only, never plaintext credentials. Playbooks resolves Vault
 credentials inside the owner before execution; the wrapper does not resolve or
 copy secret values. Credentials never enter command arguments or public evidence.
 
+The selected owner requires Python 3.11+, Ansible and its documented collections;
+applying also requires the Vault CLI and an already-issued short-lived Vault
+identity. The protected policy is operator-owned, mode 0600 or 0400, with a
+`control_plane_runtime` mapping containing `vault_addr`, `vault_token_env: VAULT_TOKEN`
+and the owner's complete `secret_refs` mapping. `vault_addr` must be an explicit
+HTTPS origin; an inherited `VAULT_ADDR` alone does not replace the policy.
+`--check` validates the local declaration/policy; it neither authenticates to
+Vault nor proves that credentials, SSH or the target are usable.
+
 ```bash
 export ENTRYPOINT_RELEASE='<reviewed immutable .github release or full SHA>'
 export GITOPS_SHA='<reviewed full 40-character GitOps commit SHA>'
@@ -121,10 +130,36 @@ the separate GitOps declaration commit; GitOps does not need a same-name service
 snapshot tag. Both identities must be recorded without substituting one for the other.
 
 It passes absolute `GITOPS_CHECKOUT`, `PLAYBOOKS_CHECKOUT`, `CONTROL_PLANE_CMDB` and
-`CONTROL_PLANE_VARS_FILE`. The owner validates the full schema, target, immutable
-artifacts and protected runtime inputs. Missing owner, commit or prerequisite
+`CONTROL_PLANE_VARS_FILE`. The owner must validate the reviewed declaration,
+target, immutable artifacts and protected runtime inputs. Cross-repository schema
+conformance remains an integration gate; mocked wrapper tests do not establish it.
+Missing owner, commit or prerequisite
 fails closed. There is no branch/main fallback. `--check` delegates preflight;
 it does not prove application or data-flow acceptance.
+
+Path and input boundaries:
+
+| Input | Resolution/owner |
+| --- | --- |
+| Public `--config` | Tracked YAML relative to the GitOps root; wrapper passes its resolved absolute path to the owner |
+| `GITOPS_CHECKOUT`, `PLAYBOOKS_CHECKOUT` | Wrapper-generated fixed checkouts; operator overrides are offline-test-only |
+| `CONTROL_PLANE_CMDB`, `CONTROL_PLANE_VARS_FILE` | Required external operator files, resolved from the invocation directory before the owner changes working directory |
+| `AI_WORKSPACE_CMDB_JSON`, `CMDB_FILE` | Owner sets both from `CONTROL_PLANE_CMDB` before calling the inventory adapter |
+| `release.doco_cd.target` / `storage_target` | Select `.doco-cd.<selection>.yml` at the pinned GitOps root; `working_dir` is GitOps-root-relative, Compose/env files are relative to that working directory |
+
+The public GitOps schema rejects `target.cmdb_file` and top-level `vars_files`;
+use the external operator inputs, even if a broader owner parser accepts those
+fields. `source.host` / `source.generation` are optional deployment audit metadata,
+not migration endpoint settings. The separate `kind: accounts-migration` example
+does not go into `install-control-plane.sh`; URL migration uses the flags below,
+and no automatic migration-YAML consumer is claimed here. Both GitOps examples
+remain intentionally invalid until a reviewed executable declaration is prepared.
+
+The CMDB must also describe storage: `storage` (or
+`host_vars.control_plane_storage`) selects `profile: root` or `dedicated` and
+`data_path`; dedicated storage adds the declared `mount_path` / `device_path`.
+The pinned PostgreSQL bind must match `data_path`. A root profile does not require
+a separate disk; the owner verifies the actual target storage during execution.
 
 Offline wrapper tests may set `CONTROL_PLANE_OFFLINE_TEST=1`, `GITOPS_CHECKOUT`
 and `PLAYBOOKS_CHECKOUT` together with `--check`. Both must be repository roots
@@ -138,6 +173,8 @@ The Accounts worker owns the client implementation. These are the accepted
 planned flags, not a claim that the API is available on existing deployments:
 
 ```bash
+export MIGRATECTL_BIN='/secure/tools/migratectl'
+export MIGRATECTL_SHA256='<64-character SHA-256 from the verified release manifest>'
 bash scripts/migrate-core-data.sh \
   --source-url https://accounts-source.example.com \
   --source-token-env SOURCE_MIGRATION_TOKEN \
@@ -146,6 +183,14 @@ bash scripts/migrate-core-data.sh \
 # Apply only the reviewed preview, using the same source/target/auth references:
 # append --apply --plan-id '<id>' --plan-sha256 '<sha256>'
 ```
+
+Provision the reviewed Accounts binary separately. `MIGRATECTL_BIN` must be an
+absolute path to a regular executable file, not a symlink, and must not be
+group/world-writable. `MIGRATECTL_SHA256` comes from independently verified release
+evidence, not merely a hash calculated from an untrusted local download. The
+Python 3 wrapper checks that digest before executing `transfer-api`; it does not
+install/download a binary or discover one through `PATH`. The pin contract has
+been inspected in the Accounts-owned caller; isolated API acceptance remains pending.
 
 `--source-auth-kv` or `--target-auth-kv` may replace the respective token-env flag;
 each pair is mutually exclusive. Arguments contain reference names, never token

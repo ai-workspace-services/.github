@@ -26,6 +26,8 @@ Path(os.environ["OWNER_RECORD"]).write_text(json.dumps({
     "billing": os.environ.get("BILLING_CHECKOUT"),
     "cmdb": os.environ["CONTROL_PLANE_CMDB"],
     "vars": os.environ["CONTROL_PLANE_VARS_FILE"],
+    "collections": os.environ.get("ANSIBLE_COLLECTIONS_PATH"),
+    "controller_prepared": Path(os.environ["CONTROLLER_RECORD"]).exists(),
 }))
 sys.exit(int(os.environ.get("OWNER_EXIT", "0")))
 '''
@@ -61,6 +63,9 @@ class WrapperTests(unittest.TestCase):
         self.runner = self.playbooks / "scripts/control_plane/entrypoint.py"
         self.runner.parent.mkdir(parents=True)
         self.runner.write_text(RUNNER)
+        helper = self.playbooks / "roles/vhosts/common/files/prepare_controller.sh"
+        helper.parent.mkdir(parents=True)
+        helper.write_text('#!/bin/sh\nprintf "%s" "$ANSIBLE_COLLECTIONS_PATH" > "$CONTROLLER_RECORD"\nexit "${CONTROLLER_EXIT:-0}"\n')
         self.playbooks_sha = self.init_repo(self.playbooks, PLAYBOOKS_URL)
         self.config = self.gitops / "resources/test/candidate.yaml"
         self.config.parent.mkdir(parents=True)
@@ -76,6 +81,7 @@ class WrapperTests(unittest.TestCase):
         self.env = {**os.environ, "PATH": str(self.bin) + os.pathsep + os.environ["PATH"],
                     "REAL_GIT": REAL_GIT, "OWNER_RECORD": str(self.root / "owner.json"),
                     "GIT_RECORD": str(self.root / "git.jsonl"),
+                    "CONTROLLER_RECORD": str(self.root / "controller.txt"),
                     "GITOPS_SHA": self.gitops_sha, "PLAYBOOKS_SHA": self.playbooks_sha,
                     "FIXTURE_GITOPS": str(self.gitops), "FIXTURE_PLAYBOOKS": str(self.playbooks),
                     "CONTROL_PLANE_CMDB": "cmdb.json", "CONTROL_PLANE_VARS_FILE": "protected vars.yaml"}
@@ -251,6 +257,25 @@ class WrapperTests(unittest.TestCase):
                                   OWNER_EXIT="17")
         self.assertEqual(result.returncode, 17, result.stderr)
         self.assertNotIn("--check", json.loads((self.root / "owner.json").read_text())["args"])
+
+    def test_apply_prepares_private_dependencies_before_owner_and_check_does_not(self):
+        result = self.run_wrapper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(json.loads((self.root / 'owner.json').read_text())['controller_prepared'])
+        result = self.run_wrapper(['--config', 'resources/test/candidate.yaml', '--gitops-ref', self.gitops_sha],
+                                  ANSIBLE_COLLECTIONS_PATH='/unrelated/global/collections')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        record = json.loads((self.root / 'owner.json').read_text())
+        self.assertTrue(record['controller_prepared'])
+        self.assertEqual(record['collections'], (self.root / 'controller.txt').read_text())
+        self.assertNotEqual(record['collections'], '/unrelated/global/collections')
+        self.assertFalse(Path(record['collections']).exists())
+
+    def test_dependency_failure_stops_before_deployment(self):
+        result = self.run_wrapper(['--config', 'resources/test/candidate.yaml', '--gitops-ref', self.gitops_sha],
+                                  CONTROLLER_EXIT='4')
+        self.assert_rejected(result, 'deployment not started')
+        self.assertFalse((self.root / 'owner.json').exists())
 
     def test_offline_clean_fixed_checkouts(self):
         result = self.run_wrapper(offline=True)

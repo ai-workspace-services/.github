@@ -29,10 +29,12 @@ def fail(message):
 parser = argparse.ArgumentParser(
     prog="install-control-plane.sh",
     description="Delegate self-hosted control-plane deployment to immutable Playbooks.",
-    epilog="Requires git, python3 and PyYAML; installs no packages. Set CONTROL_PLANE_CMDB "
-    "and CONTROL_PLANE_VARS_FILE to operator-provided files. The vars file contains "
+    epilog="Requires git, python3, PyYAML and a provisioned Ansible runtime. Set CONTROL_PLANE_CMDB "
+    "and CONTROL_PLANE_VARS_FILE to operator-provided files. Apply prepares pinned "
+    "controller collections through the fixed Playbooks common owner in a private directory. "
+    "No OS or Python packages are installed. The vars file contains "
     "nonsecret runtime policy and Vault references; the owner resolves credentials. No secret arguments. "
-    "--check delegates preflight only; isolated runtime acceptance is still pending. "
+    "--check delegates preflight only and does not prepare collections; isolated runtime acceptance is still pending. "
     "Offline tests only: CONTROL_PLANE_OFFLINE_TEST=1 with both GITOPS_CHECKOUT and "
     "PLAYBOOKS_CHECKOUT, plus BILLING_CHECKOUT when release.billing is declared; --check required, "
     "canonical origins (Billing: HTTPS only), clean trees and exact SHAs verified.",
@@ -170,6 +172,13 @@ def main():
         if billing is not None:
             billing_root = checkout(Path(temporary) / "billing-service", BILLING_URL, billing["source_sha"], local_billing)
             env["BILLING_CHECKOUT"] = str(billing_root)
+        if not args.check:
+            prepare = tracked_file(playbooks, "roles/vhosts/common/files/prepare_controller.sh")
+            env["ANSIBLE_COLLECTIONS_PATH"] = str(Path(temporary) / "controller-collections")
+            env["ANSIBLE_COLLECTIONS_SCAN_SYS_PATH"] = "False"
+            result = subprocess.run(["bash", str(prepare)], cwd=playbooks, env=env)
+            if result.returncode:
+                fail("pinned common owner could not prepare controller collections; deployment not started")
         command = ["python3", str(runner), "--config", str(config), "--gitops-ref", gitops_sha]
         if args.check:
             command.append("--check")

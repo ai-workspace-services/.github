@@ -1,5 +1,7 @@
 # Selfhost PROD V1 → V2 升级、迁移与稳定域名切换记录
 
+> 当前统一入口见[控制面部署与迁移指南](control-plane-deployment-and-migration.zh.md)。本文保留 2026-10-16 的历史证据与授权边界。
+
 - 日期：2026-10-16（Asia/Shanghai）。
 - 范围：Selfhost；Serverless 不参与此次迁移。
 - 部署：SSH → Ansible Playbook → 固定 GitOps tag → Doco-CD；不使用流水线部署。

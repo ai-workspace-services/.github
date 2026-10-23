@@ -1,5 +1,7 @@
 # PROD V2 手工升级恢复记录（2026-10-18）
 
+> 当前统一入口见[控制面部署与迁移指南](control-plane-deployment-and-migration.zh.md)。本文保留 2026-10-18 的恢复过程与证据。
+
 发布路径为 SSH → Playbooks → GitOps → Doco-CD。应用镜像在维护工作站编译、构建和推送；主机只拉取固定 digest。GitHub PR 检查属于代码验证，本次没有 dispatch CI 部署。
 
 ## 范围与身份

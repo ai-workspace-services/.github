@@ -1,5 +1,7 @@
 # PROD V4：固定版本节点部署 TL;DR
 
+> 历史 V4 验收背景保留。当前控制面与迁移入口见[统一部署与迁移指南](control-plane-deployment-and-migration.zh.md)，候选入口尚待隔离联调验收。
+
 控制面部署模式：**SSH → Playbook → 固定 GitOps → Doco-CD**。节点由 Playbook 管理原生 systemd 服务，控制面由 Doco-CD 收敛；节点安装不替代控制面发布。
 
 背景：[PROD V4 运行基线与快照清单](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v3-v4-20261020/prod-v4-runtime-and-snapshot-baseline-20261021.zh.md)。它记录指定时间的运行事实；每次部署以新选择的固定 GitOps commit 为准。
@@ -47,15 +49,12 @@ Pro 使用可继承的公共资源权益，Team 只向 root／所属团队开放
 
 本次按需测试目标已确认：东京区、2 vCPU／2 GB、套餐自带 65 GB 系统盘、独立 25 GB 数据盘及公网 IP。独立 state、明确验收标签；部署结果、重复执行及链路验证须分别记录。验收资源创建和自动清理是两个操作，清理需列出精确资源后确认。
 
-独立域名使用 `<service>-<ENV>-v4.<DOMAIN_BASE>`：
-
-```bash
-export ENV=sit
-export DEPLOYMENT_ID=v4
-export DOMAIN_BASE='<base domain>'
-python3 scripts/render-acceptance-domains.py
-```
-
-生成 `console-sit-v4.<base domain>`、`accounts-sit-v4.<base domain>`、`billing-sit-v4.<base domain>`、`postgresql-sit-v4.<base domain>`。可通过 ENV 切换 sit/uat；验收编号只进入 state/回执。渲染脚本不创建 DNS；记录由 IaC 应用。PostgreSQL 保持隧道访问，不开放公网数据库端口。
+本历史验收采用 `<service>-<ENV>-v4.<DOMAIN_BASE>` 域名，例如
+`console-sit-v4.<base domain>`、`accounts-sit-v4.<base domain>`、
+`billing-sit-v4.<base domain>`、`postgresql-sit-v4.<base domain>`。
+当前应在固定 GitOps 配置中显式声明各环境域名，使用
+`install-control-plane.sh --config <GitOps相对路径.yaml> --gitops-ref <40位SHA> --check`
+委派 Playbooks 预检，详见统一指南。本仓库没有独立的域名 Python renderer；不再引用不存在的命令。
+DNS 记录由 IaC 管理，验收编号只进入 state/回执。PostgreSQL 保持隧道访问，不开放公网数据库端口。
 
 以相关 PR 的最新验收回执为准。当前文档不声称新机／重复部署已经通过，不发布不存在的安装 tag，不修改现有 DNS、生产节点或账本。

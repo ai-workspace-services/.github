@@ -3,6 +3,8 @@
 > 2026-10-16。本文对应现有 selfhost-orchestrator.yml 的部署链路，作为 Antigravity Code Agent 的实施输入。
 > one-shell 入口已在 IaC 与 Playbooks 仓库提交；本次提交只交付可审查的脚本、参数合同和回执逻辑，不触发部署或流水线。目标环境运行仍需按本文件完成 preflight、人工审批和真实验收。
 
+> 历史任务书：保留 2026-10-16 的阶段、数据与接口背景。当前统一入口、八阶段流程及候选状态见[控制面部署与迁移指南](control-plane-deployment-and-migration.zh.md)。下文历史分阶段脚本不作为新入口可用性证明。
+
 ## 1. 前提条件
 
 开始 Quickstart 前必须满足：
@@ -85,32 +87,25 @@ ansible-playbook --syntax-check -i "$INVENTORY" "$PLAYBOOK"
 
 ## 2. Quickstart
 
-### Self-hosted control plane 与 Proxy 入口
+### Self-hosted control plane 与边缘节点接入
 
-Self-hosted control plane（自托管控制面）使用独立的 Shell 入口生成四个服务域名；它不安装边缘代理，也不创建 DNS 或公网 PostgreSQL 监听：
-
-~~~sh
-export ENV=sit
-export DEPLOYMENT_ID=v4
-export DOMAIN_BASE='svc.plus'
-bash scripts/setup-selfhost.sh
-~~~
-
-输出规则为：
-
-~~~text
-console-sit-v4.<base domain>
-accounts-sit-v4.<base domain>
-billing-sit-v4.<base domain>
-postgresql-sit-v4.<base domain>
-~~~
-
-`ENV` 仅允许 `sit` 或 `uat`，`DEPLOYMENT_ID` 和 `DOMAIN_BASE` 可覆盖。部署仍必须使用审核过的固定 IaC/GitOps manifest，沿 SSH → Playbook → 固定 GitOps → Doco-CD 执行。
-
-Proxy 节点使用另一条入口，不要把控制面参数传给代理安装器：
+控制面入口现统一为 `install-control-plane.sh`；旧域名打印脚本已合并移除。
+域名在审核过的固定 GitOps YAML 中显式声明，IaC 管理 DNS，PostgreSQL 保持隧道访问。
+以下是候选入口的预检合同，隔离联调验收待完成：
 
 ~~~sh
-curl -fsSL https://raw.githubusercontent.com/ai-workspace-services/.github/main/scripts/setup-proxy.sh \\
+export CONTROL_PLANE_CMDB='/secure/run/cmdb.json'
+export CONTROL_PLANE_VARS_FILE='/secure/run/vars.yaml'
+bash scripts/install-control-plane.sh \
+  --config '<GitOps相对路径.yaml>' --gitops-ref '<已审核40位commit>' --check
+~~~
+
+包装脚本安全读取 `execution.playbooks_sha` 并调用该固定 Playbooks owner；
+缺 Python/PyYAML 明确失败，不安装依赖，不回退 main。完整参数与正式发布要求见统一指南。
+边缘节点接入使用既有入口：
+
+~~~sh
+curl -fsSL 'https://raw.githubusercontent.com/ai-workspace-services/.github/<release-or-SHA>/scripts/setup-proxy.sh' \
   | bash -s -- --node xhttp.example.com
 ~~~
 

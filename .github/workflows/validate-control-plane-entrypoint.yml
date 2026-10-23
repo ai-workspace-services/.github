@@ -1,0 +1,32 @@
+name: Validate control-plane entrypoint
+
+on:
+  pull_request:
+    paths:
+      - "scripts/install-control-plane.sh"
+      - "scripts/test_install_control_plane.py"
+      - "scripts/render-profile-readme.py"
+      - "scripts/requirements.txt"
+      - ".github/workflows/validate-control-plane-entrypoint.yml"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/install-control-plane.sh"
+      - "scripts/test_install_control_plane.py"
+      - "scripts/render-profile-readme.py"
+      - "scripts/requirements.txt"
+      - ".github/workflows/validate-control-plane-entrypoint.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  offline-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.11"
+      - run: python3 -m pip install --requirement scripts/requirements.txt
+      - run: python3 scripts/test_install_control_plane.py -v

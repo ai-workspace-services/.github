@@ -102,6 +102,7 @@ bash scripts/install-control-plane.sh \
 
 包装脚本安全读取 `execution.playbooks_sha` 并调用该固定 Playbooks owner；
 缺 Python/PyYAML 明确失败，不安装依赖，不回退 main。完整参数与正式发布要求见统一指南。
+当前入口的 `CONTROL_PLANE_VARS_FILE` 只放非敏感运行策略和 Vault 引用，owner 内部解析凭据，不在该文件保存明文凭据。
 边缘节点接入使用既有入口：
 
 ~~~sh

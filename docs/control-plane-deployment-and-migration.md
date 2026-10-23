@@ -84,8 +84,10 @@ the matching GitOps/Playbooks commits. No release identifier is invented here.
 The operator runtime requires Git, Python 3 and PyYAML, plus the dependencies of
 the reviewed Playbooks owner. Missing Python/PyYAML fails explicitly; the wrapper
 does not install packages. Prepare IaC CMDB and a protected vars file outside the
-source checkouts. Secret values travel through the owner's Vault/runtime contract,
-never command arguments or public evidence.
+source checkouts. `CONTROL_PLANE_VARS_FILE` contains nonsecret runtime policy and
+Vault references only, never plaintext credentials. Playbooks resolves Vault
+credentials inside the owner before execution; the wrapper does not resolve or
+copy secret values. Credentials never enter command arguments or public evidence.
 
 ```bash
 export ENTRYPOINT_RELEASE='<reviewed immutable .github release or full SHA>'

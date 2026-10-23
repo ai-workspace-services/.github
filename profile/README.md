@@ -115,6 +115,8 @@ bash scripts/install-control-plane.sh \
 The wrapper requires Git, Python 3 and PyYAML; it fetches the fixed canonical
 GitOps commit and its `execution.playbooks_sha`. Formal releases provide fixed
 script URLs. This candidate is not yet marked runtime available.
+`CONTROL_PLANE_VARS_FILE` holds nonsecret runtime policy and Vault references;
+Playbooks resolves credentials inside the owner, without plaintext credentials in this file.
 
 ```bash
 # Edge node onboarding; replace with a reviewed immutable release or full SHA.

@@ -115,6 +115,7 @@ bash scripts/install-control-plane.sh \
 
 包装脚本要求 Git、Python 3 和 PyYAML，获取 canonical GitOps 的固定提交及声明中的
 `execution.playbooks_sha`。正式发布说明将提供固定脚本 URL；当前候选入口尚未标为运行可用。
+`CONTROL_PLANE_VARS_FILE` 只放非敏感运行策略和 Vault 引用；凭据由 Playbooks owner 内部解析，不在该文件保存明文凭据。
 
 ```bash
 # 边缘节点接入：替换为审核过的不可变 release 或完整 SHA。

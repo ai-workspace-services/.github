@@ -65,7 +65,8 @@ tag 或 registry 构件存在不能证明运行健康。发布使用审核后的
 执行端先具备 Git、Python 3、PyYAML 和固定 Playbooks owner 的依赖。
 缺 Python/PyYAML 明确失败；包装脚本不安装软件包。
 操作者提供 IaC 生成的 CMDB 和受保护 vars 文件，放在源码 checkout 外。
-秘密值由 owner 的 Vault/运行时合同读取，不传命令行、不进入公开回执。
+`CONTROL_PLANE_VARS_FILE` 只保存非敏感运行策略和 Vault 引用，不存明文凭据。
+Playbooks owner 在执行内部解析 Vault 凭据；包装脚本不解析或复制秘密值，不传命令行、不进入公开回执。
 
 ```bash
 export ENTRYPOINT_RELEASE='<审核过的不可变 .github release 或完整 SHA>'

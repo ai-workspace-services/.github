@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Offline contract tests: fixture commits, mocked transport, recording owner runner."""
 import json
+import importlib.util
 import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 WRAPPER = Path(__file__).with_name("install-control-plane.sh").resolve()
 REAL_GIT = shutil.which("git")
@@ -243,6 +246,37 @@ class WrapperTests(unittest.TestCase):
         self.config.write_text(self.declaration())
         self.gitops_sha = self.commit(self.gitops)
         self.assert_rejected(self.run_wrapper(offline=True), "required file")
+
+
+class ProfileRendererTests(unittest.TestCase):
+    def test_generated_region_preserves_bilingual_deployment_tldr(self):
+        source = WRAPPER.with_name("render-profile-readme.py")
+        spec = importlib.util.spec_from_file_location("profile_renderer", source)
+        module = importlib.util.module_from_spec(spec)
+        with patch.object(sys, "dont_write_bytecode", True):
+            spec.loader.exec_module(module)
+        with tempfile.TemporaryDirectory(prefix="profile-region-test-") as temporary:
+            module.TARGETS = {}
+            originals = {}
+            for language, name in (("en", "README.md"), ("zh", "README_ZH.md")):
+                original = (WRAPPER.parents[1] / "profile" / name).read_text()
+                originals[language] = original
+                target = Path(temporary) / name
+                target.write_text(original)
+                module.TARGETS[language] = target
+            data = {"latest": {"prod": None, "uat": {"metadata": {"container": {"tags": ["fixture-tag"]}},
+                                                       "created_at": "2026-10-23T00:00:00Z"}, "sit": None},
+                    "images": []}
+            with patch.object(module, "collect", return_value=data), patch.dict(os.environ, GITHUB_TOKEN="offline-fixture"):
+                self.assertEqual(module.main(), 0)
+            for language, target in module.TARGETS.items():
+                updated = target.read_text()
+                self.assertEqual(module.BLOCK.sub("<release-region>", originals[language]),
+                                 module.BLOCK.sub("<release-region>", updated))
+                self.assertIn("install-control-plane.sh", updated)
+                self.assertIn("r101", updated)
+                self.assertIn("artifact_found", module.BLOCK.search(updated).group())
+                self.assertNotIn("![live]", updated)
 
 
 if __name__ == "__main__":

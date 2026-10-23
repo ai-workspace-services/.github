@@ -29,7 +29,8 @@ parser = argparse.ArgumentParser(
     prog="install-control-plane.sh",
     description="Delegate self-hosted control-plane deployment to immutable Playbooks.",
     epilog="Requires git, python3 and PyYAML; installs no packages. Set CONTROL_PLANE_CMDB "
-    "and CONTROL_PLANE_VARS_FILE to operator-provided files. No secret arguments. "
+    "and CONTROL_PLANE_VARS_FILE to operator-provided files. The vars file contains "
+    "nonsecret runtime policy and Vault references; the owner resolves credentials. No secret arguments. "
     "--check delegates preflight only; isolated runtime acceptance is still pending. "
     "Offline tests only: CONTROL_PLANE_OFFLINE_TEST=1 with both GITOPS_CHECKOUT and "
     "PLAYBOOKS_CHECKOUT; --check required, canonical origins, clean trees and exact SHAs verified.",

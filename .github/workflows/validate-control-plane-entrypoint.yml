@@ -7,6 +7,8 @@ on:
       - "scripts/test_install_control_plane.py"
       - "scripts/render-profile-readme.py"
       - "scripts/requirements.txt"
+      - "profile/README.md"
+      - "profile/README_ZH.md"
       - ".github/workflows/validate-control-plane-entrypoint.yml"
   push:
     branches: [main]
@@ -15,6 +17,8 @@ on:
       - "scripts/test_install_control_plane.py"
       - "scripts/render-profile-readme.py"
       - "scripts/requirements.txt"
+      - "profile/README.md"
+      - "profile/README_ZH.md"
       - ".github/workflows/validate-control-plane-entrypoint.yml"
 
 permissions:

@@ -51,6 +51,17 @@ IaC 管理资源、DNS、state、CMDB；GitOps 保存不含秘密值的期望状
 迁移先做源端一致性只读快照、目标可恢复备份和字段级预览；应用前按精确计划摘要复核源/目标身份与基线。首次写入后每次重放都重新生成只读预览，并对空差异计划执行安全 no-op 校验；至少重复三次。相同身份/内容必须无差异，身份冲突或源/目标基线变化即停止，不覆盖目标独有事实，也不在源端写入。每轮均绑定 `migratectl` 版本与二进制 digest、schema/migration checkpoint、数据校验摘要、退出码和 run_id；应用 exit 0 不代表全业务验收通过。
 
 构建成功、部署成功、数据迁移、备份恢复、真实业务验收和流量/写入切换分别作为独立状态记录。已部署服务可保持运行与零流量，但必须证明无不受控写入者；是否停服由实际迁移合同和目标运行状态决定，不沿用通用停服假设。
+
+### 净室验证的执行顺序
+
+先核验源与候选的 namespace、state key、lineage 和真实资源身份互不重叠，并将候选的可恢复加密备份保留到异机。删除计划只选择候选计算实例；防火墙、独立存储、备份、远端 state 与源环境保持原身份。生产通用销毁保护不解除；只有声明了隔离验证模式的候选可以执行受约束的保存计划，重建时恢复默认删除保护。该门禁由 [IaC owner](https://github.com/ai-workspace-infra/iac_modules/blob/main/docs/howto/isolated-candidate-validation.md) 实现。
+
+新机必须先取得可信云侧的完整 SSH 指纹，再与网络公钥核对，使用严格主机校验和指定的操作员密钥连接。控制端 collections 必须在 Ansible 解析角色前准备。目标 CMDB 使用单一主机地址，IPv6 `/128` 归一化为地址；不能把网络前缀当成登录目标。源 state 的摘要只对 Terraform 无序的校验结果集合排序，仍保留全部资源值、序列号、lineage 和校验状态的变化检测。
+
+部署、备份及隔离恢复通过后，再执行经批准的数据范围。users-only 使用核验过的预构建 `migratectl`：先只读预览，应用绑定精确计划摘要；事务按统一顺序取得 advisory lock 和 users/checkpoint 表锁，在首次读取目标数据前完成锁定，锁内复核摘要和写入，提交或回滚时释放。此路径无需声明已暂停写入进程；其他迁移命令仍遵守各自合同。等待锁时若目标发生变化，旧计划必须失败，不能自动覆盖。实现与真实并发回归见 [Accounts #271](https://github.com/ai-workspace-services/accounts/pull/271)。
+
+以迁移后的带数据候选为基线，再连续执行至少三轮“完整部署 → 新预览 → 迁移 no-op → 状态比较”。比较业务表内容、schema/checkpoint、数据库身份，以及常驻容器的镜像、身份、启动时间和重启次数。声明的一次性静态资源任务允许执行，但必须成功退出且完整资源内容不变；它的启动时间不能冒充常驻服务重启，也不能只检查任务退出码。源仍持续服务时，固定快照只证明该采样边界的一致性；切换前的新用户/增量追齐仍是独立门禁。
+
 阶段 7 仅准备并审核 DNS 值，不修改 DNS 或授权写入权变化。阶段 8 必须由有权人员针对明确的环境、源、目标、数据操作及 DNS 记录作出并留存明确确认；沉默、回归通过或完成阶段 7 都不构成确认。
 
 PostgreSQL 17 验证身份/MFA、完整计费依赖、目标独有数据、冲突回滚、并发互斥、计划过期、重放、中断恢复与 schema 指纹。
@@ -178,7 +189,7 @@ Billing 与 owner 保持一致，只接受精确 canonical HTTPS origin。没有
 
 以下为 Accounts 迁移客户端接口。URL/API 模式仍待隔离验收，不代表现有环境已有 API。
 
-已检查的 Accounts 候选为 [Draft #267](https://github.com/ai-workspace-services/accounts/pull/267)，
+历史检查时 Accounts 候选为 [#267](https://github.com/ai-workspace-services/accounts/pull/267) 的 Draft，
 源码 `c5e3bae3bea1d9b71ee2a579e4da8657fc192bc8`。实现提交
 `84df2658cd70da0cdfd7e38d559f688705d4c218` 已解决原 32 MiB 总行数据限制：
 加密不可变分块具备校验和、持久暂存和可恢复获取，preview/apply 通过 SQL TEMP 表消费页面，不再构造完整行数据 map。
@@ -190,6 +201,7 @@ Billing 与 owner 保持一致，只接受精确 canonical HTTPS origin。没有
 分块/续传代码不再是未实现缺口。[Playbooks #729](https://github.com/ai-workspace-infra/playbooks/pull/729)
 已合并可选 listener 和 Billing/bootstrap 就绪检查等 owner 工作。
 代码与隔离回归通过，不代表全新运行部署、二进制版本发布或现有环境提供可用迁移 API。
+2026-10-24 重新核对：#267 已合并为 `e1793b3e3586bfad5f8173ee3480189b98fde9e0`；上述 Draft 和源码值保留为历史采样，API 全业务运行验收仍不由合并状态推导。
 
 ```bash
 export MIGRATECTL_BIN='/secure/tools/migratectl'

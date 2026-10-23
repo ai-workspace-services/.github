@@ -5,16 +5,17 @@
 状态：实现候选，隔离联调与完整验收待完成。以下是可审查的接口合同，
 不代表已发布安装版本或现有环境已提供 API。占位符必须替换为审核过的固定版本。
 
-配套声明见 [GitOps Draft #504](https://github.com/ai-workspace-infra/gitops/pull/504)
-（[合同任务 #503](https://github.com/ai-workspace-infra/gitops/issues/503)）。其中模板为示例，
-`example_only: true` 不允许执行。
+配套声明合同 [GitOps #504](https://github.com/ai-workspace-infra/gitops/pull/504) 已合并
+（[合同任务 #503](https://github.com/ai-workspace-infra/gitops/issues/503)）；
+[后续对齐 #506](https://github.com/ai-workspace-infra/gitops/pull/506) 仍待完成。
+合同模板为示例，`example_only: true` 不允许执行。
 
 ## 三个入口
 
 | 脚本 | 用途 | 接口 |
 | --- | --- | --- |
 | [`install-control-plane.sh`](../scripts/install-control-plane.sh) | 安装 Accounts、Billing、Console/Portal、Content、PostgreSQL 及声明的运行依赖 | `--config <GitOps 相对 YAML> --gitops-ref <完整 SHA> [--check]` |
-| `scripts/migrate-core-data.sh`（Accounts worker 负责） | 通过 Accounts URL 单向迁移身份与完整计费关联数据 | `--source-url`、`--target-url`、两端认证引用；默认预览，隔离验收待完成 |
+| [`migrate-core-data.sh`](../scripts/migrate-core-data.sh) | Accounts 迁移客户端：通过 Accounts URL 单向迁移身份与完整计费关联数据 | 固定 `MIGRATECTL_BIN` / `MIGRATECTL_SHA256`，源/目标 URL 与两端认证引用；默认预览，隔离验收待完成 |
 | [`setup-proxy.sh`](../scripts/setup-proxy.sh) | 为已有控制面接入边缘节点 | 保留当前 `--node` 等接口及节点凭据合同，脚本原样保留 |
 
 旧 `setup-selfhost.sh` 域名打印入口已合并到新安装入口；域名由固定 GitOps 声明提供。
@@ -48,13 +49,21 @@ Exporter → Vector → Billing → PostgreSQL → Accounts。
 
 核心五仓为 `accounts`、`billing-service`、`portal`、`content-service`、`postgresql`。
 `daily-main-snapshot.yaml` 必须显式选择这五仓，仅运行构建路径。
-创建 tag 或派发前，预检各仓 Actions 已启用、目标 workflow 已启用并支持 dispatch；
+创建 tag 或派发前，预检各仓 Actions 已启用、目标 workflow 为 active，且实际执行身份可派发；
+个人管理员 API 可访问不等于 GitHub App 已获 dispatch 授权。
 检查实际 workflow 和 tag 触发条件，确认仅构建，不创建资源、不部署、不迁移、不改 DNS。
 
-已核实 r101：五仓 tag 均在各自源码 SHA 上 CREATED；PostgreSQL workflow dispatch 返回 HTTP 422，
-原因是 `Actions has been disabled for this repository`。状态为 **tags-created / build-incomplete（tag 已创建、构建未完成）**，
-不是仓库筛选错误，也不是 tag 不存在。保存具体错误和 workflow 证据；通过所属流程恢复 Actions 可用性后，
-源码未变时在原 tag/SHA 重试构建。只有代码/源码 SHA 变化时才新建不可变 revision，不移动已有 tag。
+已核实 r101：五仓 tag 均在各自源码 SHA 上 CREATED；`accounts`、`billing-service`、`portal`、`content-service`
+四仓 CI 与 release manifest 已验证成功，PostgreSQL release 缺失。
+PostgreSQL 经 GitHub App 派发再次返回 HTTP 422，原文为 `Actions has been disabled for this repository`；
+rerun attempt 2 仍相同，见 [run 39891515095，attempt 2](https://github.com/ai-workspace-infra/platform-ops-toolkit/actions/runs/39891515095)。
+同时，个人管理员 API 的 `actions/permissions` 返回 `enabled: true`，workflow 状态为 `active`。
+当前观测是 GitHub App dispatch 路径被拒绝，不能据此断言仓库 Actions 仍全局禁用；执行身份配置差异尚待解决。
+状态为 **五仓 tag 已创建 / 四仓构建已验证 / PG 派发被拒且 release 缺失**，整体构建未完成、不可部署；
+不是仓库筛选错误，也不是 tag 不存在。
+
+执行身份配置解决前，不再重试构建。保留具体 API 错误和各身份设置证据；阻断解除后，源码未变仍使用原 tag/SHA。
+只有代码/源码 SHA 变化时才新建不可变 revision，不移动已有 tag。
 
 五仓逐一核对 tag、源码 SHA、成功构建 URL、构件及 digest，缺任一项不得选择部署。
 tag 或 registry 构件存在不能证明运行健康。发布使用审核后的固定构件，不从浮动分支重建；
@@ -67,6 +76,12 @@ tag 或 registry 构件存在不能证明运行健康。发布使用审核后的
 操作者提供 IaC 生成的 CMDB 和受保护 vars 文件，放在源码 checkout 外。
 `CONTROL_PLANE_VARS_FILE` 只保存非敏感运行策略和 Vault 引用，不存明文凭据。
 Playbooks owner 在执行内部解析 Vault 凭据；包装脚本不解析或复制秘密值，不传命令行、不进入公开回执。
+
+所选 owner 要求 Python 3.11+、Ansible 及其文档规定的 collections；实际执行还要求 Vault CLI 和已签发的短期 Vault 身份。
+策略文件须由操作者拥有，权限为 0600 或 0400；根 `control_plane_runtime` 中包含
+`vault_addr`、`vault_token_env: VAULT_TOKEN` 和 owner 要求的完整 `secret_refs` 映射。
+`vault_addr` 为显式 HTTPS origin，单独继承 `VAULT_ADDR` 不能替代策略。
+`--check` 检查本地声明/策略，不登录 Vault，不证明凭据、SSH 或目标可用。
 
 ```bash
 export ENTRYPOINT_RELEASE='<审核过的不可变 .github release 或完整 SHA>'
@@ -85,10 +100,15 @@ bash /tmp/install-control-plane.sh \
 ```
 
 `--config` 必须是该固定 GitOps commit 中已跟踪的相对 YAML 文件，不能绝对路径或越界读取。
-`execution.playbooks_sha` 必须是完整提交 SHA。GitOps URL 固定为
+`execution.playbooks_sha` 必须是完整提交 SHA。实际执行还要求
+`release.billing.source_sha`（小写40位提交 SHA）及
+`release.billing.schema_file: sql/billing-service-schema.sql`。GitOps URL 固定为
 `https://github.com/ai-workspace-infra/gitops.git`，Playbooks URL 固定为
-`https://github.com/ai-workspace-infra/playbooks.git`，配置不得改源仓库。
-包装脚本获取两个精确提交、验证 HEAD 与干净状态、安全读取 YAML，在 Playbooks checkout 调用：
+`https://github.com/ai-workspace-infra/playbooks.git`，Billing URL 固定为
+`https://github.com/ai-workspace-services/billing-service.git`，配置不得改源仓库。
+包装脚本安全读取 YAML，自动获取三个精确提交：GitOps 的 `--gitops-ref`、Playbooks 的
+`execution.playbooks_sha` 和 Billing 的 `release.billing.source_sha`。
+验证 HEAD、canonical origin 与干净状态后，在 Playbooks checkout 调用：
 
 ```text
 python3 scripts/control_plane/entrypoint.py --config <resolved-path> --gitops-ref <SHA> [--check]
@@ -97,19 +117,59 @@ python3 scripts/control_plane/entrypoint.py --config <resolved-path> --gitops-re
 `release.snapshot_tag` 标识五仓服务构建，`--gitops-ref` 标识独立的 GitOps 声明提交；
 GitOps 无需创建同名服务快照 tag。记录两种身份，不能互相替代。
 
-传给 owner 的 `GITOPS_CHECKOUT`、`PLAYBOOKS_CHECKOUT`、`CONTROL_PLANE_CMDB`、`CONTROL_PLANE_VARS_FILE`
-均为绝对路径。完整 schema、目标、固定构件和受保护配置由 owner 验证。
+传给 owner 的 `GITOPS_CHECKOUT`、`PLAYBOOKS_CHECKOUT`、`BILLING_CHECKOUT`、
+`CONTROL_PLANE_CMDB`、`CONTROL_PLANE_VARS_FILE` 均为绝对路径，无新增公开 flags 或秘密输入。
+owner 的 `billing_artifact` 按 `release.accounts.billing_schema_sha256` 核对已跟踪 SQL 字节，
+由 owner 在首个空库的业务授权/应用启动前执行审核过的 Billing DDL；包装脚本不执行 SQL。
+旧结构性 `--check` fixture 可省略 `release.billing`、仅用两个 checkout；实际 owner 执行缺少该声明或构件会失败。
+owner 须验证已审查声明、目标、固定构件和受保护配置；跨仓 schema 一致性仍是集成门禁，包装脚本 mock 测试不证明该门禁通过。
 缺 commit、owner 或前置条件立即失败，不回退分支或 main。`--check` 仅委派预检，不代表业务运行验收。
 
+路径与输入边界：
+
+| 输入 | 解析/归属 |
+| --- | --- |
+| 公开 `--config` | 相对 GitOps 根目录的已跟踪 YAML；包装脚本向 owner 传已解析的绝对路径 |
+| `GITOPS_CHECKOUT`、`PLAYBOOKS_CHECKOUT`、`BILLING_CHECKOUT` | 包装脚本生成的固定 checkout；Billing 取 `release.billing.source_sha`；操作者覆盖仅供离线测试 |
+| `CONTROL_PLANE_CMDB`、`CONTROL_PLANE_VARS_FILE` | 必填外部文件，相对路径在切换工作目录前按调用目录解析 |
+| `AI_WORKSPACE_CMDB_JSON`、`CMDB_FILE` | owner 调用 inventory 前，从 `CONTROL_PLANE_CMDB` 同时设置两者 |
+| `release.doco_cd.target` / `storage_target` | 选择 GitOps 根目录的 `.doco-cd.<selection>.yml`；`working_dir` 相对 GitOps 根目录，Compose/env 文件相对该工作目录 |
+
+公开 GitOps schema 禁止 `target.cmdb_file` 和顶层 `vars_files`；即使更宽的 owner parser 接受，也应使用外部操作者输入。
+部署声明的 `source.host` / `source.generation` 仅为审计元数据，不是迁移端点。
+独立的 `kind: accounts-migration` 示例不能交给 `install-control-plane.sh`；URL 迁移使用下方 flags，本文不声称已有自动迁移 YAML 消费器。
+两个 GitOps 示例均刻意不可执行，须另行准备审核过的执行声明。
+
+CMDB 还须声明 `storage`（或 `host_vars.control_plane_storage`）：`profile` 选择 `root` 或 `dedicated`，并给出 `data_path`；
+独立盘再声明 `mount_path` / `device_path`。固定 PostgreSQL bind 必须匹配 `data_path`；根盘模式不要求另加数据盘，实际存储由 owner 执行时核验。
+
 离线测试可同时设置 `CONTROL_PLANE_OFFLINE_TEST=1`、`GITOPS_CHECKOUT`、`PLAYBOOKS_CHECKOUT`，并必须传 `--check`。
-两者必须是仓库根目录、上述 canonical origin（HTTPS 或对应的 `git@github.com:` SSH 写法）、匹配 HEAD，且没有修改、未跟踪或忽略文件。
-本地固定 checkout 仅供离线测试；正常执行使用临时的固定提交 checkout。
+声明 `release.billing` 时还必须提供 `BILLING_CHECKOUT`；离线模式不会联网补齐缺失 checkout。
+所有 checkout 必须是仓库根目录、精确匹配 HEAD，且没有修改、未跟踪或忽略文件。
+GitOps/Playbooks 接受上述 canonical HTTPS origin 或对应的 `git@github.com:` SSH 写法；
+Billing 与 owner 保持一致，只接受精确 canonical HTTPS origin。没有对应声明的 Billing 覆盖也会被拒绝。
+本地固定 checkout 仅供离线测试；正常执行使用三个临时的固定提交 checkout。
 
 ## URL 迁移合同：隔离验收待完成
 
-客户端由 Accounts worker 实现。以下是已接受的计划参数，不声称现有环境已有 API：
+以下为 Accounts 迁移客户端接口。URL/API 模式仍待隔离验收，不代表现有环境已有 API。
+
+已检查的 Accounts 候选为 [Draft #267](https://github.com/ai-workspace-services/accounts/pull/267)，
+源码 `c5e3bae3bea1d9b71ee2a579e4da8657fc192bc8`。实现提交
+`84df2658cd70da0cdfd7e38d559f688705d4c218` 已解决原 32 MiB 总行数据限制：
+加密不可变分块具备校验和、持久暂存和可恢复获取，preview/apply 通过 SQL TEMP 表消费页面，不再构造完整行数据 map。
+已有隔离 PostgreSQL 17 证据表明，约 44 MiB preview/apply 和中断获取后的恢复通过。
+64 MiB 仍是元数据对象限制，不是业务数据总量限制；仍保留精简的逐行 digest 元数据，不承诺无限数据下常量内存。
+`--transfer-only` 仅暂存/核验页面，不写业务数据；默认预览不变。缺失页面下载最多尝试两次，变更请求不自动重试。
+
+[GitOps #505](https://github.com/ai-workspace-infra/gitops/issues/505) 继续跟踪实际含业务数据的备份恢复门禁及完整跨仓运行验收；
+分块/续传代码不再是未实现缺口。[Playbooks #729](https://github.com/ai-workspace-infra/playbooks/pull/729)
+已合并可选 listener 和 Billing/bootstrap 就绪检查等 owner 工作。
+代码与隔离回归通过，不代表全新运行部署、二进制版本发布或现有环境提供可用迁移 API。
 
 ```bash
+export MIGRATECTL_BIN='/secure/tools/migratectl'
+export MIGRATECTL_SHA256='<已核验发布清单中的64位 SHA-256>'
 bash scripts/migrate-core-data.sh \
   --source-url https://accounts-source.example.com \
   --source-token-env SOURCE_MIGRATION_TOKEN \
@@ -118,6 +178,28 @@ bash scripts/migrate-core-data.sh \
 # 原参数基础上应用已审查预览：
 # 追加 --apply --plan-id '<id>' --plan-sha256 '<sha256>'
 ```
+
+审核过的 Accounts 二进制须单独准备。`MIGRATECTL_BIN` 必须是普通可执行文件的绝对路径，不能符号链接，不能允许组/其他用户写入。
+`MIGRATECTL_SHA256` 来自独立核验的发布证据，不能只对不可信本地下载计算 hash 后当作可信来源。
+Python 3 包装脚本校验该 digest 后执行 `transfer-api`；不安装、不下载二进制、不从 `PATH` 发现客户端。
+已核对 Accounts 所属脚本中的固定二进制合同；API 隔离验收仍待完成。
+
+Accounts `e829428800617900c51c779e4462b6236c8c017b` 的生产器构建
+`migratectl-linux-amd64`、`migratectl-linux-arm64`、`migratectl-darwin-amd64`、`migratectl-darwin-arm64`，
+并生成 `SHA256SUMS` 和 `release-manifest.json`。Linux 为支持的主机迁移 runner，Darwin 资产用于本地工具，不宣称 Windows 支持。
+完整合同见固定源码的 [Accounts 发布资产说明](https://github.com/ai-workspace-services/accounts/blob/c5e3bae3bea1d9b71ee2a579e4da8657fc192bc8/docs/migrations/migratectl-release-assets.md)：
+
+1. 核对不可变 release tag 与选定的目标 Accounts 精确源码 SHA。生产器要求干净 checkout 的 HEAD 等于完整 `GITHUB_SHA`；
+   manifest 的 `commit` 必须等于该预期源码 SHA，不能因文件名匹配而接受其他源码。
+2. 核对 manifest 的 `schema: 1`、`repository`、`tag`、`commit`。`files` 为文件名列表，
+   `artifacts` 逐项提供精确 `name`、`sha256`、`size_bytes`。
+3. 先按可信 manifest 对应条目校验 `SHA256SUMS` 自身，再将选定平台二进制同时与 manifest 条目和 `SHA256SUMS` 核对，包括实际字节数。
+   `SHA256SUMS` 覆盖 payload，不包含它自身的 hash；两个校验文件均不提供自身的 checksum。
+4. 安装为前述受保护普通可执行文件，再设置 `MIGRATECTL_BIN` 和 manifest 记录的预期资产 `MIGRATECTL_SHA256`。
+   生产器实现提交不能替代所选 release 的源码 SHA 或资产 digest；旧 release 缺少这些资产时不能静默接受或修改旧版本。
+
+四平台本地构建、checksum 及原生 help 已通过，但这些打包测试未发布 release。
+实际运维前仍须核对真实发布资产，并分别记录固定 Accounts 和 Playbooks 提交。
 
 每端可用 `--source-auth-kv` / `--target-auth-kv` 替换对应 token-env；同端两种方式互斥。
 参数只传引用名称，绝不传 Token 值。迁移凭据短期、限定对端/用途，独立于共享服务 Token。

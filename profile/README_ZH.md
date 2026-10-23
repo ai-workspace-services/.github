@@ -101,7 +101,7 @@ flowchart LR
 | 脚本 | 用途 | 输入 |
 | :--- | :--- | :--- |
 | [`install-control-plane.sh`](../scripts/install-control-plane.sh) | 调用固定提交的 Playbooks | `--config`、完整 SHA 的 `--gitops-ref`、可选 `--check` |
-| `migrate-core-data.sh` | 单向迁移核心数据，Accounts worker 负责，API 隔离验收待完成 | 源/目标 URL 与认证引用，默认预览 |
+| [`migrate-core-data.sh`](../scripts/migrate-core-data.sh) | Accounts 迁移客户端，单向迁移核心数据，API 隔离验收待完成 | `MIGRATECTL_BIN` / `MIGRATECTL_SHA256`、源/目标 URL 与认证引用，默认预览 |
 | [`setup-proxy.sh`](../scripts/setup-proxy.sh) | 边缘节点接入 | 保留当前 `--node` 等接口，脚本原样保留 |
 
 从审核过的不可变 checkout 使用控制面候选入口：
@@ -114,7 +114,10 @@ bash scripts/install-control-plane.sh \
 ```
 
 包装脚本要求 Git、Python 3 和 PyYAML，获取 canonical GitOps 的固定提交及声明中的
-`execution.playbooks_sha`。正式发布说明将提供固定脚本 URL；当前候选入口尚未标为运行可用。
+`execution.playbooks_sha`，以及 `release.billing.source_sha` 指定的 Billing 提交，
+自动准备三个固定 canonical 仓库 checkout，并向 owner 传 `BILLING_CHECKOUT`。
+Billing schema 路径固定为 `sql/billing-service-schema.sql`，由 owner 核对审核过的 digest 并执行空库 DDL，
+无需增加公开 flags。正式发布说明将提供固定脚本 URL；当前候选入口尚未标为运行可用。
 `CONTROL_PLANE_VARS_FILE` 只放非敏感运行策略和 Vault 引用；凭据由 Playbooks owner 内部解析，不在该文件保存明文凭据。
 
 ```bash
@@ -130,9 +133,12 @@ curl -fsSL 'https://raw.githubusercontent.com/ai-workspace-services/.github/<rel
 全新部署执行 1–4、6 并记录跳过迁移原因；代际升级执行全部阶段。
 滚动更新采用备份、无破坏收敛及显式增量迁移；PostgreSQL 仅允许隧道访问。
 五仓为 `accounts`、`billing-service`、`portal`、`content-service`、`postgresql`；
-快照仅构建，不隐含部署授权。先预检 Actions/workflow 已启用。
-r101 五仓 tag 均已创建，但 PostgreSQL dispatch 因 Actions 禁用返回 HTTP 422，构建未完成。
-源码未变在原 tag 重试；仅代码/源码 SHA 改变时创建新不可变 revision，不移动已有 tag。
+快照仅构建，不隐含部署授权。先预检 Actions/workflow 设置及实际派发身份。
+r101 五仓 tag 均已创建，四仓 CI 和 release manifest 已验证成功，PG release 缺失。
+GitHub App dispatch 在 attempt 2 再次返回 HTTP 422；个人管理员 API 同时显示 `enabled: true` / workflow `active`。
+这是 App 派发路径被拒绝，不能断言 Actions 全局禁用；整体构建未完成。
+执行身份配置解决前不再重试构建。源码未变保留原 tag，仅代码/源码 SHA 改变时创建新不可变 revision，不移动 tag。
+详见[构建证据](../docs/control-plane-deployment-and-migration.zh.md#五仓构建与不可变发布)。
 
 迁移 URL/API 模式等待隔离验收；现有 V4 尚无该 API，V4→V5 保留审核过的 SSH/数据库路径，URL 模式不隐式回退。
 详见[指南及已有 V2/V3/V4 历史记录](../docs/control-plane-deployment-and-migration.zh.md#历史文档)。

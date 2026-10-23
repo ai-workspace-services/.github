@@ -15,6 +15,7 @@ WRAPPER = Path(__file__).with_name("install-control-plane.sh").resolve()
 REAL_GIT = shutil.which("git")
 GITOPS_URL = "https://github.com/ai-workspace-infra/gitops.git"
 PLAYBOOKS_URL = "https://github.com/ai-workspace-infra/playbooks.git"
+BILLING_URL = "https://github.com/ai-workspace-services/billing-service.git"
 
 RUNNER = '''import json, os, sys
 from pathlib import Path
@@ -22,6 +23,7 @@ Path(os.environ["OWNER_RECORD"]).write_text(json.dumps({
     "args": sys.argv[1:], "cwd": os.getcwd(),
     "gitops": os.environ["GITOPS_CHECKOUT"],
     "playbooks": os.environ["PLAYBOOKS_CHECKOUT"],
+    "billing": os.environ.get("BILLING_CHECKOUT"),
     "cmdb": os.environ["CONTROL_PLANE_CMDB"],
     "vars": os.environ["CONTROL_PLANE_VARS_FILE"],
 }))
@@ -36,9 +38,12 @@ with open(os.environ["GIT_RECORD"], "a") as log:
     log.write(json.dumps(args) + "\\n")
 if "fetch" in args:
     sha = args[-1]
-    source = {os.environ["GITOPS_SHA"]: os.environ["FIXTURE_GITOPS"],
-              os.environ["PLAYBOOKS_SHA"]: os.environ["FIXTURE_PLAYBOOKS"]}.get(sha)
-    if not source or os.environ.get("FETCH_FAIL"):
+    sources = {os.environ["GITOPS_SHA"]: os.environ["FIXTURE_GITOPS"],
+               os.environ["PLAYBOOKS_SHA"]: os.environ["FIXTURE_PLAYBOOKS"]}
+    if os.environ.get("BILLING_SHA"):
+        sources[os.environ["BILLING_SHA"]] = os.environ["FIXTURE_BILLING"]
+    source = sources.get(sha)
+    if not source or os.environ.get("FETCH_FAIL") or sha == os.environ.get("FETCH_FAIL_SHA"):
         sys.exit(1)
     # Map the exact requested object to a local fixture, never contact a remote.
     args[-2] = source
@@ -74,7 +79,8 @@ class WrapperTests(unittest.TestCase):
                     "GITOPS_SHA": self.gitops_sha, "PLAYBOOKS_SHA": self.playbooks_sha,
                     "FIXTURE_GITOPS": str(self.gitops), "FIXTURE_PLAYBOOKS": str(self.playbooks),
                     "CONTROL_PLANE_CMDB": "cmdb.json", "CONTROL_PLANE_VARS_FILE": "protected vars.yaml"}
-        for name in ("GITOPS_CHECKOUT", "PLAYBOOKS_CHECKOUT", "CONTROL_PLANE_OFFLINE_TEST"):
+        for name in ("GITOPS_CHECKOUT", "PLAYBOOKS_CHECKOUT", "BILLING_CHECKOUT", "CONTROL_PLANE_OFFLINE_TEST",
+                     "BILLING_SHA", "FIXTURE_BILLING", "FETCH_FAIL", "FETCH_FAIL_SHA"):
             self.env.pop(name, None)
 
     def git(self, root, *args):
@@ -93,6 +99,24 @@ class WrapperTests(unittest.TestCase):
         self.git(root, "init", "-q")
         self.git(root, "remote", "add", "origin", origin)
         return self.commit(root)
+
+    def add_billing(self):
+        self.billing = self.root / "billing fixture"
+        self.schema = self.billing / "sql/billing-service-schema.sql"
+        self.schema.parent.mkdir(parents=True)
+        self.schema.write_text("-- Offline fixture; never executed.\n")
+        self.billing_sha = self.init_repo(self.billing, BILLING_URL)
+        self.env.update(BILLING_SHA=self.billing_sha, FIXTURE_BILLING=str(self.billing))
+        self.set_billing_declaration("  billing:\n    source_sha: '" + self.billing_sha +
+                                     "'\n    schema_file: sql/billing-service-schema.sql\n")
+
+    def set_billing_declaration(self, fragment):
+        self.config.write_text(self.declaration() + fragment)
+        self.gitops_sha = self.commit(self.gitops)
+        self.env["GITOPS_SHA"] = self.gitops_sha
+
+    def git_calls(self):
+        return [json.loads(line) for line in (self.root / "git.jsonl").read_text().splitlines()]
 
     def run_wrapper(self, args=None, offline=False, **env):
         runtime = {**self.env, **env}
@@ -124,6 +148,103 @@ class WrapperTests(unittest.TestCase):
                          [GITOPS_URL, PLAYBOOKS_URL])
         self.assertTrue(all("main" not in call and "latest" not in call for call in calls))
         self.assertFalse(Path(record["gitops"]).exists(), "temporary clone must be cleaned")
+        self.assertIsNone(record["billing"], "legacy structural checks must not infer a Billing source")
+
+    def test_billing_fetches_third_canonical_exact_sha_and_delegates(self):
+        self.add_billing()
+        result = self.run_wrapper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        record = json.loads((self.root / "owner.json").read_text())
+        self.assertEqual(record["args"], ["--config", record["gitops"] + "/resources/test/candidate.yaml",
+                                          "--gitops-ref", self.gitops_sha, "--check"])
+        self.assertEqual(Path(record["billing"]).name, "billing-service")
+        self.assertTrue(Path(record["billing"]).is_absolute())
+        calls = self.git_calls()
+        fetches = [call for call in calls if "fetch" in call]
+        self.assertEqual([call[-1] for call in fetches],
+                         [self.gitops_sha, self.playbooks_sha, self.billing_sha])
+        self.assertTrue(all(call[-5:-1] == ["--quiet", "--no-tags", "--depth=1", "origin"] for call in fetches))
+        self.assertEqual([call[-1] for call in calls if "remote" in call and "add" in call],
+                         [GITOPS_URL, PLAYBOOKS_URL, BILLING_URL])
+        self.assertTrue(all("main" not in call and "latest" not in call for call in calls))
+        for name in ("gitops", "playbooks", "billing"):
+            self.assertFalse(Path(record[name]).exists(), "temporary checkouts must be cleaned")
+
+    def test_billing_fetch_failure_never_falls_back_or_runs_owner(self):
+        self.add_billing()
+        self.assert_rejected(self.run_wrapper(FETCH_FAIL_SHA=self.billing_sha), "git operation failed")
+        calls = self.git_calls()
+        self.assertEqual([call[-1] for call in calls if "fetch" in call],
+                         [self.gitops_sha, self.playbooks_sha, self.billing_sha])
+        self.assertTrue(all("main" not in call and "latest" not in call for call in calls))
+
+    def test_billing_invalid_pins_and_schema_paths_fail_before_owner_fetch(self):
+        self.add_billing()
+        cases = [("  billing: null\n", "source_sha"), ("  billing: {}\n", "source_sha")]
+        for sha in ("main", "v1", "a" * 39, "g" * 40, "A" * 40, "$(touch injected)"):
+            cases.append(("  billing:\n    source_sha: '" + sha +
+                          "'\n    schema_file: sql/billing-service-schema.sql\n", "source_sha"))
+        for path in ("", "../sql/billing-service-schema.sql", "/sql/billing-service-schema.sql", "other.sql"):
+            cases.append(("  billing:\n    source_sha: '" + self.billing_sha +
+                          "'\n    schema_file: '" + path + "'\n", "schema_file"))
+        for fragment, message in cases:
+            with self.subTest(fragment=fragment):
+                self.set_billing_declaration(fragment)
+                self.assert_rejected(self.run_wrapper(offline=True, BILLING_CHECKOUT=str(self.billing)), message)
+        self.assertNotIn('"fetch"', (self.root / "git.jsonl").read_text())
+        self.assertFalse((self.root / "injected").exists())
+
+    def test_billing_offline_exact_clean_https_checkout_without_fetch(self):
+        self.add_billing()
+        result = self.run_wrapper(offline=True, BILLING_CHECKOUT=str(self.billing))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        record = json.loads((self.root / "owner.json").read_text())
+        self.assertEqual(record["billing"], str(self.billing))
+        self.assertNotIn('"fetch"', (self.root / "git.jsonl").read_text())
+
+    def test_billing_local_override_requires_explicit_offline_check(self):
+        self.add_billing()
+        self.assert_rejected(self.run_wrapper(BILLING_CHECKOUT=str(self.billing)), "local checkouts require")
+        self.assert_rejected(self.run_wrapper(["--config", "resources/test/candidate.yaml", "--gitops-ref", self.gitops_sha],
+                                              offline=True, BILLING_CHECKOUT=str(self.billing)), "local checkouts require")
+
+    def test_billing_offline_declaration_requires_checkout_without_network(self):
+        self.add_billing()
+        self.assert_rejected(self.run_wrapper(offline=True), "BILLING_CHECKOUT is required")
+        self.assertNotIn('"fetch"', (self.root / "git.jsonl").read_text())
+
+    def test_billing_override_without_declaration_rejected(self):
+        self.assert_rejected(self.run_wrapper(offline=True, BILLING_CHECKOUT=str(self.root)),
+                             "BILLING_CHECKOUT requires a matching release.billing")
+
+    def test_billing_local_origin_must_be_canonical_https(self):
+        self.add_billing()
+        for origin in ("https://example.com/billing-service.git", "git@github.com:ai-workspace-services/billing-service.git"):
+            with self.subTest(origin=origin):
+                self.git(self.billing, "remote", "set-url", "origin", origin)
+                self.assert_rejected(self.run_wrapper(offline=True, BILLING_CHECKOUT=str(self.billing)),
+                                     "canonical repository")
+
+    def test_billing_local_head_must_equal_declared_source_sha(self):
+        self.add_billing()
+        self.schema.write_text("-- Different committed Billing source.\n")
+        self.commit(self.billing)
+        self.assert_rejected(self.run_wrapper(offline=True, BILLING_CHECKOUT=str(self.billing)), "HEAD does not match")
+
+    def test_billing_modified_untracked_and_ignored_files_rejected(self):
+        self.add_billing()
+        original = self.schema.read_text()
+        self.schema.write_text(original + "-- changed\n")
+        self.assert_rejected(self.run_wrapper(offline=True, BILLING_CHECKOUT=str(self.billing)), "must be clean")
+        self.schema.write_text(original)
+        for name in ("untracked", "ignored"):
+            with self.subTest(name=name):
+                if name == "ignored":
+                    (self.billing / ".git/info/exclude").write_text("ignored\n")
+                extra = self.billing / name
+                extra.write_text("fixture")
+                self.assert_rejected(self.run_wrapper(offline=True, BILLING_CHECKOUT=str(self.billing)), "must be clean")
+                extra.unlink()
 
     def test_apply_delegation_and_owner_failure_propagate(self):
         result = self.run_wrapper(["--config", "resources/test/candidate.yaml", "--gitops-ref", self.gitops_sha],

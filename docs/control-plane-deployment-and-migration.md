@@ -6,16 +6,17 @@ Status: implementation candidate, isolated integration acceptance pending. Comma
 below describe the reviewed interface; no published installer release or runtime
 availability is claimed. Replace every placeholder with reviewed release evidence.
 
-Companion declaration: [GitOps Draft #504](https://github.com/ai-workspace-infra/gitops/pull/504)
-([contract task #503](https://github.com/ai-workspace-infra/gitops/issues/503)). Its
-templates are illustrative and cannot execute with `example_only: true`.
+Declaration contract: [GitOps #504](https://github.com/ai-workspace-infra/gitops/pull/504)
+(merged; [contract task #503](https://github.com/ai-workspace-infra/gitops/issues/503)).
+[Follow-up #506](https://github.com/ai-workspace-infra/gitops/pull/506) remains pending.
+The contract templates are illustrative and cannot execute with `example_only: true`.
 
 ## Three entrypoints
 
 | Script | Purpose | Contract |
 | --- | --- | --- |
 | [`install-control-plane.sh`](../scripts/install-control-plane.sh) | Install Accounts, Billing, Console/Portal, Content, PostgreSQL and declared dependencies | `--config <GitOps-relative YAML> --gitops-ref <full SHA> [--check]` |
-| `scripts/migrate-core-data.sh` (Accounts worker) | One-way identity and complete billing migration through Accounts URLs | `--source-url`, `--target-url`, authentication references; preview by default; isolated acceptance pending |
+| [`migrate-core-data.sh`](../scripts/migrate-core-data.sh) | Accounts migration client for one-way identity and complete billing transfer through Accounts URLs | Pinned `MIGRATECTL_BIN` / `MIGRATECTL_SHA256`; source/target URL and authentication references; preview by default; isolated acceptance pending |
 | [`setup-proxy.sh`](../scripts/setup-proxy.sh) | Edge node onboarding to an existing control plane | Existing `--node` and node credential contract; implementation unchanged |
 
 The legacy `setup-selfhost.sh` domain printer has been merged into the new
@@ -60,17 +61,30 @@ Required FAIL, BLOCKED or NOT_RUN results stop handover.
 The five service repositories are `accounts`, `billing-service`, `portal`,
 `content-service` and `postgresql`. `daily-main-snapshot.yaml` must select that
 explicit list and run the build-only lane. Before tagging or dispatching, check
-that Actions is enabled in every repository, the intended workflow is enabled,
-and the workflow supports dispatch. Inspect the actual workflow and tag-triggered
+that Actions is enabled in every repository, the intended workflow is active,
+and the workflow supports dispatch through the actual execution identity. Personal
+administrator API access does not establish GitHub App dispatch authorization.
+Inspect the actual workflow and tag-triggered
 jobs: a build must not provision, deploy, migrate or change DNS.
 
-Verified r101 evidence: all five tags were CREATED at their source SHAs.
-PostgreSQL workflow dispatch returned HTTP 422, `Actions has been disabled for
-this repository`. The snapshot is **tags-created / build-incomplete**. This is
-not a repository-filter bug or evidence of absent tags. Capture the exact workflow
-response, restore Actions enablement through the owning process, and retry the
-build at the existing tag/SHA when the source is unchanged. A new immutable
-revision is needed only when code/source SHA changes. Never move an existing tag.
+Verified r101 evidence: all five tags were CREATED at their source SHAs. CI runs
+and release manifests for `accounts`, `billing-service`, `portal` and
+`content-service` were verified successful; the PostgreSQL release is absent.
+PostgreSQL dispatch through the GitHub App returned HTTP 422, `Actions has been
+disabled for this repository`, again on rerun attempt 2. See
+[run 39891515095, attempt 2](https://github.com/ai-workspace-infra/platform-ops-toolkit/actions/runs/39891515095).
+Separately, the personal administrator API reports `actions/permissions`
+`enabled: true` and workflow state `active`. The observed failure is a rejection
+of the GitHub App dispatch path; it does not establish that Actions remains
+globally disabled for the repository. The actor configuration discrepancy remains
+unresolved. The snapshot is **tags-created / four builds verified / PostgreSQL
+dispatch rejected and release absent**, therefore build-incomplete and not
+deployable. This is not a repository-filter bug or evidence of absent tags.
+
+Do not retry builds again until the execution actor configuration is resolved.
+Preserve the exact API response and identity-specific settings evidence. Once
+that blocker is resolved, unchanged source retains the existing tag/SHA; a new
+immutable revision is needed only when code/source SHA changes. Never move a tag.
 
 Each repository needs matching tag/SHA, successful build URL, expected artifact
 and digest evidence before deployment. Missing, failed or unknown builds block
@@ -89,6 +103,15 @@ Vault references only, never plaintext credentials. Playbooks resolves Vault
 credentials inside the owner before execution; the wrapper does not resolve or
 copy secret values. Credentials never enter command arguments or public evidence.
 
+The selected owner requires Python 3.11+, Ansible and its documented collections;
+applying also requires the Vault CLI and an already-issued short-lived Vault
+identity. The protected policy is operator-owned, mode 0600 or 0400, with a
+`control_plane_runtime` mapping containing `vault_addr`, `vault_token_env: VAULT_TOKEN`
+and the owner's complete `secret_refs` mapping. `vault_addr` must be an explicit
+HTTPS origin; an inherited `VAULT_ADDR` alone does not replace the policy.
+`--check` validates the local declaration/policy; it neither authenticates to
+Vault nor proves that credentials, SSH or the target are usable.
+
 ```bash
 export ENTRYPOINT_RELEASE='<reviewed immutable .github release or full SHA>'
 export GITOPS_SHA='<reviewed full 40-character GitOps commit SHA>'
@@ -106,11 +129,16 @@ bash /tmp/install-control-plane.sh \
 ```
 
 `--config` is a tracked YAML file inside that GitOps commit, not an absolute path
-or an external file. `execution.playbooks_sha` must be a full commit SHA. Repository
-URLs are fixed to `https://github.com/ai-workspace-infra/gitops.git` and
-`https://github.com/ai-workspace-infra/playbooks.git`; config cannot override them.
-The wrapper fetches each exact commit, verifies HEAD and cleanliness, safely reads
-YAML, then runs from the Playbooks checkout:
+or an external file. `execution.playbooks_sha` must be a full commit SHA. Execution
+also requires `release.billing.source_sha` (a lowercase 40-character commit SHA)
+and `release.billing.schema_file: sql/billing-service-schema.sql`.
+Repository URLs are fixed to `https://github.com/ai-workspace-infra/gitops.git`,
+`https://github.com/ai-workspace-infra/playbooks.git` and
+`https://github.com/ai-workspace-services/billing-service.git`; config cannot
+override them. The wrapper safely reads YAML and automatically fetches three
+exact commits: GitOps at `--gitops-ref`, Playbooks at `execution.playbooks_sha`,
+and Billing at `release.billing.source_sha`. It verifies HEAD, canonical origin
+and cleanliness, then runs from the Playbooks checkout:
 
 ```text
 python3 scripts/control_plane/entrypoint.py --config <resolved-path> --gitops-ref <SHA> [--check]
@@ -120,24 +148,83 @@ python3 scripts/control_plane/entrypoint.py --config <resolved-path> --gitops-re
 the separate GitOps declaration commit; GitOps does not need a same-name service
 snapshot tag. Both identities must be recorded without substituting one for the other.
 
-It passes absolute `GITOPS_CHECKOUT`, `PLAYBOOKS_CHECKOUT`, `CONTROL_PLANE_CMDB` and
-`CONTROL_PLANE_VARS_FILE`. The owner validates the full schema, target, immutable
-artifacts and protected runtime inputs. Missing owner, commit or prerequisite
+It passes absolute `GITOPS_CHECKOUT`, `PLAYBOOKS_CHECKOUT`, `BILLING_CHECKOUT`,
+`CONTROL_PLANE_CMDB` and `CONTROL_PLANE_VARS_FILE`. No new public flags or secrets
+are needed. The owner's `billing_artifact` verifies the tracked SQL against
+`release.accounts.billing_schema_sha256`; the owner applies reviewed Billing DDL
+to the first empty database before business grants/startup. The wrapper never
+executes SQL. Old structural `--check` fixtures may omit `release.billing` and
+use only two checkouts; actual owner execution fails without the Billing declaration
+and artifact. The owner must validate the reviewed declaration,
+target, immutable artifacts and protected runtime inputs. Cross-repository schema
+conformance remains an integration gate; mocked wrapper tests do not establish it.
+Missing owner, commit or prerequisite
 fails closed. There is no branch/main fallback. `--check` delegates preflight;
 it does not prove application or data-flow acceptance.
 
+Path and input boundaries:
+
+| Input | Resolution/owner |
+| --- | --- |
+| Public `--config` | Tracked YAML relative to the GitOps root; wrapper passes its resolved absolute path to the owner |
+| `GITOPS_CHECKOUT`, `PLAYBOOKS_CHECKOUT`, `BILLING_CHECKOUT` | Wrapper-generated fixed checkouts; Billing uses `release.billing.source_sha`; operator overrides are offline-test-only |
+| `CONTROL_PLANE_CMDB`, `CONTROL_PLANE_VARS_FILE` | Required external operator files, resolved from the invocation directory before the owner changes working directory |
+| `AI_WORKSPACE_CMDB_JSON`, `CMDB_FILE` | Owner sets both from `CONTROL_PLANE_CMDB` before calling the inventory adapter |
+| `release.doco_cd.target` / `storage_target` | Select `.doco-cd.<selection>.yml` at the pinned GitOps root; `working_dir` is GitOps-root-relative, Compose/env files are relative to that working directory |
+
+The public GitOps schema rejects `target.cmdb_file` and top-level `vars_files`;
+use the external operator inputs, even if a broader owner parser accepts those
+fields. `source.host` / `source.generation` are optional deployment audit metadata,
+not migration endpoint settings. The separate `kind: accounts-migration` example
+does not go into `install-control-plane.sh`; URL migration uses the flags below,
+and no automatic migration-YAML consumer is claimed here. Both GitOps examples
+remain intentionally invalid until a reviewed executable declaration is prepared.
+
+The CMDB must also describe storage: `storage` (or
+`host_vars.control_plane_storage`) selects `profile: root` or `dedicated` and
+`data_path`; dedicated storage adds the declared `mount_path` / `device_path`.
+The pinned PostgreSQL bind must match `data_path`. A root profile does not require
+a separate disk; the owner verifies the actual target storage during execution.
+
 Offline wrapper tests may set `CONTROL_PLANE_OFFLINE_TEST=1`, `GITOPS_CHECKOUT`
-and `PLAYBOOKS_CHECKOUT` together with `--check`. Both must be repository roots
-with the exact canonical origin (HTTPS or its `git@github.com:` SSH spelling), matching HEAD and no modified, untracked
-or ignored files. These overrides are for offline tests only. Normal operations
-use fresh temporary fixed-commit checkouts.
+and `PLAYBOOKS_CHECKOUT` together with `--check`. When `release.billing` is declared,
+`BILLING_CHECKOUT` is also required; offline mode never fetches a missing checkout.
+All must be repository roots with matching exact HEAD and no modified, untracked
+or ignored files. GitOps/Playbooks accept the canonical HTTPS origin or its
+`git@github.com:` SSH spelling; Billing requires the exact canonical HTTPS origin
+used by the owner. A Billing override without its declaration is rejected.
+These overrides are for offline tests only. Normal operations use fresh temporary
+fixed-commit triple checkouts.
 
 ## Migration URL contract — isolated acceptance pending
 
-The Accounts worker owns the client implementation. These are the accepted
-planned flags, not a claim that the API is available on existing deployments:
+The Accounts migration client uses the interface below. URL/API mode still awaits
+isolated acceptance; existing deployments are not claimed to expose this API.
+
+The inspected Accounts candidate is [Draft #267](https://github.com/ai-workspace-services/accounts/pull/267),
+source `c5e3bae3bea1d9b71ee2a579e4da8657fc192bc8`. Implementation
+`84df2658cd70da0cdfd7e38d559f688705d4c218` resolves the former 32 MiB total-row
+limit: encrypted immutable chunks have checksums and durable resumable retrieval;
+preview/apply consume pages through SQL TEMP tables rather than whole row maps.
+The recorded isolated PostgreSQL 17 regression passed approximately 44 MiB
+preview/apply and interrupted-fetch recovery. The remaining 64 MiB limit applies
+to metadata objects, not the total business dataset; compact row-digest metadata
+is still retained, so this is not an unbounded constant-memory guarantee.
+`--transfer-only` stages/verifies pages without business writes; default preview
+is unchanged. Missing-page downloads have at most two attempts; mutation requests
+are not automatically retried.
+
+[GitOps #505](https://github.com/ai-workspace-infra/gitops/issues/505) remains open
+for the actual populated backup/restore gate and complete cross-repository runtime
+acceptance; encrypted chunk/resume code is no longer the missing implementation.
+[Playbooks #729](https://github.com/ai-workspace-infra/playbooks/pull/729) has merged
+owner work including the optional listener and Billing/bootstrap readiness.
+These code and isolated-regression results do not establish a fresh runtime
+deployment, published binary release or usable live migration API.
 
 ```bash
+export MIGRATECTL_BIN='/secure/tools/migratectl'
+export MIGRATECTL_SHA256='<64-character SHA-256 from the verified release manifest>'
 bash scripts/migrate-core-data.sh \
   --source-url https://accounts-source.example.com \
   --source-token-env SOURCE_MIGRATION_TOKEN \
@@ -146,6 +233,40 @@ bash scripts/migrate-core-data.sh \
 # Apply only the reviewed preview, using the same source/target/auth references:
 # append --apply --plan-id '<id>' --plan-sha256 '<sha256>'
 ```
+
+Provision the reviewed Accounts binary separately. `MIGRATECTL_BIN` must be an
+absolute path to a regular executable file, not a symlink, and must not be
+group/world-writable. `MIGRATECTL_SHA256` comes from independently verified release
+evidence, not merely a hash calculated from an untrusted local download. The
+Python 3 wrapper checks that digest before executing `transfer-api`; it does not
+install/download a binary or discover one through `PATH`. The pin contract has
+been inspected in the Accounts-owned caller; isolated API acceptance remains pending.
+
+The producer in Accounts `e829428800617900c51c779e4462b6236c8c017b` builds
+`migratectl-linux-amd64`, `migratectl-linux-arm64`, `migratectl-darwin-amd64` and
+`migratectl-darwin-arm64`, plus `SHA256SUMS` and `release-manifest.json`. Linux is
+the supported host migration runner; Darwin assets support local tooling, and
+Windows is not advertised. Follow the fixed-source
+[Accounts release asset contract](https://github.com/ai-workspace-services/accounts/blob/c5e3bae3bea1d9b71ee2a579e4da8657fc192bc8/docs/migrations/migratectl-release-assets.md):
+
+1. Verify the immutable release tag and exact selected target Accounts source SHA.
+   The producer requires a clean checkout with HEAD equal to full `GITHUB_SHA`;
+   manifest `commit` must equal that expected source SHA. A different commit is
+   rejected, not accepted because the filename matches.
+2. Check manifest `schema: 1`, `repository`, `tag` and `commit`. `files` lists
+   filenames; `artifacts` records each exact `name`, `sha256`, `size_bytes`.
+3. Verify `SHA256SUMS` against its own entry in the trusted manifest, then verify
+   the selected binary against both its manifest entry and `SHA256SUMS`, including
+   actual byte size. `SHA256SUMS` covers payloads and does not hash itself;
+   neither checksum file provides a checksum of itself.
+4. Install the verified protected executable, then set `MIGRATECTL_BIN` and the
+   manifest's expected asset `MIGRATECTL_SHA256`. The producer implementation SHA
+   does not replace the selected release source commit or artifact digest.
+   Historical releases without these assets are not silently accepted or modified.
+
+Four-platform local builds, checksum checks and native help passed; publication
+was not performed by those packaging tests. Verify actual published assets before
+operational use and record fixed Accounts and Playbooks commits separately.
 
 `--source-auth-kv` or `--target-auth-kv` may replace the respective token-env flag;
 each pair is mutually exclusive. Arguments contain reference names, never token

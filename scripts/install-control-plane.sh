@@ -18,6 +18,7 @@ import tempfile
 
 GITOPS_URL = "https://github.com/ai-workspace-infra/gitops.git"
 PLAYBOOKS_URL = "https://github.com/ai-workspace-infra/playbooks.git"
+BILLING_URL = "https://github.com/ai-workspace-services/billing-service.git"
 SHA = re.compile(r"[0-9a-fA-F]{40}")
 
 
@@ -33,7 +34,8 @@ parser = argparse.ArgumentParser(
     "nonsecret runtime policy and Vault references; the owner resolves credentials. No secret arguments. "
     "--check delegates preflight only; isolated runtime acceptance is still pending. "
     "Offline tests only: CONTROL_PLANE_OFFLINE_TEST=1 with both GITOPS_CHECKOUT and "
-    "PLAYBOOKS_CHECKOUT; --check required, canonical origins, clean trees and exact SHAs verified.",
+    "PLAYBOOKS_CHECKOUT, plus BILLING_CHECKOUT when release.billing is declared; --check required, "
+    "canonical origins (Billing: HTTPS only), clean trees and exact SHAs verified.",
     allow_abbrev=False,
 )
 parser.add_argument("--config", required=True, help="YAML path relative to the pinned GitOps root")
@@ -57,8 +59,10 @@ def verify_checkout(root, url, sha):
     root = Path(root).resolve(strict=True)
     if Path(git("-C", root, "rev-parse", "--show-toplevel")).resolve() != root:
         fail("checkout must be a repository root")
-    origins = (url, url.replace("https://github.com/", "git@github.com:"))
-    if git("-C", root, "config", "--get", "remote.origin.url") not in origins:
+    origins = (url,) if url == BILLING_URL else (url, url.replace("https://github.com/", "git@github.com:"))
+    origin = (git("-C", root, "remote", "get-url", "origin") if url == BILLING_URL
+              else git("-C", root, "config", "--get", "remote.origin.url"))
+    if origin not in origins:
         fail("checkout origin must match the fixed canonical repository URL")
     if git("-C", root, "rev-parse", "HEAD") != sha:
         fail("checkout HEAD does not match the required full SHA")
@@ -123,9 +127,10 @@ def main():
     offline = os.environ.get("CONTROL_PLANE_OFFLINE_TEST", "")
     local_gitops = os.environ.get("GITOPS_CHECKOUT", "")
     local_playbooks = os.environ.get("PLAYBOOKS_CHECKOUT", "")
+    local_billing = os.environ.get("BILLING_CHECKOUT", "")
     if offline not in ("", "1"):
         fail("CONTROL_PLANE_OFFLINE_TEST must be 1 or unset")
-    if offline or local_gitops or local_playbooks:
+    if offline or local_gitops or local_playbooks or local_billing:
         if not (offline == "1" and local_gitops and local_playbooks and args.check):
             fail("local checkouts require CONTROL_PLANE_OFFLINE_TEST=1, both checkouts and --check")
     with tempfile.TemporaryDirectory(prefix="control-plane-") as temporary:
@@ -142,10 +147,29 @@ def main():
         playbooks_sha = execution.get("playbooks_sha") if isinstance(execution, dict) else None
         if not isinstance(playbooks_sha, str) or not SHA.fullmatch(playbooks_sha):
             fail("execution.playbooks_sha must be a full 40-character commit SHA")
+        release = declaration.get("release", {})
+        if not isinstance(release, dict):
+            fail("release must be a mapping")
+        billing = release.get("billing")
+        if "billing" in release:
+            if not isinstance(billing, dict) or not isinstance(billing.get("source_sha"), str) or not re.fullmatch(
+                r"[0-9a-f]{40}", billing["source_sha"]
+            ):
+                fail("release.billing.source_sha must be a full lowercase 40-character commit SHA")
+            if billing.get("schema_file") != "sql/billing-service-schema.sql":
+                fail("release.billing.schema_file must be sql/billing-service-schema.sql")
+            if offline and not local_billing:
+                fail("BILLING_CHECKOUT is required for offline tests with release.billing")
+        elif local_billing:
+            fail("BILLING_CHECKOUT requires a matching release.billing declaration")
         playbooks = checkout(Path(temporary) / "playbooks", PLAYBOOKS_URL, playbooks_sha.lower(), local_playbooks)
         runner = tracked_file(playbooks, "scripts/control_plane/entrypoint.py")
         env = {**os.environ, "GITOPS_CHECKOUT": str(gitops), "PLAYBOOKS_CHECKOUT": str(playbooks),
                "PYTHONDONTWRITEBYTECODE": "1"}
+        env.pop("BILLING_CHECKOUT", None)
+        if billing is not None:
+            billing_root = checkout(Path(temporary) / "billing-service", BILLING_URL, billing["source_sha"], local_billing)
+            env["BILLING_CHECKOUT"] = str(billing_root)
         command = ["python3", str(runner), "--config", str(config), "--gitops-ref", gitops_sha]
         if args.check:
             command.append("--check")

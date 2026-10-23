@@ -5,6 +5,8 @@ on:
     paths:
       - "scripts/install-control-plane.sh"
       - "scripts/test_install_control_plane.py"
+      - "scripts/migrate-core-data.sh"
+      - "scripts/test_migrate_core_data.py"
       - "scripts/render-profile-readme.py"
       - "scripts/requirements.txt"
       - "profile/README.md"
@@ -15,6 +17,8 @@ on:
     paths:
       - "scripts/install-control-plane.sh"
       - "scripts/test_install_control_plane.py"
+      - "scripts/migrate-core-data.sh"
+      - "scripts/test_migrate_core_data.py"
       - "scripts/render-profile-readme.py"
       - "scripts/requirements.txt"
       - "profile/README.md"
@@ -34,3 +38,4 @@ jobs:
           python-version: "3.11"
       - run: python3 -m pip install --requirement scripts/requirements.txt
       - run: python3 scripts/test_install_control_plane.py -v
+      - run: python3 scripts/test_migrate_core_data.py -v

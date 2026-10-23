@@ -100,7 +100,7 @@ flowchart LR
 | Script | Purpose | Inputs |
 | :--- | :--- | :--- |
 | [`install-control-plane.sh`](../scripts/install-control-plane.sh) | Fixed-commit Playbooks delegation | `--config`, full-SHA `--gitops-ref`, optional `--check` |
-| `migrate-core-data.sh` | One-way core data migration; Accounts worker, isolated API acceptance pending | Source/target URL and authentication references; preview by default |
+| [`migrate-core-data.sh`](../scripts/migrate-core-data.sh) | Accounts migration client for one-way core data transfer; isolated API acceptance pending | `MIGRATECTL_BIN` / `MIGRATECTL_SHA256`, source/target URL and authentication references; preview by default |
 | [`setup-proxy.sh`](../scripts/setup-proxy.sh) | Edge node onboarding | Existing `--node` interface; unchanged implementation |
 
 Control-plane candidate interface, from a reviewed immutable checkout:
@@ -113,8 +113,12 @@ bash scripts/install-control-plane.sh \
 ```
 
 The wrapper requires Git, Python 3 and PyYAML; it fetches the fixed canonical
-GitOps commit and its `execution.playbooks_sha`. Formal releases provide fixed
-script URLs. This candidate is not yet marked runtime available.
+GitOps commit, its `execution.playbooks_sha`, and Billing at
+`release.billing.source_sha` from three fixed canonical repositories, then passes
+`BILLING_CHECKOUT` to the owner. Billing's schema path is fixed to
+`sql/billing-service-schema.sql`; the owner verifies its reviewed digest and
+applies empty-database DDL. No extra public flags are needed. Formal releases
+provide fixed script URLs. This candidate is not yet marked runtime available.
 `CONTROL_PLANE_VARS_FILE` holds nonsecret runtime policy and Vault references;
 Playbooks resolves credentials inside the owner, without plaintext credentials in this file.
 
@@ -134,10 +138,15 @@ upgrades run all eight; rolling updates use backup, non-destructive convergence
 and explicit incremental migrations. PostgreSQL remains tunnel-only. The five
 build repositories are `accounts`, `billing-service`, `portal`, `content-service`
 and `postgresql`; snapshots are build-only, not deployment authorization.
-Verify Actions/workflow enablement first. For r101 all five tags were created;
-builds remain incomplete because PostgreSQL dispatch returned HTTP 422 (Actions
-disabled). Retry unchanged sources at the same tags; use a new immutable revision
-only when source SHA changes. Never move tags.
+Verify Actions/workflow settings and the actual dispatch identity first. For r101
+all five tags exist; four service CI runs and release manifests were verified,
+but PostgreSQL release is absent. GitHub App dispatch returned HTTP 422 again on
+attempt 2, while personal admin API reports `enabled: true` / workflow `active`.
+These observations show a rejected App dispatch path; they do not establish
+globally disabled Actions.
+Builds remain incomplete. No more build retries until actor configuration is
+resolved; unchanged source keeps its tag, and only changed source SHA needs a new
+immutable revision. Never move tags. [Build evidence](../docs/control-plane-deployment-and-migration.md#immutable-builds-and-releases).
 
 Migration URL/API mode is pending isolated acceptance. Existing V4 lacks the new
 API; V4→V5 retains the reviewed SSH/database path, with no implicit URL fallback.

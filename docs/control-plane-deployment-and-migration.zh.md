@@ -10,6 +10,10 @@
 [后续对齐 #506](https://github.com/ai-workspace-infra/gitops/pull/506) 仍待完成。
 合同模板为示例，`example_only: true` 不允许执行。
 
+## 代际记录与验收证据索引
+
+本白皮书是组织级部署/迁移流程入口；逐轮运行值、失败与重验结果归档于 Knowledge，不替代 GitOps、IaC、Playbooks 或应用迁移工具的权威配置。V2→V5 证据链、真实回归 case、恢复回执及当前未通过项见 [PROD V4→V5 基线与升级复盘](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/17-prod-v4-v5-baseline-and-upgrade-retrospective.zh.md)。服务级 Compose/Playbooks 配置来源和脱敏运行回执见 [PROD V5 运行基线](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/prod-v5-runtime-and-snapshot-baseline-20261023.zh.md)。这些是有时间边界的事实归档；未运行项保持 NOT_RUN/BLOCKED，不从构建或 readiness 推导为业务验收。
+
 ## 三个入口
 
 | 脚本 | 用途 | 接口 |
@@ -39,6 +43,14 @@ IaC 管理资源、DNS、state、CMDB；GitOps 保存不含秘密值的期望状
 全新空环境执行 1–4、6，记录跳过迁移的原因；代际升级执行全部阶段。
 已有环境滚动更新采用盘点与备份 → IaC 无破坏增量 → 固定发布收敛 → 仅显式增量迁移 → 边缘节点收敛 → 验证。
 重跑不隐式初始化、清库、重导入或创建第二个 writer。源持续服务时记录快照边界；最终追齐属于阶段 8。
+
+### 部署与迁移的幂等重跑门禁
+
+首轮完整部署成功后，以完全相同的不可变 GitOps/Playbooks/installer ref、镜像 digest、目标和非敏感配置，至少再完整运行三次。每次记录独立 run_id、Asia/Shanghai 起止、退出码、期望配置摘要、实际镜像/容器身份、重启计数、数据库身份及 schema checkpoint。要求无配置漂移、无非预期容器替换或重启、无新增数据库副作用；只有本地 syntax-check、`--check` 或健康探针不能替代真实重复部署。
+
+迁移先做源端一致性只读快照、目标可恢复备份和字段级预览；应用前按精确计划摘要复核源/目标身份与基线。首次写入后每次重放都重新生成只读预览，并对空差异计划执行安全 no-op 校验；至少重复三次。相同身份/内容必须无差异，身份冲突或源/目标基线变化即停止，不覆盖目标独有事实，也不在源端写入。每轮均绑定 `migratectl` 版本与二进制 digest、schema/migration checkpoint、数据校验摘要、退出码和 run_id；应用 exit 0 不代表全业务验收通过。
+
+构建成功、部署成功、数据迁移、备份恢复、真实业务验收和流量/写入切换分别作为独立状态记录。已部署服务可保持运行与零流量，但必须证明无不受控写入者；是否停服由实际迁移合同和目标运行状态决定，不沿用通用停服假设。
 阶段 7 仅准备并审核 DNS 值，不修改 DNS 或授权写入权变化。阶段 8 必须由有权人员针对明确的环境、源、目标、数据操作及 DNS 记录作出并留存明确确认；沉默、回归通过或完成阶段 7 都不构成确认。
 
 PostgreSQL 17 验证身份/MFA、完整计费依赖、目标独有数据、冲突回滚、并发互斥、计划过期、重放、中断恢复与 schema 指纹。

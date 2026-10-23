@@ -1,5 +1,7 @@
 # P0-F：V3 套餐目录与 Stripe Test 映射发布记录
 
+> 当前统一入口见[控制面部署与迁移指南](../control-plane-deployment-and-migration.zh.md)。本文保留 2026-10-19 的 V3 回归范围与历史证据。
+
 日期：2026-10-19（北京时间）。目标仅为既有 `web-saas-prod-v3`。
 
 最终 GitOps tag：`prod-v3-billing-catalog-2026.10.19-r2`。

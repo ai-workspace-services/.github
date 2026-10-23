@@ -12,7 +12,7 @@
   <a href="https://console.svc.plus"><img src="https://img.shields.io/badge/Console-SVC%2B-0B5C7A?style=for-the-badge" alt="Console" /></a>
   <a href="https://github.com/ai-workspace-services"><img src="https://img.shields.io/badge/GitHub-Organization-181717?style=for-the-badge&logo=github" alt="GitHub Organization" /></a>
   <a href="https://github.com/ai-workspace-services?tab=repositories"><img src="https://img.shields.io/badge/Public%20Repos-10-2F855A?style=for-the-badge" alt="Public Repositories" /></a>
-  <a href="#-quick-start"><img src="https://img.shields.io/badge/Self--Host-3%20min-blue?style=for-the-badge&logo=gnubash&logoColor=white" alt="Self-Host in 3 minutes" /></a>
+  <a href="#-quick-start"><img src="https://img.shields.io/badge/Self--Host-Deployment%20Guide-blue?style=for-the-badge&logo=gnubash&logoColor=white" alt="Self-Host deployment guide" /></a>
   <a href="https://github.com/ai-workspace-services/accounts"><img src="https://img.shields.io/badge/Auth-GitHub%20%7C%20Google%20OAuth-black?style=for-the-badge&logo=openid&logoColor=white" alt="OAuth" /></a>
 </p>
 
@@ -24,7 +24,7 @@
 
 ## 🌐 Overview
 
-`ai-workspace-services` is the application-services organization of AI Workspace Lab, built on top of [`ai-workspace-infra`](https://github.com/ai-workspace-infra). We combine unified identity, AI collaboration workspaces and a low-latency global network into one ready-to-use stack — use it fully managed in the cloud, or self-host it in three minutes.
+`ai-workspace-services` is the application-services organization of AI Workspace Lab, built on top of [`ai-workspace-infra`](https://github.com/ai-workspace-infra). We combine unified identity, AI collaboration workspaces and a low-latency global network into a managed or self-hosted stack.
 
 ### Product Principles
 
@@ -94,19 +94,54 @@ flowchart LR
 | :--- | :--- | :--- |
 | ☁️ **Zero-ops cloud** | Try it now | Sign in at [console.svc.plus](https://console.svc.plus) with GitHub / Google |
 | 📱 **Native client** | Daily use | [Download XConnect preview](https://console.svc.plus/products/xstream) (macOS / Windows / iOS / Linux) |
-| 🖥️ **Self-hosted control plane** | Run Console, Accounts, Billing and PostgreSQL yourself | Use the reviewed SSH → Playbook → fixed GitOps → Doco-CD deployment path; see the [Selfhost deployment guide](../docs/selfhost-orchestrator-one-shell-uat-prod.md). |
-| 🔌 **Proxy node** | Add one XConnect edge node to an existing control plane | 1 VPS + 1 node domain pointing to it, then run the proxy installer below. |
+| 🖥️ **Self-hosted control plane** | Run Accounts, Billing, Console/Portal, Content and PostgreSQL | [Deployment and migration guide](../docs/control-plane-deployment-and-migration.md); isolated integration acceptance pending |
+| 🔌 **Edge node onboarding** | Add one XConnect edge node to an existing control plane | Existing node installer and node credential contract |
+
+| Script | Purpose | Inputs |
+| :--- | :--- | :--- |
+| [`install-control-plane.sh`](../scripts/install-control-plane.sh) | Fixed-commit Playbooks delegation | `--config`, full-SHA `--gitops-ref`, optional `--check` |
+| `migrate-core-data.sh` | One-way core data migration; Accounts worker, isolated API acceptance pending | Source/target URL and authentication references; preview by default |
+| [`setup-proxy.sh`](../scripts/setup-proxy.sh) | Edge node onboarding | Existing `--node` interface; unchanged implementation |
+
+Control-plane candidate interface, from a reviewed immutable checkout:
 
 ```bash
-# Proxy node only; this does not deploy the self-hosted control plane.
-curl -fsSL https://raw.githubusercontent.com/ai-workspace-services/.github/main/scripts/setup-proxy.sh \
+export CONTROL_PLANE_CMDB='/secure/run/cmdb.json'
+export CONTROL_PLANE_VARS_FILE='/secure/run/vars.yaml'
+bash scripts/install-control-plane.sh \
+  --config '<GitOps-relative YAML>' --gitops-ref '<full 40-character SHA>' --check
+```
+
+The wrapper requires Git, Python 3 and PyYAML; it fetches the fixed canonical
+GitOps commit and its `execution.playbooks_sha`. Formal releases provide fixed
+script URLs. This candidate is not yet marked runtime available.
+`CONTROL_PLANE_VARS_FILE` holds nonsecret runtime policy and Vault references;
+Playbooks resolves credentials inside the owner, without plaintext credentials in this file.
+
+```bash
+# Edge node onboarding; replace with a reviewed immutable release or full SHA.
+curl -fsSL 'https://raw.githubusercontent.com/ai-workspace-services/.github/<release-or-SHA>/scripts/setup-proxy.sh' \
   | bash -s -- --node xhttp.example.com
 ```
 
-For the self-hosted control plane, use separate control-plane domains such as
-`console-sit-v4.<base domain>`, `accounts-sit-v4.<base domain>`,
-`billing-sit-v4.<base domain>`, and `postgresql-sit-v4.<base domain>`.
-PostgreSQL remains tunnel-only and is never exposed as a public database.
+Eight stages: **1** GitOps configuration → **2** IaC and CMDB → **3** five-repository
+build snapshot → **4** install control plane → **5** one-way data migration →
+**6** full candidate acceptance → **7** prepare handover for confirmation →
+**8** confirmed writer/traffic handover and business acceptance.
+
+Fresh deployment runs 1–4 and 6, recording why migration is skipped. Generation
+upgrades run all eight; rolling updates use backup, non-destructive convergence
+and explicit incremental migrations. PostgreSQL remains tunnel-only. The five
+build repositories are `accounts`, `billing-service`, `portal`, `content-service`
+and `postgresql`; snapshots are build-only, not deployment authorization.
+Verify Actions/workflow enablement first. For r101 all five tags were created;
+builds remain incomplete because PostgreSQL dispatch returned HTTP 422 (Actions
+disabled). Retry unchanged sources at the same tags; use a new immutable revision
+only when source SHA changes. Never move tags.
+
+Migration URL/API mode is pending isolated acceptance. Existing V4 lacks the new
+API; V4→V5 retains the reviewed SSH/database path, with no implicit URL fallback.
+See the [guide and existing V2/V3/V4 records](../docs/control-plane-deployment-and-migration.md#historical-records).
 
 ---
 
@@ -129,12 +164,14 @@ PostgreSQL remains tunnel-only and is never exposed as a public database.
 
 ## 🚦 Release Status
 
+Registry discovery below shows artifact availability only, not deployment or runtime acceptance.
+
 <!-- RELEASES:START — generated by CI, do not edit by hand -->
 | Env | Purpose | Status | Latest | Updated (UTC) |
 | :--- | :--- | :--- | :--- | :--- |
 | `prod` | Production | ![none](https://img.shields.io/badge/-no_release-lightgrey) | — | — |
-| `uat` | Pre-release | ![live](https://img.shields.io/badge/-live-2F855A) | `uat-platform-rebuild-2026.07.27-r4` | 2026-07-27 05:38 |
-| `sit` | Integration | ![live](https://img.shields.io/badge/-live-2F855A) | `4a7176c` | 2026-07-27 05:40 |
+| `uat` | Pre-release | ![artifact found](https://img.shields.io/badge/-artifact_found-2F855A) | `uat-platform-rebuild-2026.07.27-r4` | 2026-07-27 05:38 |
+| `sit` | Integration | ![artifact found](https://img.shields.io/badge/-artifact_found-2F855A) | `4a7176c` | 2026-07-27 05:40 |
 
 <details>
 <summary>Image tags</summary>

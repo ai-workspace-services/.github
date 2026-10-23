@@ -12,7 +12,7 @@
   <a href="https://console.svc.plus"><img src="https://img.shields.io/badge/Console-SVC%2B-0B5C7A?style=for-the-badge" alt="Console" /></a>
   <a href="https://github.com/ai-workspace-services"><img src="https://img.shields.io/badge/GitHub-Organization-181717?style=for-the-badge&logo=github" alt="GitHub Organization" /></a>
   <a href="https://github.com/ai-workspace-services?tab=repositories"><img src="https://img.shields.io/badge/Public%20Repos-10-2F855A?style=for-the-badge" alt="Public Repositories" /></a>
-  <a href="#-快速开始"><img src="https://img.shields.io/badge/Self--Host-3%20min-blue?style=for-the-badge&logo=gnubash&logoColor=white" alt="Self-Host in 3 minutes" /></a>
+  <a href="#-快速开始"><img src="https://img.shields.io/badge/Self--Host-Deployment%20Guide-blue?style=for-the-badge&logo=gnubash&logoColor=white" alt="自托管部署指南" /></a>
   <a href="https://github.com/ai-workspace-services/accounts"><img src="https://img.shields.io/badge/Auth-GitHub%20%7C%20Google%20OAuth-black?style=for-the-badge&logo=openid&logoColor=white" alt="OAuth" /></a>
 </p>
 
@@ -24,7 +24,7 @@
 
 ## 🇨🇳 组织概览
 
-`ai-workspace-services` 是 AI Workspace Lab 的应用服务组织，构建在 [`ai-workspace-infra`](https://github.com/ai-workspace-infra) 基础设施之上。我们把统一身份、AI 协作工作空间与全球低延迟连接整合为一套开箱即用的服务，既可云端免运维使用，也可 3 分钟自建。
+`ai-workspace-services` 是 AI Workspace Lab 的应用服务组织，构建在 [`ai-workspace-infra`](https://github.com/ai-workspace-infra) 基础设施之上。我们把统一身份、AI 协作工作空间与全球低延迟连接整合为云端托管或自建服务。
 
 ### 我们的产品准则
 
@@ -95,19 +95,47 @@ flowchart LR
 | :--- | :--- | :--- |
 | ☁️ **云端免运维** | 立即体验 | 访问 [console.svc.plus](https://console.svc.plus)，GitHub / Google 登录 |
 | 📱 **跨平台客户端** | 日常使用 | [下载 XConnect 预览版](https://console.svc.plus/products/xstream)（macOS / Windows / iOS / Linux） |
-| 🖥️ **自托管控制面** | 自建 Console、Accounts、Billing 和 PostgreSQL | 使用审核过的 SSH → Playbook → 固定 GitOps → Doco-CD 部署路径 |
-| 🔌 **Proxy 节点** | 为已有控制面增加一个 XConnect 边缘节点 | 1 台 VPS + 1 个节点域名，执行下方代理脚本 |
+| 🖥️ **自托管控制面** | 自建 Accounts、Billing、Console/Portal、Content 和 PostgreSQL | [部署与迁移指南](../docs/control-plane-deployment-and-migration.zh.md)，隔离联调验收待完成 |
+| 🔌 **边缘节点接入** | 为已有控制面增加一个 XConnect 边缘节点 | 使用现有节点安装入口和节点凭据合同 |
+
+| 脚本 | 用途 | 输入 |
+| :--- | :--- | :--- |
+| [`install-control-plane.sh`](../scripts/install-control-plane.sh) | 调用固定提交的 Playbooks | `--config`、完整 SHA 的 `--gitops-ref`、可选 `--check` |
+| `migrate-core-data.sh` | 单向迁移核心数据，Accounts worker 负责，API 隔离验收待完成 | 源/目标 URL 与认证引用，默认预览 |
+| [`setup-proxy.sh`](../scripts/setup-proxy.sh) | 边缘节点接入 | 保留当前 `--node` 等接口，脚本原样保留 |
+
+从审核过的不可变 checkout 使用控制面候选入口：
 
 ```bash
-# 仅部署 Proxy 节点，不会部署自托管控制面。
-curl -fsSL https://raw.githubusercontent.com/ai-workspace-services/.github/main/scripts/setup-proxy.sh \
+export CONTROL_PLANE_CMDB='/secure/run/cmdb.json'
+export CONTROL_PLANE_VARS_FILE='/secure/run/vars.yaml'
+bash scripts/install-control-plane.sh \
+  --config '<GitOps 相对 YAML>' --gitops-ref '<完整40位 SHA>' --check
+```
+
+包装脚本要求 Git、Python 3 和 PyYAML，获取 canonical GitOps 的固定提交及声明中的
+`execution.playbooks_sha`。正式发布说明将提供固定脚本 URL；当前候选入口尚未标为运行可用。
+`CONTROL_PLANE_VARS_FILE` 只放非敏感运行策略和 Vault 引用；凭据由 Playbooks owner 内部解析，不在该文件保存明文凭据。
+
+```bash
+# 边缘节点接入：替换为审核过的不可变 release 或完整 SHA。
+curl -fsSL 'https://raw.githubusercontent.com/ai-workspace-services/.github/<release-or-SHA>/scripts/setup-proxy.sh' \
   | bash -s -- --node xhttp.example.com
 ```
 
-自托管控制面使用独立域名，例如
-`console-sit-v4.<base domain>`、`accounts-sit-v4.<base domain>`、
-`billing-sit-v4.<base domain>`、`postgresql-sit-v4.<base domain>`。
-PostgreSQL 只允许隧道访问，不开放公网数据库端口。
+八阶段：**1** GitOps 配置 → **2** IaC 与 CMDB → **3** 五仓构建快照 →
+**4** 控制面安装 → **5** 核心数据单向迁移 → **6** 新环境完整验收 →
+**7** 准备切换报告并等待确认 → **8** 经确认移交写入权、切流量及正式验收。
+
+全新部署执行 1–4、6 并记录跳过迁移原因；代际升级执行全部阶段。
+滚动更新采用备份、无破坏收敛及显式增量迁移；PostgreSQL 仅允许隧道访问。
+五仓为 `accounts`、`billing-service`、`portal`、`content-service`、`postgresql`；
+快照仅构建，不隐含部署授权。先预检 Actions/workflow 已启用。
+r101 五仓 tag 均已创建，但 PostgreSQL dispatch 因 Actions 禁用返回 HTTP 422，构建未完成。
+源码未变在原 tag 重试；仅代码/源码 SHA 改变时创建新不可变 revision，不移动已有 tag。
+
+迁移 URL/API 模式等待隔离验收；现有 V4 尚无该 API，V4→V5 保留审核过的 SSH/数据库路径，URL 模式不隐式回退。
+详见[指南及已有 V2/V3/V4 历史记录](../docs/control-plane-deployment-and-migration.zh.md#历史文档)。
 
 ---
 
@@ -130,12 +158,14 @@ PostgreSQL 只允许隧道访问，不开放公网数据库端口。
 
 ## 🚦 发布状态 (Release Status)
 
+下方 registry 发现结果仅表示构件存在，不证明部署成功或运行验收通过。
+
 <!-- RELEASES:START — CI 生成，请勿手改 -->
 | 环境 | 定位 | 状态 | 最新版本 | 更新时间 (UTC) |
 | :--- | :--- | :--- | :--- | :--- |
 | `prod` | 生产发布 | ![none](https://img.shields.io/badge/-暂无发布-lightgrey) | — | — |
-| `uat` | 预发验证 | ![live](https://img.shields.io/badge/-live-2F855A) | `uat-platform-rebuild-2026.07.27-r4` | 2026-07-27 05:38 |
-| `sit` | 验证集成 | ![live](https://img.shields.io/badge/-live-2F855A) | `4a7176c` | 2026-07-27 05:40 |
+| `uat` | 预发验证 | ![artifact found](https://img.shields.io/badge/-artifact_found-2F855A) | `uat-platform-rebuild-2026.07.27-r4` | 2026-07-27 05:38 |
+| `sit` | 验证集成 | ![artifact found](https://img.shields.io/badge/-artifact_found-2F855A) | `4a7176c` | 2026-07-27 05:40 |
 
 <details>
 <summary>镜像清单 (Image Tags)</summary>

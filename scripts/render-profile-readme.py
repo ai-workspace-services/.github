@@ -162,7 +162,7 @@ BLOCK = re.compile(r"<!-- RELEASES:START.*?<!-- RELEASES:END -->", re.S)
 
 def status_badge(version: dict[str, Any] | None, lang: str) -> str:
     if version:
-        return "![live](https://img.shields.io/badge/-live-2F855A)"
+        return "![artifact found](https://img.shields.io/badge/-artifact_found-2F855A)"
     return f"![none](https://img.shields.io/badge/-{TEXT[lang]['none']}-lightgrey)"
 
 

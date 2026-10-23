@@ -52,6 +52,41 @@ an explicit, recorded confirmation from the authorized human for the named
 environment, source, target, data action and DNS records; silence, a passed
 regression, or completion of stage 7 is not confirmation.
 
+### Cleanroom validation and real replays
+
+Prove that serving and candidate namespaces, state keys, lineages and actual
+cloud-resource identities are disjoint. Verify an off-host encrypted recovery
+point before deleting candidate compute. The
+[IaC owner](https://github.com/ai-workspace-infra/iac_modules/blob/main/docs/howto/isolated-candidate-validation.md)
+restricts the saved destroy plan to that instance and retains the source,
+firewall, independent storage, backups and remote state. Normal recreation
+restores default deletion protection. Obtain the full provider-attested SSH
+fingerprint and match the network key before strict SSH; prepare controller
+collections before Ansible parses roles. A single IPv6 `/128` is a host address,
+while a network prefix must not become a deployment target. Canonical state
+witnesses sort only Terraform's unordered check-result sets and retain all
+resource values, lineage, serial and status changes.
+
+Use the reviewed prebuilt `migratectl` for the explicitly approved data scope.
+Users-only apply takes the shared transaction advisory lock, then exclusive
+users/checkpoint locks before target data reads, rechecks the exact preview
+digest under those locks, and releases them on commit or rollback. A writer
+committing while it waits invalidates the old plan. This path no longer requires
+a paused-writer assertion; other migration commands retain their contracts.
+See [Accounts #271](https://github.com/ai-workspace-services/accounts/pull/271)
+and its PostgreSQL 17 concurrent-writer regression.
+
+After the initial deployment, migration and isolated recovery, use the populated
+candidate as the baseline for at least three real rounds of IaC convergence,
+complete deployment, fresh migration preview/apply/compare and state comparison.
+Pin all source and artifact identities. Record Shanghai start/end, run ID,
+exit code, schema/checkpoint and database identity. Compare business content and
+user row versions, configuration, and long-running container identity/start/
+restart state. A declared one-shot asset task may run, but must exit successfully
+and leave identical complete asset content. Preserve failures and their new
+reverification receipts. A live source remains bounded by its recorded snapshot;
+final catch-up and traffic/writer transfer still require stage 8 authorization.
+
 Acceptance covers identity/MFA, all billing dependencies, target-only data,
 conflict rollback, concurrency locks, expired plans, replay, interrupted recovery
 and schema fingerprints on PostgreSQL 17. Regressions include certificates/public
@@ -238,7 +273,7 @@ fixed-commit triple checkouts.
 The Accounts migration client uses the interface below. URL/API mode still awaits
 isolated acceptance; existing deployments are not claimed to expose this API.
 
-The inspected Accounts candidate is [Draft #267](https://github.com/ai-workspace-services/accounts/pull/267),
+The historical inspection sampled [#267](https://github.com/ai-workspace-services/accounts/pull/267) while it was Draft,
 source `c5e3bae3bea1d9b71ee2a579e4da8657fc192bc8`. Implementation
 `84df2658cd70da0cdfd7e38d559f688705d4c218` resolves the former 32 MiB total-row
 limit: encrypted immutable chunks have checksums and durable resumable retrieval;
@@ -250,6 +285,9 @@ is still retained, so this is not an unbounded constant-memory guarantee.
 `--transfer-only` stages/verifies pages without business writes; default preview
 is unchanged. Missing-page downloads have at most two attempts; mutation requests
 are not automatically retried.
+Rechecked on 2026-10-24: #267 merged as
+`e1793b3e3586bfad5f8173ee3480189b98fde9e0`. The Draft reference and source above
+remain historical samples; merge does not establish full runtime API acceptance.
 
 [GitOps #505](https://github.com/ai-workspace-infra/gitops/issues/505) remains open
 for the actual populated backup/restore gate and complete cross-repository runtime

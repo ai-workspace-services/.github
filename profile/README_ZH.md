@@ -119,6 +119,8 @@ bash scripts/install-control-plane.sh \
 Billing schema 路径固定为 `sql/billing-service-schema.sql`，由 owner 核对审核过的 digest 并执行空库 DDL，
 无需增加公开 flags。正式发布说明将提供固定脚本 URL；当前候选入口尚未标为运行可用。
 `CONTROL_PLANE_VARS_FILE` 只放非敏感运行策略和 Vault 引用；凭据由 Playbooks owner 内部解析，不在该文件保存明文凭据。
+实际部署前，安装器调用固定 Playbooks `vhosts/common` 的控制器准备入口，
+在私有目录安装固定 collection，再解析角色并部署。`--check` 不安装 collection，也不连接主机。
 
 ```bash
 # 边缘节点接入：替换为审核过的不可变 release 或完整 SHA。

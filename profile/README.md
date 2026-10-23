@@ -121,6 +121,9 @@ applies empty-database DDL. No extra public flags are needed. Formal releases
 provide fixed script URLs. This candidate is not yet marked runtime available.
 `CONTROL_PLANE_VARS_FILE` holds nonsecret runtime policy and Vault references;
 Playbooks resolves credentials inside the owner, without plaintext credentials in this file.
+Before apply, the installer invokes the fixed Playbooks `vhosts/common`
+controller preparation helper in a private collection directory, then parses
+roles and deploys. `--check` does not install collections or contact hosts.
 
 ```bash
 # Edge node onboarding; replace with a reviewed immutable release or full SHA.

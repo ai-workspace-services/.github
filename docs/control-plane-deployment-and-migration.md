@@ -187,13 +187,25 @@ The Accounts migration client uses the interface below. URL/API mode still await
 isolated acceptance; existing deployments are not claimed to expose this API.
 
 The inspected Accounts candidate is [Draft #267](https://github.com/ai-workspace-services/accounts/pull/267),
-source `a7c7f8743e409f21d49a9b0b55291e788312a865`. This version bounds scoped row
-data to 32 MiB and objects to 64 MiB; recovery is by snapshot/plan ID, not resumable
-per-chunk retrieval. The accepted large-data chunking/checksum/resume requirement
-and Playbooks verification of a real populated backup restore remain integration
-blockers, tracked in [GitOps #505](https://github.com/ai-workspace-infra/gitops/issues/505).
-Committing this caller and its pin tests does not complete those gates,
-publish a binary release, or make an existing deployment expose the API.
+source `c5e3bae3bea1d9b71ee2a579e4da8657fc192bc8`. Implementation
+`84df2658cd70da0cdfd7e38d559f688705d4c218` resolves the former 32 MiB total-row
+limit: encrypted immutable chunks have checksums and durable resumable retrieval;
+preview/apply consume pages through SQL TEMP tables rather than whole row maps.
+The recorded isolated PostgreSQL 17 regression passed approximately 44 MiB
+preview/apply and interrupted-fetch recovery. The remaining 64 MiB limit applies
+to metadata objects, not the total business dataset; compact row-digest metadata
+is still retained, so this is not an unbounded constant-memory guarantee.
+`--transfer-only` stages/verifies pages without business writes; default preview
+is unchanged. Missing-page downloads have at most two attempts; mutation requests
+are not automatically retried.
+
+[GitOps #505](https://github.com/ai-workspace-infra/gitops/issues/505) remains open
+for the actual populated backup/restore gate and complete cross-repository runtime
+acceptance; encrypted chunk/resume code is no longer the missing implementation.
+[Playbooks #729](https://github.com/ai-workspace-infra/playbooks/pull/729) has merged
+owner work including the optional listener and Billing/bootstrap readiness.
+These code and isolated-regression results do not establish a fresh runtime
+deployment, published binary release or usable live migration API.
 
 ```bash
 export MIGRATECTL_BIN='/secure/tools/migratectl'
@@ -214,6 +226,32 @@ evidence, not merely a hash calculated from an untrusted local download. The
 Python 3 wrapper checks that digest before executing `transfer-api`; it does not
 install/download a binary or discover one through `PATH`. The pin contract has
 been inspected in the Accounts-owned caller; isolated API acceptance remains pending.
+
+The producer in Accounts `e829428800617900c51c779e4462b6236c8c017b` builds
+`migratectl-linux-amd64`, `migratectl-linux-arm64`, `migratectl-darwin-amd64` and
+`migratectl-darwin-arm64`, plus `SHA256SUMS` and `release-manifest.json`. Linux is
+the supported host migration runner; Darwin assets support local tooling, and
+Windows is not advertised. Follow the fixed-source
+[Accounts release asset contract](https://github.com/ai-workspace-services/accounts/blob/c5e3bae3bea1d9b71ee2a579e4da8657fc192bc8/docs/migrations/migratectl-release-assets.md):
+
+1. Verify the immutable release tag and exact selected target Accounts source SHA.
+   The producer requires a clean checkout with HEAD equal to full `GITHUB_SHA`;
+   manifest `commit` must equal that expected source SHA. A different commit is
+   rejected, not accepted because the filename matches.
+2. Check manifest `schema: 1`, `repository`, `tag` and `commit`. `files` lists
+   filenames; `artifacts` records each exact `name`, `sha256`, `size_bytes`.
+3. Verify `SHA256SUMS` against its own entry in the trusted manifest, then verify
+   the selected binary against both its manifest entry and `SHA256SUMS`, including
+   actual byte size. `SHA256SUMS` covers payloads and does not hash itself;
+   neither checksum file provides a checksum of itself.
+4. Install the verified protected executable, then set `MIGRATECTL_BIN` and the
+   manifest's expected asset `MIGRATECTL_SHA256`. The producer implementation SHA
+   does not replace the selected release source commit or artifact digest.
+   Historical releases without these assets are not silently accepted or modified.
+
+Four-platform local builds, checksum checks and native help passed; publication
+was not performed by those packaging tests. Verify actual published assets before
+operational use and record fixed Accounts and Playbooks commits separately.
 
 `--source-auth-kv` or `--target-auth-kv` may replace the respective token-env flag;
 each pair is mutually exclusive. Arguments contain reference names, never token

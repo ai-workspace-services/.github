@@ -143,11 +143,17 @@ CMDB 还须声明 `storage`（或 `host_vars.control_plane_storage`）：`profil
 以下为 Accounts 迁移客户端接口。URL/API 模式仍待隔离验收，不代表现有环境已有 API。
 
 已检查的 Accounts 候选为 [Draft #267](https://github.com/ai-workspace-services/accounts/pull/267)，
-源码 `a7c7f8743e409f21d49a9b0b55291e788312a865`。该版本将范围内行数据限制为 32 MiB、对象限制为 64 MiB，
-恢复粒度为快照/计划 ID，尚无逐分块可恢复获取。已接受的大数据分块、校验和与断点续传要求，
-以及 Playbooks 对真实含业务数据备份恢复的验证，仍为集成阻断项。
-跟踪：[GitOps #505](https://github.com/ai-workspace-infra/gitops/issues/505)。
-提交此包装脚本及固定二进制测试，不代表这些门禁通过、二进制版本发布或现有环境提供 API。
+源码 `c5e3bae3bea1d9b71ee2a579e4da8657fc192bc8`。实现提交
+`84df2658cd70da0cdfd7e38d559f688705d4c218` 已解决原 32 MiB 总行数据限制：
+加密不可变分块具备校验和、持久暂存和可恢复获取，preview/apply 通过 SQL TEMP 表消费页面，不再构造完整行数据 map。
+已有隔离 PostgreSQL 17 证据表明，约 44 MiB preview/apply 和中断获取后的恢复通过。
+64 MiB 仍是元数据对象限制，不是业务数据总量限制；仍保留精简的逐行 digest 元数据，不承诺无限数据下常量内存。
+`--transfer-only` 仅暂存/核验页面，不写业务数据；默认预览不变。缺失页面下载最多尝试两次，变更请求不自动重试。
+
+[GitOps #505](https://github.com/ai-workspace-infra/gitops/issues/505) 继续跟踪实际含业务数据的备份恢复门禁及完整跨仓运行验收；
+分块/续传代码不再是未实现缺口。[Playbooks #729](https://github.com/ai-workspace-infra/playbooks/pull/729)
+已合并可选 listener 和 Billing/bootstrap 就绪检查等 owner 工作。
+代码与隔离回归通过，不代表全新运行部署、二进制版本发布或现有环境提供可用迁移 API。
 
 ```bash
 export MIGRATECTL_BIN='/secure/tools/migratectl'
@@ -165,6 +171,23 @@ bash scripts/migrate-core-data.sh \
 `MIGRATECTL_SHA256` 来自独立核验的发布证据，不能只对不可信本地下载计算 hash 后当作可信来源。
 Python 3 包装脚本校验该 digest 后执行 `transfer-api`；不安装、不下载二进制、不从 `PATH` 发现客户端。
 已核对 Accounts 所属脚本中的固定二进制合同；API 隔离验收仍待完成。
+
+Accounts `e829428800617900c51c779e4462b6236c8c017b` 的生产器构建
+`migratectl-linux-amd64`、`migratectl-linux-arm64`、`migratectl-darwin-amd64`、`migratectl-darwin-arm64`，
+并生成 `SHA256SUMS` 和 `release-manifest.json`。Linux 为支持的主机迁移 runner，Darwin 资产用于本地工具，不宣称 Windows 支持。
+完整合同见固定源码的 [Accounts 发布资产说明](https://github.com/ai-workspace-services/accounts/blob/c5e3bae3bea1d9b71ee2a579e4da8657fc192bc8/docs/migrations/migratectl-release-assets.md)：
+
+1. 核对不可变 release tag 与选定的目标 Accounts 精确源码 SHA。生产器要求干净 checkout 的 HEAD 等于完整 `GITHUB_SHA`；
+   manifest 的 `commit` 必须等于该预期源码 SHA，不能因文件名匹配而接受其他源码。
+2. 核对 manifest 的 `schema: 1`、`repository`、`tag`、`commit`。`files` 为文件名列表，
+   `artifacts` 逐项提供精确 `name`、`sha256`、`size_bytes`。
+3. 先按可信 manifest 对应条目校验 `SHA256SUMS` 自身，再将选定平台二进制同时与 manifest 条目和 `SHA256SUMS` 核对，包括实际字节数。
+   `SHA256SUMS` 覆盖 payload，不包含它自身的 hash；两个校验文件均不提供自身的 checksum。
+4. 安装为前述受保护普通可执行文件，再设置 `MIGRATECTL_BIN` 和 manifest 记录的预期资产 `MIGRATECTL_SHA256`。
+   生产器实现提交不能替代所选 release 的源码 SHA 或资产 digest；旧 release 缺少这些资产时不能静默接受或修改旧版本。
+
+四平台本地构建、checksum 及原生 help 已通过，但这些打包测试未发布 release。
+实际运维前仍须核对真实发布资产，并分别记录固定 Accounts 和 Playbooks 提交。
 
 每端可用 `--source-auth-kv` / `--target-auth-kv` 替换对应 token-env；同端两种方式互斥。
 参数只传引用名称，绝不传 Token 值。迁移凭据短期、限定对端/用途，独立于共享服务 Token。

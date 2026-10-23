@@ -60,17 +60,30 @@ Required FAIL, BLOCKED or NOT_RUN results stop handover.
 The five service repositories are `accounts`, `billing-service`, `portal`,
 `content-service` and `postgresql`. `daily-main-snapshot.yaml` must select that
 explicit list and run the build-only lane. Before tagging or dispatching, check
-that Actions is enabled in every repository, the intended workflow is enabled,
-and the workflow supports dispatch. Inspect the actual workflow and tag-triggered
+that Actions is enabled in every repository, the intended workflow is active,
+and the workflow supports dispatch through the actual execution identity. Personal
+administrator API access does not establish GitHub App dispatch authorization.
+Inspect the actual workflow and tag-triggered
 jobs: a build must not provision, deploy, migrate or change DNS.
 
-Verified r101 evidence: all five tags were CREATED at their source SHAs.
-PostgreSQL workflow dispatch returned HTTP 422, `Actions has been disabled for
-this repository`. The snapshot is **tags-created / build-incomplete**. This is
-not a repository-filter bug or evidence of absent tags. Capture the exact workflow
-response, restore Actions enablement through the owning process, and retry the
-build at the existing tag/SHA when the source is unchanged. A new immutable
-revision is needed only when code/source SHA changes. Never move an existing tag.
+Verified r101 evidence: all five tags were CREATED at their source SHAs. CI runs
+and release manifests for `accounts`, `billing-service`, `portal` and
+`content-service` were verified successful; the PostgreSQL release is absent.
+PostgreSQL dispatch through the GitHub App returned HTTP 422, `Actions has been
+disabled for this repository`, again on rerun attempt 2. See
+[run 39891515095, attempt 2](https://github.com/ai-workspace-infra/platform-ops-toolkit/actions/runs/39891515095).
+Separately, the personal administrator API reports `actions/permissions`
+`enabled: true` and workflow state `active`. The observed failure is a rejection
+of the GitHub App dispatch path; it does not establish that Actions remains
+globally disabled for the repository. The actor configuration discrepancy remains
+unresolved. The snapshot is **tags-created / four builds verified / PostgreSQL
+dispatch rejected and release absent**, therefore build-incomplete and not
+deployable. This is not a repository-filter bug or evidence of absent tags.
+
+Do not retry builds again until the execution actor configuration is resolved.
+Preserve the exact API response and identity-specific settings evidence. Once
+that blocker is resolved, unchanged source retains the existing tag/SHA; a new
+immutable revision is needed only when code/source SHA changes. Never move a tag.
 
 Each repository needs matching tag/SHA, successful build URL, expected artifact
 and digest evidence before deployment. Missing, failed or unknown builds block

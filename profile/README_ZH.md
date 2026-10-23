@@ -130,9 +130,12 @@ curl -fsSL 'https://raw.githubusercontent.com/ai-workspace-services/.github/<rel
 全新部署执行 1–4、6 并记录跳过迁移原因；代际升级执行全部阶段。
 滚动更新采用备份、无破坏收敛及显式增量迁移；PostgreSQL 仅允许隧道访问。
 五仓为 `accounts`、`billing-service`、`portal`、`content-service`、`postgresql`；
-快照仅构建，不隐含部署授权。先预检 Actions/workflow 已启用。
-r101 五仓 tag 均已创建，但 PostgreSQL dispatch 因 Actions 禁用返回 HTTP 422，构建未完成。
-源码未变在原 tag 重试；仅代码/源码 SHA 改变时创建新不可变 revision，不移动已有 tag。
+快照仅构建，不隐含部署授权。先预检 Actions/workflow 设置及实际派发身份。
+r101 五仓 tag 均已创建，四仓 CI 和 release manifest 已验证成功，PG release 缺失。
+GitHub App dispatch 在 attempt 2 再次返回 HTTP 422；个人管理员 API 同时显示 `enabled: true` / workflow `active`。
+这是 App 派发路径被拒绝，不能断言 Actions 全局禁用；整体构建未完成。
+执行身份配置解决前不再重试构建。源码未变保留原 tag，仅代码/源码 SHA 改变时创建新不可变 revision，不移动 tag。
+详见[构建证据](../docs/control-plane-deployment-and-migration.zh.md#五仓构建与不可变发布)。
 
 迁移 URL/API 模式等待隔离验收；现有 V4 尚无该 API，V4→V5 保留审核过的 SSH/数据库路径，URL 模式不隐式回退。
 详见[指南及已有 V2/V3/V4 历史记录](../docs/control-plane-deployment-and-migration.zh.md#历史文档)。

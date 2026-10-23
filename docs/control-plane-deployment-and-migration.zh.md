@@ -48,13 +48,21 @@ Exporter → Vector → Billing → PostgreSQL → Accounts。
 
 核心五仓为 `accounts`、`billing-service`、`portal`、`content-service`、`postgresql`。
 `daily-main-snapshot.yaml` 必须显式选择这五仓，仅运行构建路径。
-创建 tag 或派发前，预检各仓 Actions 已启用、目标 workflow 已启用并支持 dispatch；
+创建 tag 或派发前，预检各仓 Actions 已启用、目标 workflow 为 active，且实际执行身份可派发；
+个人管理员 API 可访问不等于 GitHub App 已获 dispatch 授权。
 检查实际 workflow 和 tag 触发条件，确认仅构建，不创建资源、不部署、不迁移、不改 DNS。
 
-已核实 r101：五仓 tag 均在各自源码 SHA 上 CREATED；PostgreSQL workflow dispatch 返回 HTTP 422，
-原因是 `Actions has been disabled for this repository`。状态为 **tags-created / build-incomplete（tag 已创建、构建未完成）**，
-不是仓库筛选错误，也不是 tag 不存在。保存具体错误和 workflow 证据；通过所属流程恢复 Actions 可用性后，
-源码未变时在原 tag/SHA 重试构建。只有代码/源码 SHA 变化时才新建不可变 revision，不移动已有 tag。
+已核实 r101：五仓 tag 均在各自源码 SHA 上 CREATED；`accounts`、`billing-service`、`portal`、`content-service`
+四仓 CI 与 release manifest 已验证成功，PostgreSQL release 缺失。
+PostgreSQL 经 GitHub App 派发再次返回 HTTP 422，原文为 `Actions has been disabled for this repository`；
+rerun attempt 2 仍相同，见 [run 39891515095，attempt 2](https://github.com/ai-workspace-infra/platform-ops-toolkit/actions/runs/39891515095)。
+同时，个人管理员 API 的 `actions/permissions` 返回 `enabled: true`，workflow 状态为 `active`。
+当前观测是 GitHub App dispatch 路径被拒绝，不能据此断言仓库 Actions 仍全局禁用；执行身份配置差异尚待解决。
+状态为 **五仓 tag 已创建 / 四仓构建已验证 / PG 派发被拒且 release 缺失**，整体构建未完成、不可部署；
+不是仓库筛选错误，也不是 tag 不存在。
+
+执行身份配置解决前，不再重试构建。保留具体 API 错误和各身份设置证据；阻断解除后，源码未变仍使用原 tag/SHA。
+只有代码/源码 SHA 变化时才新建不可变 revision，不移动已有 tag。
 
 五仓逐一核对 tag、源码 SHA、成功构建 URL、构件及 digest，缺任一项不得选择部署。
 tag 或 registry 构件存在不能证明运行健康。发布使用审核后的固定构件，不从浮动分支重建；

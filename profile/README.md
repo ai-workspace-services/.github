@@ -134,10 +134,15 @@ upgrades run all eight; rolling updates use backup, non-destructive convergence
 and explicit incremental migrations. PostgreSQL remains tunnel-only. The five
 build repositories are `accounts`, `billing-service`, `portal`, `content-service`
 and `postgresql`; snapshots are build-only, not deployment authorization.
-Verify Actions/workflow enablement first. For r101 all five tags were created;
-builds remain incomplete because PostgreSQL dispatch returned HTTP 422 (Actions
-disabled). Retry unchanged sources at the same tags; use a new immutable revision
-only when source SHA changes. Never move tags.
+Verify Actions/workflow settings and the actual dispatch identity first. For r101
+all five tags exist; four service CI runs and release manifests were verified,
+but PostgreSQL release is absent. GitHub App dispatch returned HTTP 422 again on
+attempt 2, while personal admin API reports `enabled: true` / workflow `active`.
+These observations show a rejected App dispatch path; they do not establish
+globally disabled Actions.
+Builds remain incomplete. No more build retries until actor configuration is
+resolved; unchanged source keeps its tag, and only changed source SHA needs a new
+immutable revision. Never move tags. [Build evidence](../docs/control-plane-deployment-and-migration.md#immutable-builds-and-releases).
 
 Migration URL/API mode is pending isolated acceptance. Existing V4 lacks the new
 API; V4→V5 retains the reviewed SSH/database path, with no implicit URL fallback.

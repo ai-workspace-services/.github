@@ -114,7 +114,10 @@ bash scripts/install-control-plane.sh \
 ```
 
 包装脚本要求 Git、Python 3 和 PyYAML，获取 canonical GitOps 的固定提交及声明中的
-`execution.playbooks_sha`。正式发布说明将提供固定脚本 URL；当前候选入口尚未标为运行可用。
+`execution.playbooks_sha`，以及 `release.billing.source_sha` 指定的 Billing 提交，
+自动准备三个固定 canonical 仓库 checkout，并向 owner 传 `BILLING_CHECKOUT`。
+Billing schema 路径固定为 `sql/billing-service-schema.sql`，由 owner 核对审核过的 digest 并执行空库 DDL，
+无需增加公开 flags。正式发布说明将提供固定脚本 URL；当前候选入口尚未标为运行可用。
 `CONTROL_PLANE_VARS_FILE` 只放非敏感运行策略和 Vault 引用；凭据由 Playbooks owner 内部解析，不在该文件保存明文凭据。
 
 ```bash

@@ -113,8 +113,12 @@ bash scripts/install-control-plane.sh \
 ```
 
 The wrapper requires Git, Python 3 and PyYAML; it fetches the fixed canonical
-GitOps commit and its `execution.playbooks_sha`. Formal releases provide fixed
-script URLs. This candidate is not yet marked runtime available.
+GitOps commit, its `execution.playbooks_sha`, and Billing at
+`release.billing.source_sha` from three fixed canonical repositories, then passes
+`BILLING_CHECKOUT` to the owner. Billing's schema path is fixed to
+`sql/billing-service-schema.sql`; the owner verifies its reviewed digest and
+applies empty-database DDL. No extra public flags are needed. Formal releases
+provide fixed script URLs. This candidate is not yet marked runtime available.
 `CONTROL_PLANE_VARS_FILE` holds nonsecret runtime policy and Vault references;
 Playbooks resolves credentials inside the owner, without plaintext credentials in this file.
 

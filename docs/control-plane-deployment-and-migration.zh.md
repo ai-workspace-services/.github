@@ -100,10 +100,15 @@ bash /tmp/install-control-plane.sh \
 ```
 
 `--config` 必须是该固定 GitOps commit 中已跟踪的相对 YAML 文件，不能绝对路径或越界读取。
-`execution.playbooks_sha` 必须是完整提交 SHA。GitOps URL 固定为
+`execution.playbooks_sha` 必须是完整提交 SHA。实际执行还要求
+`release.billing.source_sha`（小写40位提交 SHA）及
+`release.billing.schema_file: sql/billing-service-schema.sql`。GitOps URL 固定为
 `https://github.com/ai-workspace-infra/gitops.git`，Playbooks URL 固定为
-`https://github.com/ai-workspace-infra/playbooks.git`，配置不得改源仓库。
-包装脚本获取两个精确提交、验证 HEAD 与干净状态、安全读取 YAML，在 Playbooks checkout 调用：
+`https://github.com/ai-workspace-infra/playbooks.git`，Billing URL 固定为
+`https://github.com/ai-workspace-services/billing-service.git`，配置不得改源仓库。
+包装脚本安全读取 YAML，自动获取三个精确提交：GitOps 的 `--gitops-ref`、Playbooks 的
+`execution.playbooks_sha` 和 Billing 的 `release.billing.source_sha`。
+验证 HEAD、canonical origin 与干净状态后，在 Playbooks checkout 调用：
 
 ```text
 python3 scripts/control_plane/entrypoint.py --config <resolved-path> --gitops-ref <SHA> [--check]
@@ -112,8 +117,12 @@ python3 scripts/control_plane/entrypoint.py --config <resolved-path> --gitops-re
 `release.snapshot_tag` 标识五仓服务构建，`--gitops-ref` 标识独立的 GitOps 声明提交；
 GitOps 无需创建同名服务快照 tag。记录两种身份，不能互相替代。
 
-传给 owner 的 `GITOPS_CHECKOUT`、`PLAYBOOKS_CHECKOUT`、`CONTROL_PLANE_CMDB`、`CONTROL_PLANE_VARS_FILE`
-均为绝对路径。owner 须验证已审查声明、目标、固定构件和受保护配置；跨仓 schema 一致性仍是集成门禁，包装脚本 mock 测试不证明该门禁通过。
+传给 owner 的 `GITOPS_CHECKOUT`、`PLAYBOOKS_CHECKOUT`、`BILLING_CHECKOUT`、
+`CONTROL_PLANE_CMDB`、`CONTROL_PLANE_VARS_FILE` 均为绝对路径，无新增公开 flags 或秘密输入。
+owner 的 `billing_artifact` 按 `release.accounts.billing_schema_sha256` 核对已跟踪 SQL 字节，
+由 owner 在首个空库的业务授权/应用启动前执行审核过的 Billing DDL；包装脚本不执行 SQL。
+旧结构性 `--check` fixture 可省略 `release.billing`、仅用两个 checkout；实际 owner 执行缺少该声明或构件会失败。
+owner 须验证已审查声明、目标、固定构件和受保护配置；跨仓 schema 一致性仍是集成门禁，包装脚本 mock 测试不证明该门禁通过。
 缺 commit、owner 或前置条件立即失败，不回退分支或 main。`--check` 仅委派预检，不代表业务运行验收。
 
 路径与输入边界：
@@ -121,7 +130,7 @@ GitOps 无需创建同名服务快照 tag。记录两种身份，不能互相替
 | 输入 | 解析/归属 |
 | --- | --- |
 | 公开 `--config` | 相对 GitOps 根目录的已跟踪 YAML；包装脚本向 owner 传已解析的绝对路径 |
-| `GITOPS_CHECKOUT`、`PLAYBOOKS_CHECKOUT` | 包装脚本生成的固定 checkout；操作者覆盖仅供离线测试 |
+| `GITOPS_CHECKOUT`、`PLAYBOOKS_CHECKOUT`、`BILLING_CHECKOUT` | 包装脚本生成的固定 checkout；Billing 取 `release.billing.source_sha`；操作者覆盖仅供离线测试 |
 | `CONTROL_PLANE_CMDB`、`CONTROL_PLANE_VARS_FILE` | 必填外部文件，相对路径在切换工作目录前按调用目录解析 |
 | `AI_WORKSPACE_CMDB_JSON`、`CMDB_FILE` | owner 调用 inventory 前，从 `CONTROL_PLANE_CMDB` 同时设置两者 |
 | `release.doco_cd.target` / `storage_target` | 选择 GitOps 根目录的 `.doco-cd.<selection>.yml`；`working_dir` 相对 GitOps 根目录，Compose/env 文件相对该工作目录 |
@@ -135,8 +144,11 @@ CMDB 还须声明 `storage`（或 `host_vars.control_plane_storage`）：`profil
 独立盘再声明 `mount_path` / `device_path`。固定 PostgreSQL bind 必须匹配 `data_path`；根盘模式不要求另加数据盘，实际存储由 owner 执行时核验。
 
 离线测试可同时设置 `CONTROL_PLANE_OFFLINE_TEST=1`、`GITOPS_CHECKOUT`、`PLAYBOOKS_CHECKOUT`，并必须传 `--check`。
-两者必须是仓库根目录、上述 canonical origin（HTTPS 或对应的 `git@github.com:` SSH 写法）、匹配 HEAD，且没有修改、未跟踪或忽略文件。
-本地固定 checkout 仅供离线测试；正常执行使用临时的固定提交 checkout。
+声明 `release.billing` 时还必须提供 `BILLING_CHECKOUT`；离线模式不会联网补齐缺失 checkout。
+所有 checkout 必须是仓库根目录、精确匹配 HEAD，且没有修改、未跟踪或忽略文件。
+GitOps/Playbooks 接受上述 canonical HTTPS origin 或对应的 `git@github.com:` SSH 写法；
+Billing 与 owner 保持一致，只接受精确 canonical HTTPS origin。没有对应声明的 Billing 覆盖也会被拒绝。
+本地固定 checkout 仅供离线测试；正常执行使用三个临时的固定提交 checkout。
 
 ## URL 迁移合同：隔离验收待完成
 

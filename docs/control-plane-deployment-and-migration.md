@@ -129,11 +129,16 @@ bash /tmp/install-control-plane.sh \
 ```
 
 `--config` is a tracked YAML file inside that GitOps commit, not an absolute path
-or an external file. `execution.playbooks_sha` must be a full commit SHA. Repository
-URLs are fixed to `https://github.com/ai-workspace-infra/gitops.git` and
-`https://github.com/ai-workspace-infra/playbooks.git`; config cannot override them.
-The wrapper fetches each exact commit, verifies HEAD and cleanliness, safely reads
-YAML, then runs from the Playbooks checkout:
+or an external file. `execution.playbooks_sha` must be a full commit SHA. Execution
+also requires `release.billing.source_sha` (a lowercase 40-character commit SHA)
+and `release.billing.schema_file: sql/billing-service-schema.sql`.
+Repository URLs are fixed to `https://github.com/ai-workspace-infra/gitops.git`,
+`https://github.com/ai-workspace-infra/playbooks.git` and
+`https://github.com/ai-workspace-services/billing-service.git`; config cannot
+override them. The wrapper safely reads YAML and automatically fetches three
+exact commits: GitOps at `--gitops-ref`, Playbooks at `execution.playbooks_sha`,
+and Billing at `release.billing.source_sha`. It verifies HEAD, canonical origin
+and cleanliness, then runs from the Playbooks checkout:
 
 ```text
 python3 scripts/control_plane/entrypoint.py --config <resolved-path> --gitops-ref <SHA> [--check]
@@ -143,8 +148,14 @@ python3 scripts/control_plane/entrypoint.py --config <resolved-path> --gitops-re
 the separate GitOps declaration commit; GitOps does not need a same-name service
 snapshot tag. Both identities must be recorded without substituting one for the other.
 
-It passes absolute `GITOPS_CHECKOUT`, `PLAYBOOKS_CHECKOUT`, `CONTROL_PLANE_CMDB` and
-`CONTROL_PLANE_VARS_FILE`. The owner must validate the reviewed declaration,
+It passes absolute `GITOPS_CHECKOUT`, `PLAYBOOKS_CHECKOUT`, `BILLING_CHECKOUT`,
+`CONTROL_PLANE_CMDB` and `CONTROL_PLANE_VARS_FILE`. No new public flags or secrets
+are needed. The owner's `billing_artifact` verifies the tracked SQL against
+`release.accounts.billing_schema_sha256`; the owner applies reviewed Billing DDL
+to the first empty database before business grants/startup. The wrapper never
+executes SQL. Old structural `--check` fixtures may omit `release.billing` and
+use only two checkouts; actual owner execution fails without the Billing declaration
+and artifact. The owner must validate the reviewed declaration,
 target, immutable artifacts and protected runtime inputs. Cross-repository schema
 conformance remains an integration gate; mocked wrapper tests do not establish it.
 Missing owner, commit or prerequisite
@@ -156,7 +167,7 @@ Path and input boundaries:
 | Input | Resolution/owner |
 | --- | --- |
 | Public `--config` | Tracked YAML relative to the GitOps root; wrapper passes its resolved absolute path to the owner |
-| `GITOPS_CHECKOUT`, `PLAYBOOKS_CHECKOUT` | Wrapper-generated fixed checkouts; operator overrides are offline-test-only |
+| `GITOPS_CHECKOUT`, `PLAYBOOKS_CHECKOUT`, `BILLING_CHECKOUT` | Wrapper-generated fixed checkouts; Billing uses `release.billing.source_sha`; operator overrides are offline-test-only |
 | `CONTROL_PLANE_CMDB`, `CONTROL_PLANE_VARS_FILE` | Required external operator files, resolved from the invocation directory before the owner changes working directory |
 | `AI_WORKSPACE_CMDB_JSON`, `CMDB_FILE` | Owner sets both from `CONTROL_PLANE_CMDB` before calling the inventory adapter |
 | `release.doco_cd.target` / `storage_target` | Select `.doco-cd.<selection>.yml` at the pinned GitOps root; `working_dir` is GitOps-root-relative, Compose/env files are relative to that working directory |
@@ -176,10 +187,14 @@ The pinned PostgreSQL bind must match `data_path`. A root profile does not requi
 a separate disk; the owner verifies the actual target storage during execution.
 
 Offline wrapper tests may set `CONTROL_PLANE_OFFLINE_TEST=1`, `GITOPS_CHECKOUT`
-and `PLAYBOOKS_CHECKOUT` together with `--check`. Both must be repository roots
-with the exact canonical origin (HTTPS or its `git@github.com:` SSH spelling), matching HEAD and no modified, untracked
-or ignored files. These overrides are for offline tests only. Normal operations
-use fresh temporary fixed-commit checkouts.
+and `PLAYBOOKS_CHECKOUT` together with `--check`. When `release.billing` is declared,
+`BILLING_CHECKOUT` is also required; offline mode never fetches a missing checkout.
+All must be repository roots with matching exact HEAD and no modified, untracked
+or ignored files. GitOps/Playbooks accept the canonical HTTPS origin or its
+`git@github.com:` SSH spelling; Billing requires the exact canonical HTTPS origin
+used by the owner. A Billing override without its declaration is rejected.
+These overrides are for offline tests only. Normal operations use fresh temporary
+fixed-commit triple checkouts.
 
 ## Migration URL contract — isolated acceptance pending
 

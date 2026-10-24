@@ -2,17 +2,42 @@
 
 [English](control-plane-deployment-and-migration.md)
 
-状态：实现候选，隔离联调与完整验收待完成。以下是可审查的接口合同，
-不代表已发布安装版本或现有环境已提供 API。占位符必须替换为审核过的固定版本。
+状态口径：URL/API 入口的隔离联调与完整验收仍按其合同单独记录；V5 的 SSH/数据库 owner 路径已有部署、业务追加、恢复和公共入口修复实证，见下方当前环境索引。不得把部分环境通过推导为 API 或整代切换通过。占位符必须替换为审核过的固定版本。
 
 配套声明合同 [GitOps #504](https://github.com/ai-workspace-infra/gitops/pull/504) 已合并
 （[合同任务 #503](https://github.com/ai-workspace-infra/gitops/issues/503)）；
-[后续对齐 #506](https://github.com/ai-workspace-infra/gitops/pull/506) 仍待完成。
+[后续对齐 #506](https://github.com/ai-workspace-infra/gitops/pull/506) 已于本次复核确认合并（`af5799d83899e46331c1aaf0092165a5f6fb68f9`）；声明合并不等于 API 运行验收。
 合同模板为示例，`example_only: true` 不允许执行。
 
 ## 代际记录与验收证据索引
 
 本白皮书是组织级部署/迁移流程入口；逐轮运行值、失败与重验结果归档于 Knowledge，不替代 GitOps、IaC、Playbooks 或应用迁移工具的权威配置。V2→V5 证据链、真实回归 case、恢复回执及当前未通过项见 [PROD V4→V5 基线与升级复盘](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/17-prod-v4-v5-baseline-and-upgrade-retrospective.zh.md)。服务级 Compose/Playbooks 配置来源和脱敏运行回执见 [PROD V5 运行基线](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/prod-v5-runtime-and-snapshot-baseline-20261023.zh.md)。这些是有时间边界的事实归档；未运行项保持 NOT_RUN/BLOCKED，不从构建或 readiness 推导为业务验收。
+
+## V5 当前环境与入口验收（2026-10-24 修订）
+
+[当前 V5 环境总表](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/prod-v5-runtime-and-snapshot-baseline-20261023.zh.md)区分固定构件、按服务配置路径、数据库内部链路、代理节点心跳及全部验收状态。[公共 Console 故障与重验](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-public-console-route-repair.zh.md)补充“DNS 已到目标但 Caddy 未匹配公共域名、返回空 HTTP 200”的真实回归。
+
+| 已执行范围 | 结论 | 不能推导的结果 |
+| --- | --- | --- |
+| 三个公共业务入口 | 已交接到 V5；Console 路由修复后首页、登录 HTML、脚本和浏览器通过，Accounts/Billing readiness 通过 | 不代表第四个数据库公共别名已交接 |
+| V5 数据库 | 业务经本机 Compose 内隧道连接活跃 V5 数据库，公共数据库别名仍指旧代际 | 不根据某条 DNS 记录判定真实数据库身份，也不借修订文档切换数据库 |
+| 业务迁移/幂等 | 追加范围已扩至套餐、订阅、额度及历史账务；三轮真实 no-op 通过 | 不把 users-only、CLI 版本或部署三轮当作全范围迁移验收 |
+| 代理与实时采集 | 已有真实正流量、空闲、健康心跳、不健康和未注册等不同状态 | 不把注册、可解析或健康上报当作全节点端到端通过 |
+| 快照与恢复 | 有业务数据的逻辑快照、隔离数据库恢复、异机校验通过；快照早于最后一次入口修复 | 恢复旧配置后须重新收敛固定声明；不宣称整机/共享 Vault/角色登录恢复通过 |
+
+公共别名须在控制平面声明中显式区分候选入口。例如以下仅为通用声明片段，不能单独执行：
+
+```yaml
+target:
+  console_domain: console-candidate.example.invalid
+  console_public_domain: console.example.invalid
+  accounts_domain: accounts-candidate.example.invalid
+  accounts_public_domain: accounts.example.invalid
+  billing_domain: billing-candidate.example.invalid
+  billing_public_domain: billing.example.invalid
+```
+
+固定 owner 须同时将 Console 别名加入 Caddy site 与 host matcher，保持认证 BFF 和资源请求交 Console。切换前用目标 Host/SNI 检查候选与公共首页/登录页真实 HTML，并检查脚本资源；HTTP 200 空体必须判 FAIL。再记录权威及公共 DNS、外部浏览器、实际加载版本与数据路径，不能只验证 CNAME。V4 写入权、财务后台执行、公共数据库入口、最终追齐及资源清理仍按独立门禁处理。
 
 ## 三个入口
 

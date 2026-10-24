@@ -2,14 +2,20 @@
 
 [简体中文](control-plane-deployment-and-migration.zh.md)
 
-Status: implementation candidate, isolated integration acceptance pending. Commands
-below describe the reviewed interface; no published installer release or runtime
-availability is claimed. Replace every placeholder with reviewed release evidence.
+Status boundary: URL/API integration acceptance remains separate. The V5 SSH/database-owner path has deployment, business-append, recovery and public-ingress evidence. Partial environment acceptance does not establish API readiness or a complete cutover. Replace every placeholder with reviewed release evidence.
 
 Declaration contract: [GitOps #504](https://github.com/ai-workspace-infra/gitops/pull/504)
 (merged; [contract task #503](https://github.com/ai-workspace-infra/gitops/issues/503)).
-[Follow-up #506](https://github.com/ai-workspace-infra/gitops/pull/506) remains pending.
+[Follow-up #506](https://github.com/ai-workspace-infra/gitops/pull/506) is now verified merged at `af5799d83899e46331c1aaf0092165a5f6fb68f9`; declaration merge does not establish API runtime acceptance.
 The contract templates are illustrative and cannot execute with `example_only: true`.
+
+## Current V5 environment and public ingress
+
+The [current V5 environment record](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/prod-v5-runtime-and-snapshot-baseline-20261023.zh.md) separates immutable service references, configuration ownership, internal database routing, node registration and acceptance states. The [public Console incident receipt](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-public-console-route-repair.zh.md) proves why a correct CNAME was insufficient: the missing Caddy host matcher returned an empty HTTP 200 and a blank browser page.
+
+Three public business aliases now reach V5, and actual Console home/login HTML, scripts and browser rendering passed after repair. The public database alias still targets an older generation, while V5 services already use their internal V5 database tunnel; changing that alias is a separate decision. Real ingestion, idle nodes, healthy heartbeats, unhealthy nodes and absent registrations remain distinct. The populated logical snapshot predates the final ingress repair, so restoration must reconcile the latest pinned configuration.
+
+Declare separate `target.console_public_domain`, `accounts_public_domain` and `billing_public_domain` alongside candidate domains. The fixed owner must include Console aliases in both Caddy site addresses and host matchers. Preserve Console ownership of authentication BFF and static assets. Before DNS handoff, validate real nonempty home/login HTML and scripts against the intended Host/SNI, then verify authoritative/public DNS and external browser behavior. Empty HTTP 200 is a failure. Do not infer writer handoff, API acceptance, database-alias cutover, full-fleet health or whole-environment recovery from these narrower checks.
 
 ## Three entrypoints
 

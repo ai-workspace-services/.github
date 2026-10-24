@@ -16,3 +16,5 @@
 | V5 修复后有业务数据的快照、隔离恢复及异机校验 | [环境快照与恢复回执](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-post-repair-environment-snapshot.zh.md) |
 
 V1 独立运行基线的 Knowledge 文件缺失，现有 V1→V2 历史记录只提供升级交接，不冒充 V1 原始运行清单。链接目标缺失或后续记录尚未合并时，应保留该缺口并在对应 PR 后复核。
+
+2026-10-24 当前环境修订：以[V5 最新运行总表](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/prod-v5-runtime-and-snapshot-baseline-20261023.zh.md)区分当前状态与历史采样；[公共 Console 白屏与路由回归](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-public-console-route-repair.zh.md)记录 DNS 校验之后发现的入口遗漏。公共数据库别名、代理注册、实际流量、逻辑快照与最终写入交接分别判定。

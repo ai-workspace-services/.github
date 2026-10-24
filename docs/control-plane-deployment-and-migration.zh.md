@@ -52,6 +52,19 @@ IaC 管理资源、DNS、state、CMDB；GitOps 保存不含秘密值的期望状
 
 构建成功、部署成功、数据迁移、备份恢复、真实业务验收和流量/写入切换分别作为独立状态记录。已部署服务可保持运行与零流量，但必须证明无不受控写入者；是否停服由实际迁移合同和目标运行状态决定，不沿用通用停服假设。
 
+### 在线业务补齐、实时采集与恢复点
+
+以下原则来自 [V5 在线追加与三轮重验](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-business-append-and-traffic-regression.zh.md)、[有业务数据的环境快照及恢复回执](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-post-repair-environment-snapshot.zh.md)。这是 SSH/数据库 owner 路径的实际证据，不把尚待完整联调的 URL/API 入口升级为已验收，也不以个别节点通过宣称整代切换完成。
+
+1. **明确归属和数据范围。** GitOps 声明业务配置与固定构件；Vault 保存秘密；Playbooks 管理 OS、配置及执行；IaC 管理基础资源和隔离身份。users-only 不包含套餐目录、订阅、额度、策略及账务；范围缺口必须由应用 owner 的迁移工具补齐，不手工拼接 SQL 或复制业务密码。
+2. **区分源保护与新目标正常服务。** 源端通过只读一致性快照保护。全新候选不套用“拒绝所有写方法”的迁移源规则；公共别名必须匹配真实 upstream，采集入口保持认证与最小路径/方法边界。空 HTTP 200 不能证明请求已进入服务。
+3. **在线追加受事务和精确计划约束。** 校验身份映射，保留目标已有内部身份。锁须在读取目标前取得；审核计划绑定所选业务范围、身份映射及结构版本。范围内变化、财务差异和未经批准的身份差异继续拒绝；无关心跳和非结构数据库统计不应使计划误失效。应用后验证所有非同步表未越界变化，立即提交/释放锁，无需笼统要求整站停服。例外须显式、窄范围审查，不能扩展成通用忽略身份冲突。
+4. **用真实数据验收整条链。** 沿 Exporter → Vector → Billing → PostgreSQL → Accounts → 页面检查实际进程凭据、最新样本、两个完整采集周期、分钟桶和账本正增量。历史导入不算新采集；空闲、缺策略、旧样本与故障分别呈现，既不造流量也不伪造正常状态。数据库/API/页面应比较同一账户，不能拿别的账户的新流量刷新当前账户鲜度。
+5. **独立记录三类重跑。** 完整部署重放、数据追加 no-op、节点配置零变更分别保留输入、run_id、实际退出码及证据。数据 no-op 至少三次，要求追加/更新/序列推进为零、无目标写入；不能用原 users-only 或部署三轮代替更大数据范围的新重验。
+6. **修复后再建立可恢复点。** 除迁移前保护外，在业务追加和采集修复后重新捕获完整活跃数据库、globals、加密运行配置、容器元数据和不可变构件引用。数据库 dump 与全行摘要使用同一只读 MVCC 边界，单独处理序列；实际隔离恢复并比较 schema/所有权/权限、全字段和序列。无登录凭据的角色占位恢复不证明生产角色登录可用。系统盘副本须另有异机加密副本及解密能力校验；配置/Vault/数据库分时捕获不能宣称全局原子快照，数据库恢复耗时也不等于整机 RTO。
+
+快照的原始数据、密钥和运行身份留在受控存储；公开回执只保存脱敏计数、摘要及来源。云磁盘、共享 Vault restore/unseal、真实支付、MFA/OAuth、未验收节点与最终追齐/写入权交接，未执行即保持 NOT_RUN/BLOCKED。已授权的前序 DNS 交接按各自回执保留，本节不授予新的切换权限。
+
 ### 净室验证的执行顺序
 
 先核验源与候选的 namespace、state key、lineage 和真实资源身份互不重叠，并将候选的可恢复加密备份保留到异机。删除计划只选择候选计算实例；防火墙、独立存储、备份、远端 state 与源环境保持原身份。生产通用销毁保护不解除；只有声明了隔离验证模式的候选可以执行受约束的保存计划，重建时恢复默认删除保护。该门禁由 [IaC owner](https://github.com/ai-workspace-infra/iac_modules/blob/main/docs/howto/isolated-candidate-validation.md) 实现。

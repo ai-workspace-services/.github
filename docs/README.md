@@ -12,5 +12,7 @@
 | 服务级 V5 配置路径与部署回执 | [V5 运行基线与快照清单](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/prod-v5-runtime-and-snapshot-baseline-20261023.zh.md) |
 | V5 故障时间线 | [V5 部署流程复盘](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/prod-v5-deployment-postmortem-20261023.zh.md) |
 | V5 净室重建、在线 users-only 与三轮实际重验 | [2026-10-24 执行回执](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/prod-v5-cleanroom-deployment-migration-validation-20261024.zh.md)，实际结果以每轮状态为准 |
+| V5 套餐/订阅/账务追加、三轮真实 no-op 与实时采集 | [在线业务追加与流量重验](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-business-append-and-traffic-regression.zh.md) |
+| V5 修复后有业务数据的快照、隔离恢复及异机校验 | [环境快照与恢复回执](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-post-repair-environment-snapshot.zh.md) |
 
 V1 独立运行基线的 Knowledge 文件缺失，现有 V1→V2 历史记录只提供升级交接，不冒充 V1 原始运行清单。链接目标缺失或后续记录尚未合并时，应保留该缺口并在对应 PR 后复核。

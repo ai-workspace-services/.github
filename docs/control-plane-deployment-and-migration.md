@@ -368,6 +368,19 @@ migration. Merge/release dependencies in order: Accounts → Playbooks → GitOp
 public caller. Keep this caller Draft until the owner commit, declaration and
 isolated end-to-end acceptance are integrated.
 
+## Online business append and post-repair recovery points
+
+The [V5 append and replay receipt](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-business-append-and-traffic-regression.zh.md) and [populated environment snapshot](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-post-repair-environment-snapshot.zh.md) document the reviewed SSH/database-owner path. They do not establish acceptance of the separate URL/API caller or a complete generation cutover.
+
+- Declare the actual data scope: users-only does not include plans, subscriptions, quotas, policies or accounting. GitOps owns nonsecret desired state; Vault owns secrets; Playbooks owns OS/configuration execution; IaC owns resources and isolated identities.
+- Keep source reads consistent and read-only without imposing a blanket write-method denial on a fresh target. Public aliases must reach their actual upstream; ingestion still requires authentication and narrowly permitted paths/methods. An empty HTTP 200 is not delivery evidence.
+- Acquire transaction locks before target reads. Bind reviewed online append plans to selected business data, validated identity mapping and schema. Unrelated heartbeats and planner/vacuum statistics must not invalidate them; business/financial conflicts still fail. Verify protected non-scope tables inside the transaction and release locks promptly. Identity exceptions must be explicit and narrowly scoped.
+- Trace real samples through Exporter → Vector → Billing → PostgreSQL → Accounts → UI for at least two complete collection periods. Distinguish imported history, positive deltas, idle samples, missing policies and stale observations. Compare the same account across database, API and UI.
+- Record deployment replays, at least three real append no-ops and node zero-change replays separately. Zero writes includes no sequence advancement; a previous users-only replay does not validate a larger scope.
+- Capture a new populated recovery point after repair. Bind the database dump and full-row fingerprints to one exported MVCC snapshot; preserve and verify schema, ownership, ACLs and sequences in an isolated restore. Encrypt globals, runtime/TLS configuration and container metadata, retain immutable artifact references, and verify an off-host encrypted copy and decryption capability. Credential-free role stubs do not prove production login. Separate component timestamps are not a global atomic snapshot, and database restore timing is not whole-environment RTO.
+
+Raw data, credentials, keys and runtime identities remain controlled. Cloud-disk recovery, shared Vault restore/unseal, payment, MFA/OAuth, unverified nodes and final reconciliation/writer handoff retain their actual NOT_RUN/BLOCKED status. This section grants no additional DNS or cutover authority.
+
 ## Historical records
 
 These files retain their original dates, assumptions and evidence; use this guide

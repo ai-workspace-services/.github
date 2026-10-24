@@ -13,6 +13,18 @@
 
 本白皮书是组织级部署/迁移流程入口；逐轮运行值、失败与重验结果归档于 Knowledge，不替代 GitOps、IaC、Playbooks 或应用迁移工具的权威配置。V2→V5 证据链、真实回归 case、恢复回执及当前未通过项见 [PROD V4→V5 基线与升级复盘](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/17-prod-v4-v5-baseline-and-upgrade-retrospective.zh.md)。服务级 Compose/Playbooks 配置来源和脱敏运行回执见 [PROD V5 运行基线](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/prod-v5-runtime-and-snapshot-baseline-20261023.zh.md)。这些是有时间边界的事实归档；未运行项保持 NOT_RUN/BLOCKED，不从构建或 readiness 推导为业务验收。
 
+## 系统与业务只读巡检
+
+部署与恢复验收应独立核对 OS 与 DB 两层访问控制，不能仅凭账号名称或 `default_transaction_read_only=on` 判断只读。由 [Playbooks inspection_access role](https://github.com/ai-workspace-infra/playbooks/blob/93fb9b95a752fb5d06a1c56c69e274e17164402b/roles/inspection_access/README.md)管理，入口 `configure_inspection_access.yml` 仅编排；目标来自 CMDB 或云控制面核实后的单次临时 inventory，公钥、库、容器与对象 owner 由环境输入提供。
+
+- OS 使用 `auditor`：密钥登录、密码锁定、无特权组；仅通过固定 sudo 网关查看容器状态、容器/系统日志、服务、进程和数据库。禁止通用 sudo、Docker socket、容器 exec、重启和删除。日志有界且禁用分页器，不使用可逃逸到 shell 的通配命令白名单。
+- DB 使用 `db_readonly`：非超级用户、无管理/复制/继承/BYPASSRLS 权限，只通过受限网关访问指定数据库。既有及指定 owner 后续 public 表/序列仅授予 SELECT；RLS 表单独核对 SELECT 策略，未来新增 RLS 表仍须复核。不得将 SSH 私钥作为 DB 密码，不扩大历史迁移账号权限。
+- 验收同时覆盖允许项和拒绝项：实际角色身份、SELECT、日志/服务/进程读取；写数据库（包括主动开启读写事务）、通用 sudo、Docker 直接访问及系统文件写权限均应拒绝；固定输入复跑 changed=0、failed=0。
+- 普通 OS 用户仍能写 home/临时目录，不称为内核级只读沙箱。巡检日志与业务结果受访问边界约束，不进入公开归档。
+- 快照必须标明权限采样时点。旧快照恢复后先从固定 role ref 收敛，再重复正反向验收；文档更新不等于重新制作或恢复快照。
+
+2026-10-24 V5 已执行：76/76 张业务表可读、0 张可写，users 计数 33，系统与 Docker 日志查看通过，最终权限配置复跑零变更。实施 [Playbooks #747](https://github.com/ai-workspace-infra/playbooks/pull/747) 已合并；[逐轮脱敏回执](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-inspection-access.zh.md)记录执行 ref 早于合并的事实以及旧快照恢复仍 NOT_RUN 的边界。该结果不替代业务登录、支付、全量恢复或写入交接验收。
+
 ## V5 当前环境与入口验收（2026-10-24 修订）
 
 [当前 V5 环境总表](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/prod-v5-runtime-and-snapshot-baseline-20261023.zh.md)区分固定构件、按服务配置路径、数据库内部链路、代理节点心跳及全部验收状态。[公共 Console 故障与重验](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-public-console-route-repair.zh.md)补充“DNS 已到目标但 Caddy 未匹配公共域名、返回空 HTTP 200”的真实回归。

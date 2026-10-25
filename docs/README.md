@@ -2,6 +2,8 @@
 
 本目录索引指向既有流程和历史回执，不另设执行规范。流程权威入口为[Selfhost 控制面部署与核心数据迁移](control-plane-deployment-and-migration.zh.md)；实际运行声明仍由对应 owner 仓库管理。
 
+2026-10-25 归档补链：[Knowledge #228](https://github.com/ai-workspace-services/knowledge/pull/228) ↔ [组织 .github #49](https://github.com/ai-workspace-services/.github/pull/49)，共同追溯到[文档任务 #227](https://github.com/ai-workspace-services/knowledge/issues/227)。
+
 | 阅读目的 | 文档 |
 | --- | --- |
 | 统一部署与迁移流程 | [Selfhost 控制面部署与核心数据迁移](control-plane-deployment-and-migration.zh.md) |

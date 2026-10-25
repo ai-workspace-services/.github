@@ -313,3 +313,13 @@ URL 模式遇到旧端点明确报不支持，不隐式回退，V4 无需为首�
 - [历史 Selfhost 实施任务书](selfhost-orchestrator-one-shell-uat-prod.md)
 
 执行编号、真实端点绑定、主机/库身份、备份恢复、迁移计划/结果与回归证据保存在受控记录中；公开文档仅使用通用参数示例。
+
+
+## V5 K3s all-in-one：核心控制面整合实例（2026-10-25）
+
+本轮以进一步降本为目标，将 Web-SaaS、Vault Server 和 Grafana/观测栈汇聚到一台 Linode 2 vCPU / 4 GB VPS，通过 K3s 容器化运行。各组件仍按命名空间、工作负载、服务身份和持久卷隔离，应用 Chart 与平台组件独立交付。all-in-one 指同一宿主承载，不表示合并成单一容器。
+
+- [本轮环境快照、固定构件、配置路径及完成状态](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-k3s-20261025/prod-v5-vps-to-k3s-runtime-and-acceptance-20261025.zh.md)。
+- [23 组可复用 Markdown TODO 表](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-k3s-20261025/deployment-migration-acceptance-checklist.template.zh.md)，作为本流程的执行附件，不另建平行测试流水线。
+
+资源整合、旧资源回收及实际账单节省分别记录。协调三轮成功不替代 IaC 重建、迁移重放或隔离恢复；批准的数据范围例外不改写为全量一致。最终关闭仍需单写者、恢复和所有必需 case 的独立证据。

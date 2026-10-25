@@ -323,3 +323,6 @@ URL 模式遇到旧端点明确报不支持，不隐式回退，V4 无需为首�
 - [23 组可复用 Markdown TODO 表](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-k3s-20261025/deployment-migration-acceptance-checklist.template.zh.md)，作为本流程的执行附件，不另建平行测试流水线。
 
 资源整合、旧资源回收及实际账单节省分别记录。协调三轮成功不替代 IaC 重建、迁移重放或隔离恢复；批准的数据范围例外不改写为全量一致。最终关闭仍需单写者、恢复和所有必需 case 的独立证据。
+
+
+GitHub ↔ 新 Vault 的[30 个普通角色 / 11 个既有策略矩阵及复用待办](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-k3s-20261025/github-vault-role-policy-matrix-20261025.zh.md)按仓库与环境列出绑定、capability 类型、配置回读、幂等和实际 CI 证据；配置恢复不等于所有仓库流水线均已执行。

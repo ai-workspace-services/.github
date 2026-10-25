@@ -412,3 +412,6 @@ The cost-reduction objective consolidates Web-SaaS, Vault Server and the Grafana
 - [Reusable 23-group Markdown acceptance checklist](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-k3s-20261025/deployment-migration-acceptance-checklist.template.zh.md), an execution appendix to this guide rather than a separate deployment pipeline.
 
 Record resource consolidation, retirement and actual billing savings separately. Three reconciliation passes do not establish infrastructure rebuild, migration replay or isolated recovery acceptance. Approved data-scope exceptions do not prove full source/target equality. Single-writer and recovery evidence remain required for final closure.
+
+
+See the [30 ordinary GitHub roles / 11 existing policies matrix and reusable TODO](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-k3s-20261025/github-vault-role-policy-matrix-20261025.zh.md) for repository/environment bindings, scoped capability types, configuration readback, idempotence and actual CI evidence. Restoring configuration does not establish successful execution for every consumer.

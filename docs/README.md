@@ -23,3 +23,6 @@ V1 独立运行基线的 Knowledge 文件缺失，现有 V1→V2 历史记录只
 
 
 2026-10-25 V5 K3s all-in-one：核心控制面（Web-SaaS、Vault Server、Grafana/观测栈）汇聚到一台 Linode 2C4G VPS 的[部署快照与完成状态](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-k3s-20261025/prod-v5-vps-to-k3s-runtime-and-acceptance-20261025.zh.md)，以及[可复用 23 组 Markdown 验收 TODO](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-k3s-20261025/deployment-migration-acceptance-checklist.template.zh.md)。降本目标、实际资源回收及账单结果分别记录。
+
+
+GitHub ↔ 新 Vault 的[30 个普通角色 / 11 个既有策略矩阵及复用待办](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-k3s-20261025/github-vault-role-policy-matrix-20261025.zh.md)按仓库与环境列出绑定、capability 类型、配置回读、幂等和实际 CI 证据；配置恢复不等于所有仓库流水线均已执行。

@@ -11,6 +11,10 @@
 
 ## 代际记录与验收证据索引
 
+[V2→V5 双向证据索引](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/generation-deployment-evidence-index-20261025.zh.md)将本流程 → 各代运行基线 → 每轮部署/迁移/恢复回执 → 故障复盘 → 固定源码真实 case → 重验串联。V5 VPS 与 V5 K3s 使用各自候选和采样，不能混用恢复或三轮计数；这是本流程的证据附件，不另建执行规范。
+
+每轮回执应包含 `run_id/attempt`、Asia/Shanghai 起止、源/目标逻辑身份与环境、逐仓固定 commit/tag、构件/工具 digest、schema/迁移 checksum、阶段状态及退出码、原因/修复 PR/case/重验和受控 evidence_id。使用[既有快照恢复模板](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v2-v3-20261019/web-saas-generation-snapshot-recovery-template.zh.md)；历史未取得字段标 `NOT_RECORDED`，依赖它的门禁标 `BLOCKED`，未执行为 `NOT_RUN`，不适用的 checksum 附 `N/A` 理由。构建、部署、迁移、恢复、业务验收、DNS/流量和写入权各自留证；本地运行 ID 不拼成 GitHub Actions URL。
+
 本白皮书是组织级部署/迁移流程入口；逐轮运行值、失败与重验结果归档于 Knowledge，不替代 GitOps、IaC、Playbooks 或应用迁移工具的权威配置。V2→V5 证据链、真实回归 case、恢复回执及当前未通过项见 [PROD V4→V5 基线与升级复盘](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/17-prod-v4-v5-baseline-and-upgrade-retrospective.zh.md)。服务级 Compose/Playbooks 配置来源和脱敏运行回执见 [PROD V5 运行基线](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/prod-v5-runtime-and-snapshot-baseline-20261023.zh.md)。这些是有时间边界的事实归档；未运行项保持 NOT_RUN/BLOCKED，不从构建或 readiness 推导为业务验收。
 
 ## 系统与业务只读巡检
@@ -23,9 +27,11 @@
 - 普通 OS 用户仍能写 home/临时目录，不称为内核级只读沙箱。巡检日志与业务结果受访问边界约束，不进入公开归档。
 - 快照必须标明权限采样时点。旧快照恢复后先从固定 role ref 收敛，再重复正反向验收；文档更新不等于重新制作或恢复快照。
 
-2026-10-24 V5 已执行：76/76 张业务表可读、0 张可写，users 计数 33，系统与 Docker 日志查看通过，最终权限配置复跑零变更。实施 [Playbooks #747](https://github.com/ai-workspace-infra/playbooks/pull/747) 已合并；[逐轮脱敏回执](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-inspection-access.zh.md)记录执行 ref 早于合并的事实以及旧快照恢复仍 NOT_RUN 的边界。该结果不替代业务登录、支付、全量恢复或写入交接验收。
+2026-10-24 历史交接报告 V5 76/76 张业务表可读、0 张可写、33 users，系统与 Docker 日志查看通过、权限复跑零变更；实施 [Playbooks #747](https://github.com/ai-workspace-infra/playbooks/pull/747)已合并。先前引用的 `20261024-prod-v5-inspection-access.zh.md` 仍在待审 [Knowledge #208](https://github.com/ai-workspace-services/knowledge/pull/208)，未进入 Knowledge main；主线逐轮归档为 `NOT_RECORDED`，不能以缺失链接作为本轮准出证据。本任务不重复提交该 PR 的材料；旧快照权限恢复、真实登录、支付及写入交接仍需独立回执。
 
-## V5 当前环境与入口验收（2026-10-24 修订）
+## V5 VPS 历史环境与入口验收（2026-10-24 采样）
+
+后续 PROD K3s 承载见[2026-10-25 K3s 基线及待办](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-k3s-20261025/prod-v5-vps-to-k3s-runtime-and-acceptance-20261025.zh.md)。下文数据库别名、Docker、后台写入等结论保留各原采样背景，不当作本轮线上新观察。
 
 [当前 V5 环境总表](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/prod-v5-runtime-and-snapshot-baseline-20261023.zh.md)区分固定构件、按服务配置路径、数据库内部链路、代理节点心跳及全部验收状态。[公共 Console 故障与重验](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-public-console-route-repair.zh.md)补充“DNS 已到目标但 Caddy 未匹配公共域名、返回空 HTTP 200”的真实回归。
 

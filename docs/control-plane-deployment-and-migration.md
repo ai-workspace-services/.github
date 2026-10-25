@@ -9,7 +9,15 @@ Declaration contract: [GitOps #504](https://github.com/ai-workspace-infra/gitops
 [Follow-up #506](https://github.com/ai-workspace-infra/gitops/pull/506) is now verified merged at `af5799d83899e46331c1aaf0092165a5f6fb68f9`; declaration merge does not establish API runtime acceptance.
 The contract templates are illustrative and cannot execute with `example_only: true`.
 
-## Current V5 environment and public ingress
+## Generation records and evidence links
+
+The [V2–V5 evidence index](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/generation-deployment-evidence-index-20261025.zh.md) connects this guide → generation baselines → individual deployment/migration/recovery receipts → postmortems → regression cases at fixed source commits → revalidation. It is an evidence appendix to this existing process. V5 VPS and V5 K3s retain separate candidates, observations, recovery proofs and replay counts.
+
+Each run records its `run_id/attempt`, start/end in Asia/Shanghai, source/target logical identities and environment, immutable commits/tags and artifact/tool digests, schema/migration checksums, phase/status/exit code, cause/fix PR/case/retest, and controlled evidence ID. Reuse the [existing snapshot/recovery template](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v2-v3-20261019/web-saas-generation-snapshot-recovery-template.zh.md). Missing historical fields are `NOT_RECORDED`; a gate depending on them is `BLOCKED`; unexecuted stages are `NOT_RUN`. Explain `N/A` checksums. Build, deploy, migrate, restore, business acceptance, DNS/traffic and writer handoff have distinct outcomes. Local IDs are not invented Actions URLs; raw evidence stays in controlled storage.
+
+## V5 VPS historical environment and public ingress (2026-10-24 observation)
+
+See the [2026-10-25 PROD K3s baseline](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-k3s-20261025/prod-v5-vps-to-k3s-runtime-and-acceptance-20261025.zh.md) for the later hosting generation and remaining gates. The database-alias and ingress statements below retain their original VPS observation date; this documentation update performs no new runtime or cutover operations.
 
 The [current V5 environment record](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/prod-v5-runtime-and-snapshot-baseline-20261023.zh.md) separates immutable service references, configuration ownership, internal database routing, node registration and acceptance states. The [public Console incident receipt](https://github.com/ai-workspace-services/knowledge/blob/main/content/02-iac-devops/cloud-infrastructure-devsecops-baseline/records/prod-v5-20261023/20261024-prod-v5-public-console-route-repair.zh.md) proves why a correct CNAME was insufficient: the missing Caddy host matcher returned an empty HTTP 200 and a blank browser page.
 

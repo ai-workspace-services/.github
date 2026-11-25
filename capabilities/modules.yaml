@@ -267,6 +267,22 @@ modules:
         guard: {require_login: true, roles: [admin, operator]}
         redirect: {unauthenticated: /login, forbidden: /panel}
         sidebar: {section: admin, order: 12, hidden: true}
+      - id: ops-crawler-protection
+        path: /panel/ops/crawler-protection
+        label: 爬虫防护
+        description: 运营工作台子模块
+        match: startsWith
+        guard: {require_login: true, roles: [admin, operator]}
+        redirect: {unauthenticated: /login, forbidden: /panel}
+        sidebar: {section: admin, order: 12, hidden: true}
+      - id: ops-traffic-dispatch
+        path: /panel/ops/traffic-dispatch
+        label: 流量调度
+        description: 运营工作台子模块
+        match: startsWith
+        guard: {require_login: true, roles: [admin, operator]}
+        redirect: {unauthenticated: /login, forbidden: /panel}
+        sidebar: {section: admin, order: 12, hidden: true}
 
   - id: portal.builtin.infra
     owner_repo: ai-workspace-services/portal
